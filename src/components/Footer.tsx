@@ -1,6 +1,6 @@
 const Footer = () => (
-  <footer className="Footer p-4 bg-[var(--footer-bg)] text-[var(--footer-text)] text-center">
-    <p>&copy; 2024 ChibiBadminton. All rights reserved.</p>
+  <footer className="Footer p-4 bg-slate-500 text-white text-center w-full mt-8 fixed bottom-0 left-0 right-0 mt-4">
+    <p>&copy; 2026 ChibiBadminton. All rights reserved.</p>
   </footer>
 );
 
