@@ -48,13 +48,13 @@ const HomePage = () => {
           ))}
         </div>
 
-        <p className="text-base md:text-xl mb-6 max-w-5xl mx-auto text-center font-medium px-4">
+        <p className="text-md md:text-lg mb-6 max-w-5xl mx-auto text-center px-4 text-black">
           Your ultimate resource for all things badminton. Whether you're a
           beginner or a seasoned pro, join our community to stay updated on
           events, tips, and exclusive content.
         </p>
         {/* Featured Images Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 bg-gray-100 p-6 md:p-8 rounded-lg mb-16 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 bg-slate-50 p-6 md:p-8 rounded-lg mb-16 max-w-7xl mx-auto">
 
           {/* Left Image */}
           <div className="text-center">
@@ -81,7 +81,7 @@ const HomePage = () => {
           </div>
 
           {/* Note Section — centered under both images */}
-          <div className="text-center text-md md:text-lg md:col-span-2">
+          <div className="text-center text-md md:text-lg md:col-span-2 text-black">
             Please contact us for any questions or to schedule a time.
             Please check the events page for the most up to date information.
           </div>
@@ -89,12 +89,12 @@ const HomePage = () => {
         </div>
 
         {/* Call to Action Section */}
-        <section className="bg-gray-100 py-16 px-4 md:px-8 w-full">
+        <section className="bg-slate-50 py-16 px-4 md:px-8 w-full">
           <div className="max-w-4xl mx-auto text-center w-full">
-            <h2 className="text-2xl md:text-4xl font-bold mb-4">
+            <h2 className="text-2xl md:text-4xl font-bold mb-4 text-black">
               Ready to Join the Fun?
             </h2>
-            <p className="text-base md:text-xl mb-8 text-gray-600">
+            <p className="text-center text-md md:text-lg md:col-span-2 mb-6 text-black">
               Whether you're a beginner or a pro, there's a place for you in our
               community.
             </p>
