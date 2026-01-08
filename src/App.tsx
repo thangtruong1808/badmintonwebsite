@@ -32,9 +32,9 @@ function App() {
   };
 
   return (
-    <div className="app-container min-h-screen flex flex-col transition-all duration-300">
+    <div className="min-h-screen flex flex-col transition-all duration-300 w-full overflow-x-hidden">
       <Navbar setCurrentPage={setCurrentPage} />
-      <main className="flex-grow my-10">{renderPage()}</main>
+      <main className="flex-grow w-full pt-20 md:pt-24">{renderPage()}</main>
       <Footer />
     </div>
   );
