@@ -1,5 +1,4 @@
 import logo from "../assets/chibi-logo.png";
-import logo2 from "../assets/chibi-logo-2.png";
 
 const HomePage = () => (
   <div className="p-4 md:p-8 max-w-full mx-auto min-h-full">
