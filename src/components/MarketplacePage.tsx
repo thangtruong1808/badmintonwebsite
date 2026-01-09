@@ -324,7 +324,7 @@ const MarketplacePage = () => {
         {/* Products Grid - 5 columns */}
         <div className="mb-8">
           <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black text-center md:text-left">
-            Featured Products
+            Featured Services
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
             {products.map((product) => (

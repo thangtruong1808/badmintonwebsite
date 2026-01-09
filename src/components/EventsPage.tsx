@@ -1,5 +1,9 @@
-import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import type { FormEvent } from "react";
+import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers, FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
+import emailjs from "@emailjs/browser";
 import Banner from "../assets/BannerMain.png";
+import ChibiBattleRoyal from "../assets/ChibiBattleRoyal.png";
 
 interface Event {
   id: number;
@@ -16,86 +20,206 @@ interface Event {
 const events: Event[] = [
   {
     id: 1,
-    title: "Summer Badminton Tournament 2024",
-    date: "January 15, 2024",
+    title: "ChibiBadminton Battle Royale #1",
+    date: "November 11, 2023",
     time: "9:00 AM - 5:00 PM",
-    location: "Main Badminton Court",
-    description: "An exciting summer tournament featuring players from all skill levels. Join us for a day of competitive matches and fun!",
-    attendees: 45,
-    imageUrl: "https://picsum.photos/id/20/600/400",
+    location: "Altona Meadows Badminton Club",
+    description: "The first ever ChibiBadminton Battle Royale. 56 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
+    attendees: 56,
+    imageUrl: ChibiBattleRoyal as string,
     status: "completed",
   },
   {
     id: 2,
-    title: "Weekly Social Badminton Session",
-    date: "January 22, 2024",
-    time: "7:00 PM - 10:00 PM",
-    location: "Community Sports Center",
-    description: "Regular weekly session for badminton enthusiasts. All levels welcome!",
-    attendees: 32,
-    imageUrl: "https://picsum.photos/id/25/600/400",
+    title: "ChibiBadminton Battle Royale #2",
+    date: "December 16, 2024",
+    time: "9:00 AM - 5:00 PM",
+    location: "Altona Meadows Badminton Club",
+    description: "The second ever ChibiBadminton Battle Royale. 104 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
+    attendees: 68,
+    imageUrl: ChibiBattleRoyal as string,
     status: "completed",
   },
   {
     id: 3,
-    title: "ChibiBadminton Championship Finals",
-    date: "February 5, 2024",
-    time: "10:00 AM - 6:00 PM",
-    location: "Olympic Badminton Hall",
-    description: "The grand finale of our championship series. Watch the best players compete for the title!",
-    attendees: 80,
-    imageUrl: "https://picsum.photos/id/30/600/400",
+    title: "ChibiBadminton Battle Royale #3",
+    date: "November 12, 2025",
+    time: "9:00 AM - 5:00 PM",
+    location: "Altona Meadows Badminton Club",
+    description: "The third ever ChibiBadminton Battle Royale. 104 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
+    attendees: 68,
+    imageUrl: ChibiBattleRoyal as string,
     status: "completed",
   },
   {
     id: 4,
-    title: "Beginner's Workshop & Practice",
-    date: "February 12, 2024",
-    time: "6:00 PM - 8:00 PM",
-    location: "Training Court A",
-    description: "Perfect for beginners! Learn basic techniques and practice with fellow newcomers.",
-    attendees: 25,
-    imageUrl: "https://picsum.photos/id/40/600/400",
-    status: "completed",
-  },
-  {
-    id: 5,
-    title: "Social Mixer - Badminton & BBQ",
-    date: "February 20, 2024",
-    time: "5:00 PM - 10:00 PM",
-    location: "Outdoor Courts & BBQ Area",
-    description: "Combine your love for badminton with great food! Social mixer event with BBQ dinner.",
-    attendees: 60,
-    imageUrl: "https://picsum.photos/id/50/600/400",
-    status: "completed",
-  },
-  {
-    id: 6,
-    title: "Advanced Skills Clinic",
-    date: "March 1, 2024",
-    time: "2:00 PM - 5:00 PM",
-    location: "Advanced Training Facility",
-    description: "For intermediate and advanced players. Focus on advanced techniques and strategies.",
-    attendees: 28,
-    imageUrl: "https://picsum.photos/id/60/600/400",
-    status: "completed",
-  },
-  {
-    id: 7,
-    title: "Spring Badminton Open",
-    date: "March 15, 2024",
-    time: "9:00 AM - 6:00 PM",
-    location: "Spring Sports Complex",
-    description: "Annual spring tournament open to all members. Register now!",
+    title: "ChibiBadminton Battle Royale #4",
+    date: "Expected date: December 2026",
+    time: "Expected time: 9:00 AM - 5:00 PM",
+    location: "Expected location: Krisna Badminton Club and Stomers Badminton Club",
+    description: "Expected description: The fourth ever ChibiBadminton Battle Royale is officially in the works!\n\nThe event is planned to open in December 2026, bringing together many players to compete for the title of ChibiBadminton Champion. We're excited to build on the success of previous tournaments and deliver the biggest Battle Royale yet. More information will be released soon.",
     attendees: 0,
-    imageUrl: "https://picsum.photos/id/70/600/400",
+    imageUrl: ChibiBattleRoyal as string,
     status: "upcoming",
   },
 ];
 
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+}
+
+interface FormErrors {
+  name?: string;
+  email?: string;
+  phone?: string;
+  subject?: string;
+  message?: string;
+}
+
 const EventsPage = () => {
   const completedEvents = events.filter((event) => event.status === "completed");
   const upcomingEvents = events.filter((event) => event.status === "upcoming");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
+
+  // Initialize EmailJS with public key
+  useEffect(() => {
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+    if (publicKey && publicKey !== "YOUR_PUBLIC_KEY") {
+      emailjs.init(publicKey);
+    }
+  }, []);
+
+  const openRegistrationModal = (event: Event) => {
+    setSelectedEvent(event);
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      subject: `Registration for ${event.title}`,
+      message: `I would like to register for ${event.title}.\n\nEvent Details:\n- Date: ${event.date}\n- Time: ${event.time}\n- Location: ${event.location}\n\nPlease confirm my registration.`,
+    });
+    setIsModalOpen(true);
+    setErrors({});
+    setSubmitStatus({ type: null, message: "" });
+  };
+
+  const closeRegistrationModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
+    setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    setErrors({});
+    setSubmitStatus({ type: null, message: "" });
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (formData.phone && !/^[\d\s\-\+\(\)]+$/.test(formData.phone)) {
+      newErrors.phone = "Please enter a valid phone number";
+    }
+
+    if (!formData.subject.trim()) {
+      newErrors.subject = "Subject is required";
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = "Message is required";
+    } else if (formData.message.trim().length < 10) {
+      newErrors.message = "Message must be at least 10 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: "" });
+
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+    const toEmail = "help@ChibiBadminton.com.au";
+
+    if (!serviceId || !templateId || !publicKey || publicKey === "YOUR_PUBLIC_KEY") {
+      // Fallback to mailto link
+      const mailtoLink = `mailto:${toEmail}?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || "Not provided"}\nMessage: ${formData.message}`)}`;
+      window.location.href = mailtoLink;
+      setSubmitStatus({ type: "success", message: "Email client opened. Please send the email." });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      await emailjs.send(
+        serviceId,
+        templateId,
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          phone: formData.phone || "Not provided",
+          subject: formData.subject,
+          message: formData.message,
+          to_email: toEmail,
+        },
+        publicKey
+      );
+      setSubmitStatus({ type: "success", message: "Your registration has been submitted successfully! We'll contact you soon." });
+      setFormData((prev) => ({ ...prev, name: "", email: "", phone: "" }));
+      setErrors({});
+    } catch (error) {
+      console.error("Failed to send email:", error);
+      setSubmitStatus({ type: "error", message: "Failed to submit registration. Please try again later." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="w-full overflow-x-hidden">
@@ -122,7 +246,7 @@ const EventsPage = () => {
         </div>
       </div>
 
-      <div className="px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto min-h-full">
+      <div className="px-4 md:px-8  max-w-7xl mx-auto min-h-full">
         {/* Upcoming Events Section - Full Width */}
         {upcomingEvents.length > 0 && (
           <section className="mb-16">
@@ -141,41 +265,44 @@ const EventsPage = () => {
                   className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-green-500 w-full"
                 >
                   <div className="flex flex-col md:flex-row w-full">
-                    <div className="relative w-full md:w-1/3 h-64 md:h-auto overflow-hidden">
+                    <div className="relative w-full md:w-1/2 h-64 md:h-auto md:min-h-[400px] overflow-hidden bg-white border-r border-green-500">
                       <img
                         src={event.imageUrl}
                         alt={event.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-fill"
                       />
                       <div className="absolute top-4 left-4 bg-green-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
                         Upcoming
                       </div>
                     </div>
-                    <div className="w-full md:w-2/3 p-6 md:p-8 flex flex-col justify-between">
+                    <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-between">
                       <div>
                         <h3 className="text-2xl md:text-3xl font-bold mb-4 text-black">
                           {event.title}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                           <div className="flex items-center text-gray-600">
-                            <FaCalendarAlt className="mr-3 text-green-600" size={18} />
+                            <FaCalendarAlt className="mr-1 text-green-600" size={18} />
                             <span className="text-base">{event.date}</span>
                           </div>
                           <div className="flex items-center text-gray-600">
-                            <FaClock className="mr-3 text-green-600" size={18} />
+                            <FaClock className="mr-1 text-green-600" size={18} />
                             <span className="text-base">{event.time}</span>
                           </div>
                           <div className="flex items-center text-gray-600 md:col-span-2">
-                            <FaMapMarkerAlt className="mr-3 text-green-600" size={18} />
+                            <FaMapMarkerAlt className="mr-1 text-green-600" size={18} />
                             <span className="text-base">{event.location}</span>
                           </div>
                         </div>
-                        <p className="text-gray-700 text-base mb-6 leading-relaxed">
+                        <p className="text-gray-700 text-base mb-6 leading-relaxed text-justify justify-center">
                           {event.description}
                         </p>
                       </div>
                       <div className="flex flex-col sm:flex-row gap-4">
-                        <button className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 text-lg">
+                        <button
+                          onClick={() => openRegistrationModal(event)}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 text-lg"
+                        >
                           Register Now
                         </button>
                         <button className="flex-1 bg-white hover:bg-gray-50 text-green-600 border-2 border-green-600 font-semibold py-3 px-6 rounded-lg transition duration-300 text-lg">
@@ -269,6 +396,226 @@ const EventsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Registration Form Modal */}
+      {isModalOpen && selectedEvent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+              <h2 className="text-2xl md:text-2xl font-bold text-black">
+                Register for {selectedEvent.title}
+              </h2>
+              <button
+                onClick={closeRegistrationModal}
+                className="text-gray-500 hover:text-gray-700 transition-colors duration-300"
+                aria-label="Close modal"
+              >
+                <FaTimes size={24} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 md:p-8">
+              {/* Event Info */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-green-800 mb-2">Event Details:</h3>
+                <div className="space-y-1 text-sm text-green-700">
+                  <div className="flex items-center">
+                    <FaCalendarAlt className="mr-2" size={14} />
+                    <span>{selectedEvent.date}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <FaClock className="mr-2" size={14} />
+                    <span>{selectedEvent.time}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <FaMapMarkerAlt className="mr-2" size={14} />
+                    <span>{selectedEvent.location}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Registration Form */}
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Name Field */}
+                <div>
+                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <FaUser className="inline mr-2" size={14} />
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.name
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-green-500"
+                      }`}
+                    placeholder="Enter your full name"
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                      <FaExclamationCircle className="mr-1" size={12} />
+                      {errors.name}
+                    </p>
+                  )}
+                </div>
+
+                {/* Email Field */}
+                <div>
+                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <FaEnvelope className="inline mr-2" size={14} />
+                    Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.email
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-green-500"
+                      }`}
+                    placeholder="Enter your email address"
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                      <FaExclamationCircle className="mr-1" size={12} />
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+
+                {/* Phone Field */}
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <FaPhone className="inline mr-2" size={14} />
+                    Phone Number <span className="text-gray-500 text-xs">(Optional)</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.phone
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-green-500"
+                      }`}
+                    placeholder="Enter your phone number"
+                  />
+                  {errors.phone && (
+                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                      <FaExclamationCircle className="mr-1" size={12} />
+                      {errors.phone}
+                    </p>
+                  )}
+                </div>
+
+                {/* Subject Field */}
+                <div>
+                  <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Subject <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.subject
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-green-500"
+                      }`}
+                    placeholder="Subject"
+                  />
+                  {errors.subject && (
+                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                      <FaExclamationCircle className="mr-1" size={12} />
+                      {errors.subject}
+                    </p>
+                  )}
+                </div>
+
+                {/* Message Field */}
+                <div>
+                  <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+                    Additional Message <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    rows={6}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 resize-none ${errors.message
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-green-500"
+                      }`}
+                    placeholder="Enter your message or any additional information"
+                  />
+                  {errors.message && (
+                    <p className="mt-1 text-sm text-red-500 flex items-center">
+                      <FaExclamationCircle className="mr-1" size={12} />
+                      {errors.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Submit Status */}
+                {submitStatus.message && (
+                  <div
+                    className={`p-4 rounded-lg flex items-center ${submitStatus.type === "success"
+                      ? "bg-green-50 text-green-800 border border-green-200"
+                      : "bg-red-50 text-red-800 border border-red-200"
+                      }`}
+                  >
+                    {submitStatus.type === "success" ? (
+                      <FaCheckCircle className="mr-2" size={20} />
+                    ) : (
+                      <FaExclamationCircle className="mr-2" size={20} />
+                    )}
+                    <span className="text-sm font-medium">{submitStatus.message}</span>
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="animate-spin">⏳</span>
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FaPaperPlane size={16} />
+                        <span>Submit Registration</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeRegistrationModal}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-300"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

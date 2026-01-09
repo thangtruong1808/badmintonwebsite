@@ -111,7 +111,7 @@ const HomePage = () => {
         </div>
 
         {/* Call to Action Section */}
-        <section className="bg-white py-16 px-4 md:px-8 w-full">
+        <section className="bg-slate-50 py-16 px-4 md:px-8 w-full rounded-lg shadow-lg">
           <div className="max-w-4xl mx-auto text-center w-full">
             <h2 className="text-2xl md:text-4xl font-bold mb-4 text-gray-700">
               Ready to Join the Fun?
