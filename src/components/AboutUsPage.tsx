@@ -1,4 +1,5 @@
 import { FaUsers, FaTrophy, FaCalendarAlt, FaHeart, FaBullseye, FaHandshake } from "react-icons/fa";
+import { GiShuttlecock } from "react-icons/gi";
 import Banner from "../assets/BannerMain.png";
 
 const AboutUsPage = () => {
@@ -173,7 +174,7 @@ const AboutUsPage = () => {
 
         {/* What We Offer Section */}
         <section className="mb-16">
-          <div className="bg-slate-50 rounded-lg shadow-lg p-8 md:p-12">
+          <div className="bg-gradient-to-br from-slate-50 to-slate-200 rounded-lg shadow-lg p-8 md:p-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-black">
               What We Offer
             </h2>
@@ -214,7 +215,7 @@ const AboutUsPage = () => {
 
         {/* Call to Action Section */}
         <section className="text-center">
-          <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg shadow-xl p-8 md:p-12 text-white">
+          <div className="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow-xl p-8 md:p-12 text-white">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Join Our Community Today!
             </h2>
@@ -223,12 +224,10 @@ const AboutUsPage = () => {
               social groups. Come experience the ChibiBadminton difference!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-green-600 hover:bg-gray-100 font-bold py-3 px-8 rounded-lg text-lg transition duration-300">
-                Join Now
-              </button>
-              <button className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-green-600 font-bold py-3 px-8 rounded-lg text-lg transition duration-300">
-                Learn More
-              </button>
+              <span className="flex items-center justify-center gap-2 text-xl md:text-2xl lg:text-3xl  text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300">
+                <GiShuttlecock size={35} />
+                Let's Play!
+              </span>
             </div>
           </div>
         </section>

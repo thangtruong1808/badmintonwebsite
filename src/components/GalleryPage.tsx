@@ -20,21 +20,27 @@ const GalleryPage = () => {
   const videos = [
     {
       id: 1,
-      title: "Summer Tournament Highlights",
-      embedId: "dQw4w9WgXcQ",
-      thumbnail: "https://picsum.photos/id/120/400/225",
+      title: "Chibi Wednesday Playtime",
+      embedId: "-BW1Cf0IPX8",
+      thumbnail: "https://img.youtube.com/vi/-BW1Cf0IPX8/0.jpg",
     },
     {
       id: 2,
-      title: "Championship Finals Recap",
-      embedId: "dQw4w9WgXcQ",
-      thumbnail: "https://picsum.photos/id/130/400/225",
+      title: "Chibi Friday Playtime",
+      embedId: "d3RmpKNzgsI",
+      thumbnail: "https://img.youtube.com/vi/d3RmpKNzgsI/0.jpg",
     },
     {
       id: 3,
-      title: "Community Social Event",
-      embedId: "dQw4w9WgXcQ",
-      thumbnail: "https://picsum.photos/id/140/400/225",
+      title: "Chibi Badminton Battle Royale #1",
+      embedId: "cDn4hZ3pWFU",
+      thumbnail: "https://img.youtube.com/vi/cDn4hZ3pWFU/0.jpg",
+    },
+    {
+      id: 4,
+      title: "Chibi Badminton Veteran Tournament 2025 (Albury/Wodonga)",
+      embedId: "5Uq_Sv-b1K0",
+      thumbnail: "https://img.youtube.com/vi/5Uq_Sv-b1K0/0.jpg",
     },
   ];
 
@@ -119,36 +125,38 @@ const GalleryPage = () => {
               <p className="text-gray-600 mb-6 text-sm md:text-base">
                 Watch highlights and recaps from our events
               </p>
-              <div className="space-y-6">
-                {videos.map((video) => (
-                  <div
-                    key={video.id}
-                    className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-                  >
-                    <div className="relative aspect-video bg-gray-200">
-                      <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-all duration-300">
-                        <a
-                          href={`https://www.youtube.com/watch?v=${video.embedId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-700 transition-colors duration-300 transform hover:scale-110"
-                        >
-                          <FaPlay className="text-white ml-1" size={20} />
-                        </a>
+              <div className="overflow-y-auto max-h-[calc(3*(200px+1.5rem))] pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+                <div className="space-y-6">
+                  {videos.map((video) => (
+                    <div
+                      key={video.id}
+                      className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                    >
+                      <div className="relative aspect-video bg-gray-200">
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-all duration-300">
+                          <a
+                            href={`https://www.youtube.com/watch?v=${video.embedId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-700 transition-colors duration-300 transform hover:scale-110"
+                          >
+                            <FaPlay className="text-white ml-1" size={20} />
+                          </a>
+                        </div>
+                      </div>
+                      <div className="p-3 bg-white">
+                        <h3 className="font-semibold text-sm md:text-base text-black line-clamp-2">
+                          {video.title}
+                        </h3>
                       </div>
                     </div>
-                    <div className="p-3 bg-white">
-                      <h3 className="font-semibold text-sm md:text-base text-black line-clamp-2">
-                        {video.title}
-                      </h3>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
               <p className="text-xs md:text-sm text-gray-500 text-center mt-6 italic">
                 Stay tuned for more exciting video highlights!
