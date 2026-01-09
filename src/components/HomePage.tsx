@@ -35,7 +35,8 @@ const HomePage = () => {
             className="w-full h-full object-contain"
           />
           {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40"></div>
+          {/* bg-gradient-to-b from-black/40 via-black/30 to-black/40 */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40 opacity-50"></div>
 
           {/* Header Text Over Banner */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">

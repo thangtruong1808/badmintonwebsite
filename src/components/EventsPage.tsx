@@ -99,8 +99,8 @@ const EventsPage = () => {
 
   return (
     <div className="w-full overflow-x-hidden">
-      {/* Hero Banner Section - No gap to navbar */}
-      <div className="relative w-full overflow-hidden">
+      {/* Hero Banner Section - Entirely below navbar */}
+      <div className="relative w-full mb-12 overflow-hidden pt-16 md:pt-16">
         <div className="relative w-full h-[30vh] md:h-[30vh] lg:h-[30vh]">
           <img
             src={Banner}
@@ -108,7 +108,7 @@ const EventsPage = () => {
             className="w-full h-full object-contain"
           />
           {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40 opacity-50"></div>
 
           {/* Header Text Over Banner */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">

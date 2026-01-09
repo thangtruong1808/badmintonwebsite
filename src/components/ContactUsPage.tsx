@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import emailjs from "@emailjs/browser";
 import { FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
-import BannerContactUs from "../assets/Banner-ContactUs.png";
+import Banner from "../assets/BannerMain.png";
 
 interface FormData {
   name: string;
@@ -170,23 +170,23 @@ const ContactUsPage = () => {
 
   return (
     <div className="w-full overflow-x-hidden">
-      {/* Hero Banner Section */}
-      <div className="relative w-full mb-12 overflow-hidden">
+      {/* Hero Banner Section - Entirely below navbar */}
+      <div className="relative w-full mb-12 overflow-hidden pt-16 md:pt-16">
         <div className="relative w-full h-[30vh] md:h-[30vh] lg:h-[30vh]">
           <img
-            src={BannerContactUs}
+            src={Banner}
             alt="ChibiBadminton Banner"
             className="w-full h-full object-contain"
           />
           {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40 opacity-50"></div>
 
           {/* Header Text Over Banner */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 text-white drop-shadow-lg">
               Contact Us
             </h1>
-            <p className="text-base md:text-xl lg:text-2xl text-white max-w-3xl mx-auto drop-shadow-md">
+            <p className="text-base md:text-xl lg:text-2xl text-white max-w-3xl mx-auto drop-shadow-md font-medium">
               Have a question or want to join our badminton community? We'd love to hear from you!
             </p>
           </div>

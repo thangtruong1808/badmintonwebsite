@@ -62,6 +62,11 @@ const Navbar: React.FC = () => {
             setIsOpen={setIsOpen}
           />
           <NavItem
+            to="/marketplace"
+            pageName="Marketplace"
+            setIsOpen={setIsOpen}
+          />
+          <NavItem
             to="/contact-us"
             pageName="Contact Us"
             setIsOpen={setIsOpen}
@@ -150,6 +155,11 @@ const Navbar: React.FC = () => {
             <NavItem
               to="/gallery"
               pageName="Gallery"
+              setIsOpen={setIsOpen}
+            />
+            <NavItem
+              to="/marketplace"
+              pageName="Marketplace"
               setIsOpen={setIsOpen}
             />
             <NavItem
