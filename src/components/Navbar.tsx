@@ -103,26 +103,28 @@ const Navbar: React.FC = () => {
         {/* Mobile Menu Button */}
         <div className="md:hidden relative flex items-center space-x-3">
           {/* Social Media Icons - Mobile (visible when menu is closed) */}
-          <div className="flex items-center space-x-2">
-            <a
-              href="https://www.facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-[#1877F2] text-white hover:bg-[#166FE5] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-              aria-label="Facebook"
-            >
-              <FaFacebook size={16} />
-            </a>
-            <a
-              href="https://www.youtube.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-[#FF0000] text-white hover:bg-[#CC0000] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-              aria-label="YouTube"
-            >
-              <FaYoutube size={16} />
-            </a>
-          </div>
+          {!isOpen && (
+            <div className="flex items-center space-x-2">
+              <a
+                href="https://www.facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-[#1877F2] text-white hover:bg-[#166FE5] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
+                aria-label="Facebook"
+              >
+                <FaFacebook size={16} />
+              </a>
+              <a
+                href="https://www.youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-[#FF0000] text-white hover:bg-[#CC0000] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
+                aria-label="YouTube"
+              >
+                <FaYoutube size={16} />
+              </a>
+            </div>
+          )}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="text-white text-2xl focus:outline-none"
