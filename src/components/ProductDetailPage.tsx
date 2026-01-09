@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaCheckCircle, FaExclamationCircle, FaTimes, FaArrowLeft, FaCheck, FaTruck, FaShieldAlt } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
 import Banner from "../assets/BannerMain.png";
-import { products, type Product } from "./MarketplacePage";
+import { products } from "./MarketplacePage";
 
 interface FormData {
   name: string;
@@ -347,11 +347,10 @@ const ProductDetailPage = () => {
             <button
               onClick={() => setIsModalOpen(true)}
               disabled={!product.inStock}
-              className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg font-bold text-lg transition duration-300 mb-4 ${
-                product.inStock
-                  ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+              className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg font-bold text-lg transition duration-300 mb-4 ${product.inStock
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
             >
               <FaEnvelope size={20} />
               {product.inStock ? "Contact Us" : "Out of Stock"}
