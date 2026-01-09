@@ -116,7 +116,7 @@ const AboutUsPage = () => {
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold text-black">Our Mission</h3>
               </div>
-              <p className="text-gray-700 text-base md:text-lg leading-relaxed">
+              <p className="text-gray-700 text-base md:text-lg leading-relaxed text-justify">
                 To create an inclusive badminton community that promotes physical fitness,
                 skill development, and social connection. We aim to make badminton accessible
                 to players of all levels while fostering a supportive and competitive environment.
@@ -131,7 +131,7 @@ const AboutUsPage = () => {
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold text-black">Our Vision</h3>
               </div>
-              <p className="text-gray-700 text-base md:text-lg leading-relaxed">
+              <p className="text-gray-700 text-base md:text-lg leading-relaxed text-justify">
                 To become the premier badminton community in the region, known for excellence,
                 inclusivity, and the positive impact we make on our members' lives. We envision
                 a future where badminton brings people together and creates lasting friendships.
@@ -162,7 +162,7 @@ const AboutUsPage = () => {
                     <IconComponent className="text-green-600" size={28} />
                   </div>
                   <h3 className="text-xl font-bold mb-3 text-black">{value.title}</h3>
-                  <p className="text-gray-700 text-sm md:text-base leading-relaxed">
+                  <p className="text-gray-700 text-sm md:text-base leading-relaxed text-justify">
                     {value.description}
                   </p>
                 </div>

@@ -193,18 +193,18 @@ const ContactUsPage = () => {
         </div>
       </div>
 
-      <div className="px-4 md:px-8 py-8 md:py-12 max-w-6xl mx-auto min-h-full">
+      <div className="px-4 md:px-8 max-w-7xl mx-auto min-h-full">
         {/* Subtitle Section */}
         <div className="text-center mb-12">
-          <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl lg:text-2xl text-black max-w-2xl mx-auto">
             Send us a message and we'll respond as soon as possible.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-2">
           {/* Contact Information */}
           <div className="lg:col-span-1">
-            <div className="bg-slate-50 rounded-lg p-6 md:p-8 shadow-lg h-full">
+            <div className="bg-slate-50 rounded-lg p-6 md:p-8 shadow-lg h-full border border-slate-200">
               <h2 className="text-2xl font-bold mb-6 text-black">Get In Touch</h2>
 
               <div className="space-y-6">
@@ -235,7 +235,7 @@ const ContactUsPage = () => {
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg p-6 md:p-8 shadow-lg">
+            <div className="bg-white rounded-lg p-6 md:p-8 shadow-lg border border-slate-200">
               <h2 className="text-2xl font-bold mb-6 text-black">Send Us a Message</h2>
 
               {/* Status Messages */}
@@ -275,7 +275,7 @@ const ContactUsPage = () => {
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-green-500"
                       }`}
-                    placeholder="John Doe"
+                    placeholder="Your full name"
                   />
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-500">{errors.name}</p>
@@ -303,7 +303,7 @@ const ContactUsPage = () => {
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
-                      placeholder="john@example.com"
+                      placeholder="Your email address"
                     />
                     {errors.email && (
                       <p className="mt-1 text-sm text-red-500">{errors.email}</p>
@@ -391,7 +391,7 @@ const ContactUsPage = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300 ${isSubmitting
+                  className={`w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold p-3 px-8 rounded-lg text-lg transition duration-300 ${isSubmitting
                     ? "opacity-70 cursor-not-allowed"
                     : "hover:shadow-lg transform hover:-translate-y-0.5"
                     }`}
