@@ -20,9 +20,9 @@ const NavItem: React.FC<NavItemProps> = ({
     <Link
       to={to}
       onClick={() => setIsOpen(false)}
-      className={`block md:inline-block ml-0 md:ml-4 py-2 md:py-0 cursor-pointer transition-colors duration-300 ${isActive
-        ? "text-blue-400 font-semibold"
-        : "text-white hover:text-blue-400"
+      className={`block md:inline-block ml-0 md:ml-4 py-3 md:py-0 px-4 md:px-0 cursor-pointer transition-colors duration-300 border-b md:border-b-0 border-gray-600 md:border-0 ${isActive
+        ? "text-blue-400 font-semibold bg-gray-600 md:bg-transparent"
+        : "text-white hover:text-blue-400 hover:bg-gray-600 md:hover:bg-transparent"
         }`}
     >
       {pageName}
@@ -34,7 +34,7 @@ const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="p-4 bg-slate-500 text-white w-full fixed top-0 left-0 right-0 z-10">
+    <nav className="p-4 bg-slate-500 text-white w-full fixed top-0 left-0 right-0 z-50">
       <div className="flex items-center justify-between w-full">
         {/* LOGO + TEXT STACKED */}
         <Link to="/" className="flex flex-col items-start leading-tight">
@@ -135,59 +135,61 @@ const Navbar: React.FC = () => {
         </div>
       </div>
       {isOpen && (
-        <div className="md:hidden absolute right-4 top-full mt-2 bg-gray-700 p-4 rounded w-48 shadow-lg">
-          <NavItem
-            to="/"
-            pageName="Home"
-            setIsOpen={setIsOpen}
-          />
-          <NavItem
-            to="/events"
-            pageName="Events"
-            setIsOpen={setIsOpen}
-          />
-          <NavItem
-            to="/gallery"
-            pageName="Gallery"
-            setIsOpen={setIsOpen}
-          />
-          <NavItem
-            to="/contact-us"
-            pageName="Contact Us"
-            setIsOpen={setIsOpen}
-          />
-          <NavItem
-            to="/reviews"
-            pageName="Reviews"
-            setIsOpen={setIsOpen}
-          />
-          <NavItem
-            to="/about-us"
-            pageName="About Us"
-            setIsOpen={setIsOpen}
-          />
-          {/* Social Media Icons in Mobile Menu */}
-          <div className="flex items-center justify-center space-x-3 mt-4 pt-4 border-t border-gray-600">
-            <a
-              href="https://www.facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1877F2] text-white hover:bg-[#166FE5] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-              aria-label="Facebook"
-              onClick={() => setIsOpen(false)}
-            >
-              <FaFacebook size={18} />
-            </a>
-            <a
-              href="https://www.youtube.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FF0000] text-white hover:bg-[#CC0000] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-              aria-label="YouTube"
-              onClick={() => setIsOpen(false)}
-            >
-              <FaYoutube size={18} />
-            </a>
+        <div className="md:hidden absolute left-0 right-0 top-full bg-gray-700 shadow-xl w-full">
+          <div className="w-full">
+            <NavItem
+              to="/"
+              pageName="Home"
+              setIsOpen={setIsOpen}
+            />
+            <NavItem
+              to="/events"
+              pageName="Events"
+              setIsOpen={setIsOpen}
+            />
+            <NavItem
+              to="/gallery"
+              pageName="Gallery"
+              setIsOpen={setIsOpen}
+            />
+            <NavItem
+              to="/contact-us"
+              pageName="Contact Us"
+              setIsOpen={setIsOpen}
+            />
+            <NavItem
+              to="/reviews"
+              pageName="Reviews"
+              setIsOpen={setIsOpen}
+            />
+            <NavItem
+              to="/about-us"
+              pageName="About Us"
+              setIsOpen={setIsOpen}
+            />
+            {/* Social Media Icons in Mobile Menu */}
+            <div className="flex items-center justify-center space-x-3 py-4 border-t border-gray-600 px-4">
+              <a
+                href="https://www.facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1877F2] text-white hover:bg-[#166FE5] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
+                aria-label="Facebook"
+                onClick={() => setIsOpen(false)}
+              >
+                <FaFacebook size={18} />
+              </a>
+              <a
+                href="https://www.youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FF0000] text-white hover:bg-[#CC0000] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
+                aria-label="YouTube"
+                onClick={() => setIsOpen(false)}
+              >
+                <FaYoutube size={18} />
+              </a>
+            </div>
           </div>
         </div>
       )}

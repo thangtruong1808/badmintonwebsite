@@ -13,7 +13,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col transition-all duration-300 w-full overflow-x-hidden">
       <Navbar />
-      <main className="flex-grow w-full pt-20 md:pt-24">
+      <main className="flex-grow w-full">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/events" element={<EventsPage />} />

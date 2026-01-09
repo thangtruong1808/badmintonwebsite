@@ -1,5 +1,5 @@
 const GalleryPage = () => (
-  <div className="p-4 md:p-8 max-w-6xl mx-auto bg-[var(--bg-primary)] min-h-full">
+  <div className="pt-20 md:pt-24 p-4 md:p-8 max-w-6xl mx-auto bg-[var(--bg-primary)] min-h-full">
     <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">
       Our Gallery
     </h1>
