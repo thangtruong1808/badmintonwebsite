@@ -35,127 +35,86 @@ interface FormErrors {
 export const products: Product[] = [
   {
     id: 1,
-    name: "Professional Shuttlecocks (12-pack)",
-    price: 24.99,
-    originalPrice: 29.99,
-    image: "https://picsum.photos/id/200/400/400",
-    category: "Shuttlecocks",
+    name: "Yonex Exbolt 65",
+    price: 28,
+    originalPrice: 30,
+    image: "https://badmintonclick.com.au/cdn/shop/files/yonex-exbolt-65-0-65mm-badminton-200m-reel-black__76624_1024x.jpg?v=1695711815",
+    category: "Stringing Services",
     inStock: true,
   },
   {
     id: 2,
-    name: "Badminton Socks (3-pack)",
-    price: 15.99,
-    image: "https://picsum.photos/id/201/400/400",
-    category: "Socks",
+    name: "Yonex Exbolt 63",
+    price: 30,
+    image: "https://badmintonclick.com.au/cdn/shop/files/exbolt63_white_1024x.jpg?v=1744102637",
+    category: "Stringing Services",
     inStock: true,
   },
   {
     id: 3,
-    name: "Racket Stringing Service",
-    price: 18.00,
-    image: "https://picsum.photos/id/202/400/400",
-    category: "Services",
+    name: "Yonex BG80 Yellow Reel",
+    price: 30,
+    image: "https://badmintonclick.com.au/cdn/shop/files/bg80yellowreel_1024x.webp?v=1755679070",
+    category: "Stringing Services",
     inStock: true,
   },
   {
     id: 4,
-    name: "Sports Water Bottle (750ml)",
-    price: 12.99,
-    image: "https://picsum.photos/id/203/400/400",
-    category: "Accessories",
+    name: "Yonex BG80 Sky Blue Reel",
+    price: 30,
+    image: "https://badmintonclick.com.au/cdn/shop/files/bg80reelskyblue_1024x.jpg?v=1724045191",
+    category: "Stringing Services",
     inStock: true,
   },
   {
     id: 5,
-    name: "Premium Badminton Socks (5-pack)",
-    price: 22.99,
-    image: "https://picsum.photos/id/204/400/400",
-    category: "Socks",
+    name: "Yonex BG80 Neon Pink Reel",
+    price: 30,
+    image: "https://badmintonclick.com.au/cdn/shop/files/BG80-2_NEON-PINK_1_1024x.jpg?v=1755940982",
+    category: "Stringing Services",
     inStock: true,
   },
   {
     id: 6,
-    name: "Tournament Shuttlecocks (24-pack)",
-    price: 45.99,
-    originalPrice: 54.99,
-    image: "https://picsum.photos/id/205/400/400",
-    category: "Shuttlecocks",
+    name: "Yonex Exbolt 63 Red Reel",
+    price: 30,
+    image: "https://badmintonclick.com.au/cdn/shop/files/exbolt63redreel_1024x.jpg?v=1755942127",
+    category: "Stringing Services",
     inStock: true,
   },
   {
     id: 7,
-    name: "Grip Tape (3-pack)",
-    price: 8.99,
-    image: "https://picsum.photos/id/206/400/400",
-    category: "Accessories",
+    name: "Yonex Exbolt 63 Light Pink Reel",
+    price: 30,
+    image: "https://badmintonclick.com.au/cdn/shop/files/exbolt_63_light_pink_a0a04d01-5bcc-4524-bb87-197ac7d2dec9_1024x.jpg?v=1755941240",
+    category: "Stringing Services",
     inStock: true,
   },
   {
     id: 8,
-    name: "Wristband Set (2-pack)",
-    price: 6.99,
-    image: "https://picsum.photos/id/207/400/400",
-    category: "Accessories",
+    name: "Yonex Exbolt 63 Mint Reel",
+    price: 30,
+    image: "https://badmintonclick.com.au/cdn/shop/files/exbolt63_mint_a5c19fd8-9181-4b0a-b419-6b15a737af4b_1024x.jpg?v=1755941284",
+    category: "Stringing Services",
     inStock: true,
   },
   {
     id: 9,
-    name: "Badminton Bag (Medium)",
-    price: 35.99,
-    originalPrice: 42.99,
-    image: "https://picsum.photos/id/208/400/400",
-    category: "Accessories",
+    name: "Yonex BG80 White Reel",
+    price: 30,
+    image: "https://badmintonclick.com.au/cdn/shop/files/bg80reelwhite_1024x.jpg?v=1724045059",
+    category: "Stringing Services",
     inStock: true,
   },
   {
     id: 10,
-    name: "Training Shuttlecocks (6-pack)",
-    price: 14.99,
-    image: "https://picsum.photos/id/209/400/400",
-    category: "Shuttlecocks",
+    name: "Yonex Exbolt 68 White Reel",
+    price: 30,
+    image: "https://badmintonclick.com.au/cdn/shop/files/exbolt68whitereel_1024x.jpg?v=1724045586",
+    category: "Stringing Services",
     inStock: true,
   },
-  {
-    id: 11,
-    name: "Knee Pads (Pair)",
-    price: 19.99,
-    image: "https://picsum.photos/id/210/400/400",
-    category: "Accessories",
-    inStock: true,
-  },
-  {
-    id: 12,
-    name: "Elbow Support (Pair)",
-    price: 16.99,
-    image: "https://picsum.photos/id/211/400/400",
-    category: "Accessories",
-    inStock: true,
-  },
-  {
-    id: 13,
-    name: "Premium Stringing Service",
-    price: 25.00,
-    image: "https://picsum.photos/id/212/400/400",
-    category: "Services",
-    inStock: true,
-  },
-  {
-    id: 14,
-    name: "Sweatbands (4-pack)",
-    price: 9.99,
-    image: "https://picsum.photos/id/213/400/400",
-    category: "Accessories",
-    inStock: true,
-  },
-  {
-    id: 15,
-    name: "Badminton Towel",
-    price: 11.99,
-    image: "https://picsum.photos/id/214/400/400",
-    category: "Accessories",
-    inStock: true,
-  },
+
 ];
 
 const MarketplacePage = () => {
@@ -372,14 +331,14 @@ const MarketplacePage = () => {
               <div
                 key={product.id}
                 onClick={() => navigate(`/marketplace/product/${product.id}`)}
-                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group cursor-pointer flex flex-col"
+                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group cursor-pointer flex flex-col border border-slate-100"
               >
                 {/* Product Image */}
-                <div className="relative w-full h-40 md:h-48 overflow-hidden bg-gray-100 flex-shrink-0">
+                <div className="relative w-full h-60 md:h-60 overflow-hidden bg-white flex-shrink-0">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-contain  border-b border-slate-100"
                   />
                   {product.originalPrice && (
                     <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">

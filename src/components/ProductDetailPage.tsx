@@ -389,13 +389,13 @@ const ProductDetailPage = () => {
                 <div
                   key={relatedProduct.id}
                   onClick={() => navigate(`/marketplace/product/${relatedProduct.id}`)}
-                  className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden cursor-pointer"
+                  className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden cursor-pointer border border-slate-100"
                 >
-                  <div className="relative h-48 overflow-hidden bg-gray-100">
+                  <div className="relative h-60 md:h-60 overflow-hidden bg-white border-b border-slate-100">
                     <img
                       src={relatedProduct.image}
                       alt={relatedProduct.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   </div>
                   <div className="p-4">
