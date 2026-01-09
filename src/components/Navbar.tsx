@@ -1,75 +1,78 @@
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { FaFacebook, FaYoutube } from "react-icons/fa";
 
 interface NavItemProps {
-  setCurrentPage: (page: string) => void;
+  to: string;
   pageName: string;
   setIsOpen: (open: boolean) => void;
 }
 
 const NavItem: React.FC<NavItemProps> = ({
-  setCurrentPage,
+  to,
   pageName,
   setIsOpen,
-}) => (
-  <span
-    onClick={() => {
-      setCurrentPage(pageName);
-      setIsOpen(false);
-    }}
-    className="block md:inline-block ml-0 md:ml-4 text-white hover:text-blue-400 py-2 md:py-0 cursor-pointer transition-colors duration-00"
-  >
-    {pageName}
-  </span>
-);
+}) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
 
-interface NavbarProps {
-  setCurrentPage: (page: string) => void;
-}
+  return (
+    <Link
+      to={to}
+      onClick={() => setIsOpen(false)}
+      className={`block md:inline-block ml-0 md:ml-4 py-2 md:py-0 cursor-pointer transition-colors duration-300 ${isActive
+        ? "text-blue-400 font-semibold"
+        : "text-white hover:text-blue-400"
+        }`}
+    >
+      {pageName}
+    </Link>
+  );
+};
 
-const Navbar: React.FC<NavbarProps> = ({ setCurrentPage }) => {
+const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <nav className="p-4 bg-slate-500 text-white w-full fixed top-0 left-0 right-0 z-10">
       <div className="flex items-center justify-between w-full">
         {/* LOGO + TEXT STACKED */}
-        <div className="flex flex-col items-start leading-tight">
-          <span className="text-xl font-bold whitespace-nowrap">
+        <Link to="/" className="flex flex-col items-start leading-tight">
+          <span className="text-xl font-bold whitespace-nowrap text-white hover:text-blue-400 transition-colors duration-300">
             ChibiBadminton
           </span>
-        </div>
+        </Link>
 
         {/* RIGHT — nav items start from the left of this column */}
         <div className="hidden md:flex items-center space-x-6 justify-center flex-grow text-lg font-medium">
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/"
             pageName="Home"
             setIsOpen={setIsOpen}
           />
 
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/events"
             pageName="Events"
             setIsOpen={setIsOpen}
           />
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/gallery"
             pageName="Gallery"
             setIsOpen={setIsOpen}
           />
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/contact-us"
             pageName="Contact Us"
             setIsOpen={setIsOpen}
           />
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/reviews"
             pageName="Reviews"
             setIsOpen={setIsOpen}
           />
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/about-us"
             pageName="About Us"
             setIsOpen={setIsOpen}
           />
@@ -132,32 +135,32 @@ const Navbar: React.FC<NavbarProps> = ({ setCurrentPage }) => {
       {isOpen && (
         <div className="md:hidden absolute right-4 top-full mt-2 bg-gray-700 p-4 rounded w-48 shadow-lg">
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/"
             pageName="Home"
             setIsOpen={setIsOpen}
           />
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/events"
             pageName="Events"
             setIsOpen={setIsOpen}
           />
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/gallery"
             pageName="Gallery"
             setIsOpen={setIsOpen}
           />
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/contact-us"
             pageName="Contact Us"
             setIsOpen={setIsOpen}
           />
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/reviews"
             pageName="Reviews"
             setIsOpen={setIsOpen}
           />
           <NavItem
-            setCurrentPage={setCurrentPage}
+            to="/about-us"
             pageName="About Us"
             setIsOpen={setIsOpen}
           />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -10,31 +10,19 @@ import ReviewsPage from "./components/ReviewsPage";
 import AboutUsPage from "./components/AboutUsPage";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("Home");
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case "Home":
-        return <HomePage />;
-      case "Events":
-        return <EventsPage />;
-      case "Gallery":
-        return <GalleryPage />;
-      case "Contact Us":
-        return <ContactUsPage />;
-      case "Reviews":
-        return <ReviewsPage />;
-      case "About Us":
-        return <AboutUsPage />;
-      default:
-        return <HomePage />;
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col transition-all duration-300 w-full overflow-x-hidden">
-      <Navbar setCurrentPage={setCurrentPage} />
-      <main className="flex-grow w-full pt-20 md:pt-24">{renderPage()}</main>
+      <Navbar />
+      <main className="flex-grow w-full pt-20 md:pt-24">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/contact-us" element={<ContactUsPage />} />
+          <Route path="/reviews" element={<ReviewsPage />} />
+          <Route path="/about-us" element={<AboutUsPage />} />
+        </Routes>
+      </main>
       <Footer />
     </div>
   );

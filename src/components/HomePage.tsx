@@ -96,7 +96,7 @@ const HomePage = () => {
             </h2>
             <p className="text-center text-md md:text-lg md:col-span-2 mb-6 text-black">
               Whether you're a beginner or a pro, there's a place for you in our
-              community.
+              social groups.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300">
