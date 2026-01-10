@@ -1,35 +1,46 @@
-import { FaUsers, FaTrophy, FaCalendarAlt, FaHeart, FaBullseye, FaHandshake } from "react-icons/fa";
-import { GiShuttlecock } from "react-icons/gi";
+import {
+  FaUsers,
+  FaTrophy,
+  FaCalendarAlt,
+  FaHeart,
+  FaBullseye,
+  FaHandshake,
+} from "react-icons/fa";
+// import { GiShuttlecock } from "react-icons/gi";
 import Banner from "../assets/BannerMain.png";
 
 const AboutUsPage = () => {
   const stats = [
-    { icon: FaUsers, value: "200+", label: "Active Members" },
-    { icon: FaTrophy, value: "50+", label: "Tournaments" },
-    { icon: FaCalendarAlt, value: "100+", label: "Events Hosted" },
-    { icon: FaHeart, value: "4.9/5", label: "Member Rating" },
+    { icon: FaUsers, value: "100+", label: "Active Members" },
+    { icon: FaTrophy, value: "20+", label: "Tournaments" },
+    { icon: FaCalendarAlt, value: "3+", label: "Events Hosted" },
+    { icon: FaHeart, value: "4.7/5", label: "Member Rating" },
   ];
 
   const values = [
     {
       icon: FaUsers,
       title: "Community First",
-      description: "We believe in building a welcoming and inclusive community where everyone feels valued and supported.",
+      description:
+        "We believe in building a welcoming and inclusive community where everyone feels valued and supported.",
     },
     {
       icon: FaTrophy,
       title: "Excellence",
-      description: "We strive for excellence in everything we do, from organizing events to supporting player development.",
+      description:
+        "We strive for excellence in everything we do, from organizing events to supporting player development.",
     },
     {
       icon: FaHandshake,
       title: "Sportsmanship",
-      description: "Fair play, respect, and camaraderie are at the heart of our community values.",
+      description:
+        "Fair play, respect, and camaraderie are at the heart of our community values.",
     },
     {
       icon: FaBullseye,
       title: "Accessibility",
-      description: "Badminton should be accessible to everyone, regardless of skill level or background.",
+      description:
+        "Badminton should be accessible to everyone, regardless of skill level or background.",
     },
   ];
 
@@ -58,23 +69,25 @@ const AboutUsPage = () => {
         </div>
       </div>
 
-      <div className="px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto min-h-full">
+      <div className="px-4 md:px-8  max-w-7xl mx-auto min-h-full">
         {/* Introduction Section */}
         <section className="mb-16">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-black">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-700">
               Welcome to ChibiBadminton
             </h2>
             <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-6">
-              Founded in 2020, ChibiBadminton has grown into a vibrant community of
-              badminton enthusiasts. Our mission is to make badminton accessible to
-              everyone, from casual players to competitive athletes.
+              Founded in 2020, ChibiBadminton has grown into a vibrant community
+              of badminton enthusiasts. Our mission is to make badminton
+              accessible to everyone, from casual players to competitive
+              athletes.
             </p>
             <p className="text-base md:text-lg text-gray-700 leading-relaxed">
-              We organize regular tournaments, training sessions, and social events to
-              foster skill development and camaraderie among our members. Whether you're
-              looking to improve your game, meet new people, or simply have fun, you'll
-              find a welcoming home at ChibiBadminton.
+              We organize regular tournaments, training sessions, and social
+              events to foster skill development and camaraderie among our
+              members. Whether you're looking to improve your game, meet new
+              people, or simply have fun, you'll find a welcoming home at
+              ChibiBadminton.
             </p>
           </div>
         </section>
@@ -90,11 +103,11 @@ const AboutUsPage = () => {
                   className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
                   <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                      <IconComponent className="text-green-600" size={32} />
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
+                      <IconComponent className="text-gray-800" size={32} />
                     </div>
                   </div>
-                  <div className="text-3xl md:text-4xl font-bold text-black mb-2">
+                  <div className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
                     {stat.value}
                   </div>
                   <div className="text-sm md:text-base text-gray-600 font-medium">
@@ -110,32 +123,38 @@ const AboutUsPage = () => {
         <section className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {/* Mission */}
-            <div className="bg-gradient-to-br from-green-50 to-slate-50 rounded-lg shadow-lg p-8 md:p-10">
+            <div className="bg-white rounded-lg shadow-lg p-8 md:p-10">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mr-4">
-                  <FaBullseye className="text-white" size={24} />
+                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mr-4">
+                  <FaBullseye className="text-gray-800" size={24} />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-black">Our Mission</h3>
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-800">
+                  Our Mission
+                </h3>
               </div>
               <p className="text-gray-700 text-base md:text-lg leading-relaxed text-justify">
-                To create an inclusive badminton community that promotes physical fitness,
-                skill development, and social connection. We aim to make badminton accessible
-                to players of all levels while fostering a supportive and competitive environment.
+                To create an inclusive badminton community that promotes
+                physical fitness, skill development, and social connection. We
+                aim to make badminton accessible to players of all levels while
+                fostering a supportive and competitive environment.
               </p>
             </div>
 
             {/* Vision */}
-            <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-lg shadow-lg p-8 md:p-10">
+            <div className="bg-white rounded-lg shadow-lg p-8 md:p-10">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mr-4">
-                  <FaTrophy className="text-white" size={24} />
+                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mr-4">
+                  <FaTrophy className="text-gray-800" size={24} />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-black">Our Vision</h3>
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-800">
+                  Our Vision
+                </h3>
               </div>
               <p className="text-gray-700 text-base md:text-lg leading-relaxed text-justify">
-                To become the premier badminton community in the region, known for excellence,
-                inclusivity, and the positive impact we make on our members' lives. We envision
-                a future where badminton brings people together and creates lasting friendships.
+                To become the premier badminton community in the region, known
+                for excellence, inclusivity, and the positive impact we make on
+                our members' lives. We envision a future where badminton brings
+                people together and creates lasting friendships.
               </p>
             </div>
           </div>
@@ -144,7 +163,7 @@ const AboutUsPage = () => {
         {/* Core Values Section */}
         <section className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-black">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-700">
               Our Core Values
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -159,10 +178,12 @@ const AboutUsPage = () => {
                   key={index}
                   className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
-                  <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <IconComponent className="text-green-600" size={28} />
+                  <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <IconComponent className="text-gray-800" size={28} />
                   </div>
-                  <h3 className="text-xl font-bold mb-3 text-black">{value.title}</h3>
+                  <h3 className="text-xl font-bold mb-3 text-gray-800">
+                    {value.title}
+                  </h3>
                   <p className="text-gray-700 text-sm md:text-base leading-relaxed text-justify">
                     {value.description}
                   </p>
@@ -174,39 +195,45 @@ const AboutUsPage = () => {
 
         {/* What We Offer Section */}
         <section className="mb-16">
-          <div className="bg-gradient-to-br from-slate-50 to-slate-200 rounded-lg shadow-lg p-8 md:p-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-black">
+          <div className="bg-white rounded-lg shadow-lg p-8 md:p-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-gray-800">
               What We Offer
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               <div className="text-center">
-                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaCalendarAlt className="text-white" size={32} />
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaCalendarAlt className="text-gray-800" size={32} />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-black">Regular Sessions</h3>
+                <h3 className="text-xl font-bold mb-3 text-gray-800">
+                  Regular Sessions
+                </h3>
                 <p className="text-gray-700">
-                  Weekly badminton sessions every Wednesday and Friday from 7:00 PM to 10:00 PM.
-                  Perfect for players of all skill levels.
+                  Weekly badminton sessions every Wednesday and Friday from 7:00
+                  PM to 10:00 PM. Perfect for players of all skill levels.
                 </p>
               </div>
               <div className="text-center">
-                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaTrophy className="text-white" size={32} />
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaTrophy className="text-gray-800" size={32} />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-black">Tournaments</h3>
+                <h3 className="text-xl font-bold mb-3 text-gray-800">
+                  Tournaments
+                </h3>
                 <p className="text-gray-700">
-                  Exciting tournaments and championships throughout the year. Compete, improve,
-                  and have fun with fellow members.
+                  Exciting tournaments and championships throughout the year.
+                  Compete, improve, and have fun with fellow members.
                 </p>
               </div>
               <div className="text-center">
-                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaUsers className="text-white" size={32} />
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaUsers className="text-gray-800" size={32} />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-black">Community Events</h3>
+                <h3 className="text-xl font-bold mb-3 text-gray-800">
+                  Community Events
+                </h3>
                 <p className="text-gray-700">
-                  Social mixers, workshops, and special events that bring our community together
-                  beyond the court.
+                  Social mixers, workshops, and special events that bring our
+                  community together beyond the court.
                 </p>
               </div>
             </div>
@@ -214,7 +241,7 @@ const AboutUsPage = () => {
         </section>
 
         {/* Call to Action Section */}
-        <section className="text-center">
+        {/* <section className="text-center">
           <div className="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow-xl p-8 md:p-12 text-white">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Join Our Community Today!
@@ -230,7 +257,7 @@ const AboutUsPage = () => {
               </span>
             </div>
           </div>
-        </section>
+        </section> */}
       </div>
     </div>
   );

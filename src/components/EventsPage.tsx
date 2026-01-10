@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
-import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUsers, FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
+import {
+  FaCalendarAlt,
+  FaClock,
+  FaMapMarkerAlt,
+  FaUsers,
+  FaEnvelope,
+  FaUser,
+  FaPhone,
+  FaPaperPlane,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaTimes,
+} from "react-icons/fa";
 import emailjs from "@emailjs/browser";
 import Banner from "../assets/BannerMain.png";
 import ChibiBattleRoyal from "../assets/ChibiBattleRoyal.png";
@@ -20,44 +32,49 @@ interface Event {
 const events: Event[] = [
   {
     id: 1,
-    title: "ChibiBadminton Battle Royale #1",
+    title: "Chibi Battle Royale #1",
     date: "November 11, 2023",
     time: "9:00 AM - 5:00 PM",
     location: "Altona Meadows Badminton Club",
-    description: "The first ever ChibiBadminton Battle Royale. 56 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
+    description:
+      "The first ever ChibiBadminton Battle Royale. 56 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
     attendees: 56,
     imageUrl: ChibiBattleRoyal as string,
     status: "completed",
   },
   {
     id: 2,
-    title: "ChibiBadminton Battle Royale #2",
+    title: "Chibi Battle Royale #2",
     date: "December 16, 2024",
     time: "9:00 AM - 5:00 PM",
     location: "Altona Meadows Badminton Club",
-    description: "The second ever ChibiBadminton Battle Royale. 104 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
+    description:
+      "The second ever ChibiBadminton Battle Royale. 104 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
     attendees: 68,
     imageUrl: ChibiBattleRoyal as string,
     status: "completed",
   },
   {
     id: 3,
-    title: "ChibiBadminton Battle Royale #3",
+    title: "Chibi Battle Royale #3",
     date: "November 12, 2025",
     time: "9:00 AM - 5:00 PM",
     location: "Altona Meadows Badminton Club",
-    description: "The third ever ChibiBadminton Battle Royale. 104 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
+    description:
+      "The third ever ChibiBadminton Battle Royale. 104 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
     attendees: 68,
     imageUrl: ChibiBattleRoyal as string,
     status: "completed",
   },
   {
     id: 4,
-    title: "ChibiBadminton Battle Royale #4",
+    title: "Chibi Battle Royale #4",
     date: "Expected date: December 2026",
     time: "Expected time: 9:00 AM - 5:00 PM",
-    location: "Expected location: Krisna Badminton Club and Stomers Badminton Club",
-    description: "Expected description: The fourth ever ChibiBadminton Battle Royale is officially in the works!\n\nThe event is planned to open in December 2026, bringing together many players to compete for the title of ChibiBadminton Champion. We're excited to build on the success of previous tournaments and deliver the biggest Battle Royale yet. More information will be released soon.",
+    location:
+      "Expected location: Krisna Badminton Club and Stomers Badminton Club",
+    description:
+      "Expected description: The fourth ever ChibiBadminton Battle Royale is officially in the works!\n\nThe event is planned to open in December 2026, bringing together many players to compete for the title of ChibiBadminton Champion. We're excited to build on the success of previous tournaments and deliver the biggest Battle Royale yet. More information will be released soon.",
     attendees: 0,
     imageUrl: ChibiBattleRoyal as string,
     status: "upcoming",
@@ -81,7 +98,9 @@ interface FormErrors {
 }
 
 const EventsPage = () => {
-  const completedEvents = events.filter((event) => event.status === "completed");
+  const completedEvents = events.filter(
+    (event) => event.status === "completed"
+  );
   const upcomingEvents = events.filter((event) => event.status === "upcoming");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -185,13 +204,28 @@ const EventsPage = () => {
     const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
     const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
     const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-    const toEmail = "help@ChibiBadminton.com.au";
+    const toEmail =
+      import.meta.env.VITE_EMAIL_TO || "help@ChibiBadminton.com.au";
 
-    if (!serviceId || !templateId || !publicKey || publicKey === "YOUR_PUBLIC_KEY") {
+    if (
+      !serviceId ||
+      !templateId ||
+      !publicKey ||
+      publicKey === "YOUR_PUBLIC_KEY"
+    ) {
       // Fallback to mailto link
-      const mailtoLink = `mailto:${toEmail}?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || "Not provided"}\nMessage: ${formData.message}`)}`;
+      const mailtoLink = `mailto:${toEmail}?subject=${encodeURIComponent(
+        formData.subject
+      )}&body=${encodeURIComponent(
+        `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${
+          formData.phone || "Not provided"
+        }\nMessage: ${formData.message}`
+      )}`;
       window.location.href = mailtoLink;
-      setSubmitStatus({ type: "success", message: "Email client opened. Please send the email." });
+      setSubmitStatus({
+        type: "success",
+        message: "Email client opened. Please send the email.",
+      });
       setIsSubmitting(false);
       return;
     }
@@ -210,12 +244,19 @@ const EventsPage = () => {
         },
         publicKey
       );
-      setSubmitStatus({ type: "success", message: "Your registration has been submitted successfully! We'll contact you soon." });
+      setSubmitStatus({
+        type: "success",
+        message:
+          "Your registration has been submitted successfully! We'll contact you soon.",
+      });
       setFormData((prev) => ({ ...prev, name: "", email: "", phone: "" }));
       setErrors({});
     } catch (error) {
       console.error("Failed to send email:", error);
-      setSubmitStatus({ type: "error", message: "Failed to submit registration. Please try again later." });
+      setSubmitStatus({
+        type: "error",
+        message: "Failed to submit registration. Please try again later.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -282,15 +323,24 @@ const EventsPage = () => {
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                           <div className="flex items-center text-gray-600">
-                            <FaCalendarAlt className="mr-1 text-green-600" size={18} />
+                            <FaCalendarAlt
+                              className="mr-1 text-green-600"
+                              size={18}
+                            />
                             <span className="text-base">{event.date}</span>
                           </div>
                           <div className="flex items-center text-gray-600">
-                            <FaClock className="mr-1 text-green-600" size={18} />
+                            <FaClock
+                              className="mr-1 text-green-600"
+                              size={18}
+                            />
                             <span className="text-base">{event.time}</span>
                           </div>
                           <div className="flex items-center text-gray-600 md:col-span-2">
-                            <FaMapMarkerAlt className="mr-1 text-green-600" size={18} />
+                            <FaMapMarkerAlt
+                              className="mr-1 text-green-600"
+                              size={18}
+                            />
                             <span className="text-base">{event.location}</span>
                           </div>
                         </div>
@@ -338,7 +388,7 @@ const EventsPage = () => {
                   <img
                     src={event.imageUrl}
                     alt={event.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="absolute top-4 left-4 bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-semibold">
                     Completed
@@ -351,7 +401,10 @@ const EventsPage = () => {
                   </h3>
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-gray-600">
-                      <FaCalendarAlt className="mr-2 text-green-600" size={16} />
+                      <FaCalendarAlt
+                        className="mr-2 text-green-600"
+                        size={16}
+                      />
                       <span className="text-sm">{event.date}</span>
                     </div>
                     <div className="flex items-center text-gray-600">
@@ -359,12 +412,17 @@ const EventsPage = () => {
                       <span className="text-sm">{event.time}</span>
                     </div>
                     <div className="flex items-center text-gray-600">
-                      <FaMapMarkerAlt className="mr-2 text-green-600" size={16} />
+                      <FaMapMarkerAlt
+                        className="mr-2 text-green-600"
+                        size={16}
+                      />
                       <span className="text-sm">{event.location}</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <FaUsers className="mr-2 text-green-600" size={16} />
-                      <span className="text-sm">{event.attendees} Attendees</span>
+                      <span className="text-sm">
+                        {event.attendees} Attendees
+                      </span>
                     </div>
                   </div>
                   <p className="text-gray-700 text-sm mb-4 line-clamp-3">
@@ -419,7 +477,9 @@ const EventsPage = () => {
             <div className="p-6 md:p-8">
               {/* Event Info */}
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-green-800 mb-2">Event Details:</h3>
+                <h3 className="font-semibold text-green-800 mb-2">
+                  Event Details:
+                </h3>
                 <div className="space-y-1 text-sm text-green-700">
                   <div className="flex items-center">
                     <FaCalendarAlt className="mr-2" size={14} />
@@ -440,7 +500,10 @@ const EventsPage = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Name Field */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
                     <FaUser className="inline mr-2" size={14} />
                     Full Name <span className="text-red-500">*</span>
                   </label>
@@ -450,10 +513,11 @@ const EventsPage = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.name
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${
+                      errors.name
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                    }`}
                     placeholder="Enter your full name"
                   />
                   {errors.name && (
@@ -466,7 +530,10 @@ const EventsPage = () => {
 
                 {/* Email Field */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
                     <FaEnvelope className="inline mr-2" size={14} />
                     Email Address <span className="text-red-500">*</span>
                   </label>
@@ -476,10 +543,11 @@ const EventsPage = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.email
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${
+                      errors.email
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                    }`}
                     placeholder="Enter your email address"
                   />
                   {errors.email && (
@@ -492,9 +560,13 @@ const EventsPage = () => {
 
                 {/* Phone Field */}
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
                     <FaPhone className="inline mr-2" size={14} />
-                    Phone Number <span className="text-gray-500 text-xs">(Optional)</span>
+                    Phone Number{" "}
+                    <span className="text-gray-500 text-xs">(Optional)</span>
                   </label>
                   <input
                     type="tel"
@@ -502,10 +574,11 @@ const EventsPage = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.phone
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${
+                      errors.phone
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                    }`}
                     placeholder="Enter your phone number"
                   />
                   {errors.phone && (
@@ -518,7 +591,10 @@ const EventsPage = () => {
 
                 {/* Subject Field */}
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label
+                    htmlFor="subject"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
                     Subject <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -527,10 +603,11 @@ const EventsPage = () => {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.subject
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${
+                      errors.subject
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                    }`}
                     placeholder="Subject"
                   />
                   {errors.subject && (
@@ -543,7 +620,10 @@ const EventsPage = () => {
 
                 {/* Message Field */}
                 <div>
-                  <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label
+                    htmlFor="message"
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
                     Additional Message <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -552,10 +632,11 @@ const EventsPage = () => {
                     value={formData.message}
                     onChange={handleChange}
                     rows={6}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 resize-none ${errors.message
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 resize-none ${
+                      errors.message
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                    }`}
                     placeholder="Enter your message or any additional information"
                   />
                   {errors.message && (
@@ -569,17 +650,20 @@ const EventsPage = () => {
                 {/* Submit Status */}
                 {submitStatus.message && (
                   <div
-                    className={`p-4 rounded-lg flex items-center ${submitStatus.type === "success"
-                      ? "bg-green-50 text-green-800 border border-green-200"
-                      : "bg-red-50 text-red-800 border border-red-200"
-                      }`}
+                    className={`p-4 rounded-lg flex items-center ${
+                      submitStatus.type === "success"
+                        ? "bg-green-50 text-green-800 border border-green-200"
+                        : "bg-red-50 text-red-800 border border-red-200"
+                    }`}
                   >
                     {submitStatus.type === "success" ? (
                       <FaCheckCircle className="mr-2" size={20} />
                     ) : (
                       <FaExclamationCircle className="mr-2" size={20} />
                     )}
-                    <span className="text-sm font-medium">{submitStatus.message}</span>
+                    <span className="text-sm font-medium">
+                      {submitStatus.message}
+                    </span>
                   </div>
                 )}
 
@@ -588,8 +672,9 @@ const EventsPage = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                    className={`flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ${
+                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   >
                     {isSubmitting ? (
                       <>

@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import emailjs from "@emailjs/browser";
-import { FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
+import {
+  FaEnvelope,
+  FaUser,
+  FaPhone,
+  FaPaperPlane,
+  FaCheckCircle,
+  FaExclamationCircle,
+} from "react-icons/fa";
 import Banner from "../assets/BannerMain.png";
 
 interface FormData {
@@ -105,20 +112,32 @@ const ContactUsPage = () => {
       // 4. Get your Service ID, Template ID, and Public Key
       // 5. Add them to your .env file or replace the values below:
 
-      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "YOUR_SERVICE_ID";
-      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID";
-      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
+      const serviceId =
+        import.meta.env.VITE_EMAILJS_SERVICE_ID || "YOUR_SERVICE_ID";
+      const templateId =
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID";
+      const publicKey =
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
 
       // Check if EmailJS is configured
-      if (serviceId === "YOUR_SERVICE_ID" || templateId === "YOUR_TEMPLATE_ID" || publicKey === "YOUR_PUBLIC_KEY") {
+      if (
+        serviceId === "YOUR_SERVICE_ID" ||
+        templateId === "YOUR_TEMPLATE_ID" ||
+        publicKey === "YOUR_PUBLIC_KEY"
+      ) {
         // Fallback: Open mailto link if EmailJS is not configured
-        const mailtoLink = `mailto:help@ChibiBadminton.com.au?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
-          `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || "Not provided"}\n\nMessage:\n${formData.message}`
+        const mailtoLink = `mailto:help@ChibiBadminton.com.au?subject=${encodeURIComponent(
+          formData.subject
+        )}&body=${encodeURIComponent(
+          `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${
+            formData.phone || "Not provided"
+          }\n\nMessage:\n${formData.message}`
         )}`;
         window.location.href = mailtoLink;
         setSubmitStatus({
           type: "success",
-          message: "Opening your email client. If it doesn't open, please send an email to help@ChibiBadminton.com.au",
+          message:
+            "Opening your email client. If it doesn't open, please send an email to help@ChibiBadminton.com.au",
         });
         setFormData({
           name: "",
@@ -148,7 +167,8 @@ const ContactUsPage = () => {
 
       setSubmitStatus({
         type: "success",
-        message: "Thank you! Your message has been sent successfully. We'll get back to you soon!",
+        message:
+          "Thank you! Your message has been sent successfully. We'll get back to you soon!",
       });
       setFormData({
         name: "",
@@ -161,7 +181,8 @@ const ContactUsPage = () => {
       console.error("Error sending email:", error);
       setSubmitStatus({
         type: "error",
-        message: "Oops! Something went wrong. Please try again or contact us directly at help@ChibiBadminton.com.au",
+        message:
+          "Oops! Something went wrong. Please try again or contact us directly at help@ChibiBadminton.com.au",
       });
     } finally {
       setIsSubmitting(false);
@@ -187,7 +208,8 @@ const ContactUsPage = () => {
               Contact Us
             </h1>
             <p className="text-base md:text-xl lg:text-2xl text-white max-w-3xl mx-auto drop-shadow-md font-medium">
-              Have a question or want to join our badminton community? We'd love to hear from you!
+              Have a question or want to join our badminton community? We'd love
+              to hear from you!
             </p>
           </div>
         </div>
@@ -196,7 +218,7 @@ const ContactUsPage = () => {
       <div className="px-4 md:px-8 max-w-7xl mx-auto min-h-full">
         {/* Subtitle Section */}
         <div className="text-center mb-12">
-          <p className="text-xl lg:text-2xl text-black max-w-2xl mx-auto">
+          <p className="text-xl lg:text-2xl text-gray-700 max-w-2xl mx-auto">
             Send us a message and we'll respond as soon as possible.
           </p>
         </div>
@@ -205,7 +227,9 @@ const ContactUsPage = () => {
           {/* Contact Information */}
           <div className="lg:col-span-1">
             <div className="bg-slate-50 rounded-lg p-6 md:p-8 shadow-lg h-full border border-slate-200">
-              <h2 className="text-2xl font-bold mb-6 text-black">Get In Touch</h2>
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                Get In Touch
+              </h2>
 
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
@@ -213,7 +237,7 @@ const ContactUsPage = () => {
                     <FaEnvelope className="text-white" size={20} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-black mb-1">Email</h3>
+                    <h3 className="font-semibold text-gray-600 mb-1">Email</h3>
                     <a
                       href="mailto:help@ChibiBadminton.com.au"
                       className="text-gray-600 hover:text-green-600 transition-colors break-all"
@@ -225,8 +249,8 @@ const ContactUsPage = () => {
 
                 <div className="pt-6 border-t border-gray-200">
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    Our team typically responds within 24-48 hours. For urgent matters,
-                    please reach out directly via email.
+                    Our team typically responds within 24-48 hours. For urgent
+                    matters, please reach out directly via email.
                   </p>
                 </div>
               </div>
@@ -236,20 +260,26 @@ const ContactUsPage = () => {
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg p-6 md:p-8 shadow-lg border border-slate-200">
-              <h2 className="text-2xl font-bold mb-6 text-black">Send Us a Message</h2>
+              <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                Send Us a Message
+              </h2>
 
               {/* Status Messages */}
               {submitStatus.type && (
                 <div
-                  className={`mb-6 p-4 rounded-lg flex items-start space-x-3 ${submitStatus.type === "success"
-                    ? "bg-green-50 text-green-800 border border-green-200"
-                    : "bg-red-50 text-red-800 border border-red-200"
-                    }`}
+                  className={`mb-6 p-4 rounded-lg flex items-start space-x-3 ${
+                    submitStatus.type === "success"
+                      ? "bg-green-50 text-green-800 border border-green-200"
+                      : "bg-red-50 text-red-800 border border-red-200"
+                  }`}
                 >
                   {submitStatus.type === "success" ? (
                     <FaCheckCircle className="flex-shrink-0 mt-0.5" size={20} />
                   ) : (
-                    <FaExclamationCircle className="flex-shrink-0 mt-0.5" size={20} />
+                    <FaExclamationCircle
+                      className="flex-shrink-0 mt-0.5"
+                      size={20}
+                    />
                   )}
                   <p className="text-sm">{submitStatus.message}</p>
                 </div>
@@ -271,10 +301,11 @@ const ContactUsPage = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.name
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                      errors.name
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                    }`}
                     placeholder="Your full name"
                   />
                   {errors.name && (
@@ -299,14 +330,17 @@ const ContactUsPage = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.email
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-green-500"
-                        }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                        errors.email
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-green-500"
+                      }`}
                       placeholder="Your email address"
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.email}
+                      </p>
                     )}
                   </div>
 
@@ -317,7 +351,8 @@ const ContactUsPage = () => {
                       className="block text-sm font-semibold text-gray-700 mb-2"
                     >
                       <FaPhone className="inline mr-2" size={14} />
-                      Phone Number <span className="text-gray-400">(Optional)</span>
+                      Phone Number{" "}
+                      <span className="text-gray-400">(Optional)</span>
                     </label>
                     <input
                       type="tel"
@@ -325,14 +360,17 @@ const ContactUsPage = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.phone
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-green-500"
-                        }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                        errors.phone
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-green-500"
+                      }`}
                       placeholder="+61 400 000 000"
                     />
                     {errors.phone && (
-                      <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.phone}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -351,14 +389,17 @@ const ContactUsPage = () => {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.subject
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                      errors.subject
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                    }`}
                     placeholder="What is this regarding?"
                   />
                   {errors.subject && (
-                    <p className="mt-1 text-sm text-red-500">{errors.subject}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.subject}
+                    </p>
                   )}
                 </div>
 
@@ -376,14 +417,17 @@ const ContactUsPage = () => {
                     value={formData.message}
                     onChange={handleChange}
                     rows={6}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all resize-none ${errors.message
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
-                      }`}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all resize-none ${
+                      errors.message
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                    }`}
                     placeholder="Tell us more about your inquiry..."
                   />
                   {errors.message && (
-                    <p className="mt-1 text-sm text-red-500">{errors.message}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.message}
+                    </p>
                   )}
                 </div>
 
@@ -391,10 +435,11 @@ const ContactUsPage = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold p-3 px-8 rounded-lg text-lg transition duration-300 ${isSubmitting
-                    ? "opacity-70 cursor-not-allowed"
-                    : "hover:shadow-lg transform hover:-translate-y-0.5"
-                    }`}
+                  className={`w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold p-3 px-8 rounded-lg text-lg transition duration-300 ${
+                    isSubmitting
+                      ? "opacity-70 cursor-not-allowed"
+                      : "hover:shadow-lg transform hover:-translate-y-0.5"
+                  }`}
                 >
                   {isSubmitting ? (
                     <>
