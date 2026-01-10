@@ -37,7 +37,7 @@ export const products: Product[] = [
     id: 1,
     name: "Yonex Exbolt 65",
     price: 28,
-    originalPrice: 30,
+    // originalPrice: 30,
     image: "https://badmintonclick.com.au/cdn/shop/files/yonex-exbolt-65-0-65mm-badminton-200m-reel-black__76624_1024x.jpg?v=1695711815",
     category: "Stringing Services",
     inStock: true,
