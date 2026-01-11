@@ -158,8 +158,8 @@ const Navbar: React.FC = () => {
               setIsOpen={setIsOpen}
             />
             <NavItem
-              to="/marketplace"
-              pageName="Marketplace"
+              to="/shop"
+              pageName="Shop"
               setIsOpen={setIsOpen}
             />
             <NavItem
