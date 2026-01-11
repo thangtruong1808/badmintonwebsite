@@ -34,9 +34,9 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
     <Link
       to={to}
       onClick={() => setIsOpen(false)}
-      className={`font-huglove block lg:inline-block ml-0 lg:ml-4 py-3 lg:py-0 px-4 lg:px-0 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 border-gray-200 lg:border-0 ${isActive
-        ? "text-rose-500 font-semibold bg-transparent"
-        : "text-black lg:text-xl hover:text-gray-400 hover:bg-gray-700 lg:hover:bg-transparent lg:hover:text-gray-300"
+      className={`font-huglove block lg:inline-block ml-0 lg:ml-4 py-3 lg:py-0 px-4 lg:px-0 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 bg-rose-100 border-rose-200 lg:border-0 ${isActive
+        ? "text-rose-500 font-semibold bg-transparent underline decoration-rose-500 decoration-4 underline-offset-[10px]"
+        : "text-black lg:text-xl hover:bg-rose-200 lg:hover:bg-transparent lg:hover:text-rose-500"
         }`}
     >
       <span className={`inline-flex items-center relative ${isActive ? "pb-1 after:content-[''] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-1 after:bg-rose-500" : ""}`}>
@@ -104,7 +104,7 @@ const Navbar: React.FC = () => {
         <div className="lg:hidden flex items-center">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="text-white text-3xl focus:outline-none hover:text-gray-600 transition-colors"
+            className="text-rose-500 text-3xl focus:outline-none hover:text-rose-700 transition-colors"
             aria-label="Toggle menu"
           >
             {isOpen ? '✕' : '☰'}
@@ -112,7 +112,7 @@ const Navbar: React.FC = () => {
         </div>
       </div>
       {isOpen && (
-        <div className="lg:hidden absolute left-0 right-0 top-full bg-neutral-800 shadow-xl w-full border-t border-gray-200 text-white">
+        <div className="lg:hidden absolute left-0 right-0 top-full bg-rose-100 shadow-xl w-full border-t border-rose-200 text-black">
           <div className="w-full">
             <NavItem
               to="/"
@@ -120,7 +120,7 @@ const Navbar: React.FC = () => {
               pageName={
                 <>
                   h
-                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
                   me
                 </>
               }
@@ -133,7 +133,7 @@ const Navbar: React.FC = () => {
               pageName={
                 <>
                   sh
-                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
                   p
                 </>
               }
@@ -145,7 +145,7 @@ const Navbar: React.FC = () => {
               pageName={
                 <>
                   c
-                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
                   ntact Us
                 </>
               }
@@ -156,7 +156,7 @@ const Navbar: React.FC = () => {
               pageName={
                 <>
                   ab
-                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
                   ut Us
                 </>
               }
