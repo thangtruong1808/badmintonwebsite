@@ -73,20 +73,20 @@ const Navbar: React.FC = () => {
                 </>
               }
             />
-            <NavItem to="/play" pageName="Play" setIsOpen={setIsOpen} />
-            <NavItem to="/events" pageName="Events" setIsOpen={setIsOpen} />
+            <NavItem to="/play" pageName="play" setIsOpen={setIsOpen} />
+            <NavItem to="/events" pageName="events" setIsOpen={setIsOpen} />
             <NavItem to="/shop" setIsOpen={setIsOpen} pageName={<>Sh
               <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
               p
             </>} />
-            <NavItem to="/gallery" pageName="Gallery" setIsOpen={setIsOpen} />
+            <NavItem to="/gallery" pageName="gallery" setIsOpen={setIsOpen} />
             <NavItem
               to="/contact-us"
               setIsOpen={setIsOpen} pageName={<>C
                 <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
                 ntact Us
               </>} />
-            <NavItem to="/Sgin-In" pageName="SignIn" setIsOpen={setIsOpen} />
+            <NavItem to="/Sign-In" pageName="SignIn" setIsOpen={setIsOpen} />
 
           </div>
 
@@ -117,8 +117,8 @@ const Navbar: React.FC = () => {
                 </>
               }
             />
-            <NavItem to="/play" pageName="Play" setIsOpen={setIsOpen} />
-            <NavItem to="/events" pageName="Events" setIsOpen={setIsOpen} />
+            <NavItem to="/play" pageName="play" setIsOpen={setIsOpen} />
+            <NavItem to="/events" pageName="events" setIsOpen={setIsOpen} />
             <NavItem
               to="/shop"
               setIsOpen={setIsOpen}
@@ -130,7 +130,7 @@ const Navbar: React.FC = () => {
                 </>
               }
             />
-            <NavItem to="/gallery" pageName="Gallery" setIsOpen={setIsOpen} />
+            <NavItem to="/gallery" pageName="gallery" setIsOpen={setIsOpen} />
             <NavItem
               to="/contact-us"
               setIsOpen={setIsOpen}
@@ -142,7 +142,7 @@ const Navbar: React.FC = () => {
                 </>
               }
             />
-            <NavItem to="/Sgin-In" pageName="SignIn" setIsOpen={setIsOpen} />
+            <NavItem to="/Sign-In" pageName="SignIn" setIsOpen={setIsOpen} />
           </div>
         </div>
       )}
