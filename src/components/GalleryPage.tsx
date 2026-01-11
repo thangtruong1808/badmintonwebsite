@@ -59,10 +59,10 @@ const GalleryPage = () => {
         backgroundAttachment: 'fixed'
       }}
     >
-      <div className="w-full overflow-x-hidden min-h-screen mt-[72px] md:mt-[72px]">
+      <div className="w-full overflow-x-hidden min-h-screen">
 
 
-        <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full pt-[72px] md:pt-24">
+        <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full">
           {/* Two Column Layout: Photos (70%) and Videos (30%) */}
           <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 md:gap-8">
             {/* Photos Column - 70% width (7/10 columns) */}

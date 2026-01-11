@@ -30,7 +30,7 @@ const HomePage = () => {
   return (
     <div className="w-full overflow-x-hidden">
       {/* Hero Banner Section - Entirely below navbar */}
-      <div className="relative w-full mb-12 overflow-hidden pt-[56px] md:pt-[72px]">
+      <div className="relative w-full mb-12 overflow-hidden">
         <img
           src={Banner}
           alt="ChibiBadminton Banner"

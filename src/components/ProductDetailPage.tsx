@@ -294,8 +294,8 @@ const ProductDetailPage = () => {
   };
 
   return (
-    <div className="w-full overflow-x-hidden min-h-screen mt-[72px] md:mt-[72px]">
-      <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full pt-[72px] md:pt-24">
+    <div className="w-full overflow-x-hidden min-h-screen">
+      <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full">
         {/* Back Button */}
         <button
           onClick={() => navigate("/shop")}

@@ -81,7 +81,7 @@ const ReviewsPage = () => {
   return (
     <div className="w-full overflow-x-hidden">
       {/* Hero Banner Section - Entirely below navbar */}
-      <div className="relative w-full mb-12 overflow-hidden pt-16 md:pt-16">
+      <div className="relative w-full mb-12 overflow-hidden">
         <div className="relative w-full h-[30vh] md:h-[30vh] lg:h-[30vh]">
           <img
             src={Banner}

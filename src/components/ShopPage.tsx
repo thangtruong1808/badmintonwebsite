@@ -330,8 +330,8 @@ const ShopPage = () => {
   };
 
   return (
-    <div className="w-full overflow-x-hidden min-h-screen mt-[72px] md:mt-[72px]">
-      <div className="px-4 md:px-8 py-8 md:py-16 max-w-7xl mx-auto min-h-full pt-[72px] md:pt-24">
+    <div className="w-full overflow-x-hidden min-h-screen">
+      <div className="px-4 md:px-8 py-8 md:py-16 max-w-7xl mx-auto min-h-full">
         {/* Products Grid - 5 columns */}
         <div className="mb-8">
           <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black text-center md:text-left">

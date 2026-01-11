@@ -279,7 +279,7 @@ const EventsPage = () => {
         backgroundAttachment: 'fixed'
       }}
     >
-      <div className="px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto min-h-full pt-[72px] md:pt-24">
+      <div className="px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto min-h-full">
         {/* Upcoming Events Section - Full Width */}
         {upcomingEvents.length > 0 && (
           <section className="mb-20">

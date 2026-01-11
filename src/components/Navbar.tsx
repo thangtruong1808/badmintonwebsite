@@ -34,12 +34,14 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
     <Link
       to={to}
       onClick={() => setIsOpen(false)}
-      className={`font-huglove block md:inline-block ml-0 md:ml-4 py-3 md:py-0 px-4 md:px-0 cursor-pointer transition-colors duration-300 border-b md:border-b-0 border-gray-200 md:border-0 ${isActive
-        ? "text-white font-semibold bg-gray-100 md:bg-transparent md:text-blue-600"
-        : "text-white hover:text-gray-600 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-gray-700"
+      className={`font-huglove block lg:inline-block ml-0 lg:ml-4 py-3 lg:py-0 px-4 lg:px-0 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 border-gray-200 lg:border-0 ${isActive
+        ? "text-rose-500 font-semibold bg-transparent"
+        : "text-black lg:text-xl hover:text-gray-400 hover:bg-gray-700 lg:hover:bg-transparent lg:hover:text-gray-300"
         }`}
     >
-      {renderPageName()}
+      <span className={`inline-flex items-center relative ${isActive ? "pb-1 after:content-[''] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-1 after:bg-rose-500" : ""}`}>
+        {renderPageName()}
+      </span>
     </Link>
   );
 };
@@ -48,52 +50,58 @@ const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="p-3 md:p-4 w-full fixed top-0 left-0 right-0 z-50 bg-neutral-800 shadow-md">
-      <div className="flex items-center justify-between md:justify-center w-full max-w-7xl mx-auto">
+    <nav className="p-3 lg:p-4 w-full fixed top-0 left-0 right-0 z-50 bg-rose-100 shadow-md">
+      <div className="flex items-center justify-between lg:justify-center w-full max-w-7xl mx-auto">
         {/* LOGO */}
-        <Link to="/" className="flex flex-col items-center leading-tight md:mr-16">
+        <Link to="/" className="flex flex-col items-center leading-tight lg:mr-16">
           <img
             src={ChibiLogo}
             alt="ChibiBadminton Logo"
-            className="h-8 md:h-10 w-auto object-cover"
+            className="h-8 lg:h-10 w-auto object-cover"
           />
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center ml-16">
+        <div className="hidden lg:flex items-center lg:ml-16">
           <div className="flex items-center space-x-6 justify-center flex-grow text-xl">
             <NavItem
               to="/"
               setIsOpen={setIsOpen}
               pageName={
                 <>
-                  H
-                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                  h
+                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
                   me
                 </>
               }
             />
             <NavItem to="/play" pageName="play" setIsOpen={setIsOpen} />
             <NavItem to="/events" pageName="events" setIsOpen={setIsOpen} />
-            <NavItem to="/shop" setIsOpen={setIsOpen} pageName={<>Sh
-              <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+            <NavItem to="/shop" setIsOpen={setIsOpen} pageName={<>sh
+              <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
               p
             </>} />
             <NavItem to="/gallery" pageName="gallery" setIsOpen={setIsOpen} />
             <NavItem
               to="/contact-us"
-              setIsOpen={setIsOpen} pageName={<>C
-                <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
-                ntact Us
+              setIsOpen={setIsOpen} pageName={<>c
+                <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
+                ntact-us
               </>} />
-            <NavItem to="/Sign-In" pageName="SignIn" setIsOpen={setIsOpen} />
+            <NavItem
+              to="/about-us"
+              setIsOpen={setIsOpen} pageName={<>ab
+                <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
+                ut-us
+              </>} />
+            <NavItem to="/Sign-In" pageName="sign-in" setIsOpen={setIsOpen} />
 
           </div>
 
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center">
+        <div className="lg:hidden flex items-center">
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="text-white text-3xl focus:outline-none hover:text-gray-600 transition-colors"
@@ -104,14 +112,14 @@ const Navbar: React.FC = () => {
         </div>
       </div>
       {isOpen && (
-        <div className="md:hidden absolute left-0 right-0 top-full bg-white shadow-xl w-full border-t border-gray-200">
+        <div className="lg:hidden absolute left-0 right-0 top-full bg-neutral-800 shadow-xl w-full border-t border-gray-200 text-white">
           <div className="w-full">
             <NavItem
               to="/"
               setIsOpen={setIsOpen}
               pageName={
                 <>
-                  H
+                  h
                   <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
                   me
                 </>
@@ -124,7 +132,7 @@ const Navbar: React.FC = () => {
               setIsOpen={setIsOpen}
               pageName={
                 <>
-                  Sh
+                  sh
                   <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
                   p
                 </>
@@ -136,13 +144,24 @@ const Navbar: React.FC = () => {
               setIsOpen={setIsOpen}
               pageName={
                 <>
-                  C
+                  c
                   <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
                   ntact Us
                 </>
               }
             />
-            <NavItem to="/Sign-In" pageName="SignIn" setIsOpen={setIsOpen} />
+            <NavItem
+              to="/about-us"
+              setIsOpen={setIsOpen}
+              pageName={
+                <>
+                  ab
+                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                  ut Us
+                </>
+              }
+            />
+            <NavItem to="/Sign-In" pageName="sign-in" setIsOpen={setIsOpen} />
           </div>
         </div>
       )}

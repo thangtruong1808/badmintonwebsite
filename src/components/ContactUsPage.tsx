@@ -203,9 +203,9 @@ const ContactUsPage = () => {
         backgroundAttachment: 'fixed'
       }}
     >
-      <div className="w-full overflow-x-hidden min-h-screen mt-[72px] md:mt-[72px]">
+      <div className="w-full overflow-x-hidden min-h-screen">
 
-        <div className="px-4 md:px-8 max-w-7xl mx-auto min-h-full pt-[72px] md:pt-24">
+        <div className="px-4 md:px-8 max-w-7xl mx-auto min-h-full">
           {/* Subtitle Section */}
           <div className="text-center mb-12">
             <p className="text-xl lg:text-2xl text-black max-w-2xl mx-auto">
