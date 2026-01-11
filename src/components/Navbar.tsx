@@ -34,12 +34,19 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
     <Link
       to={to}
       onClick={() => setIsOpen(false)}
-      className={`font-huglove block lg:inline-block ml-0 lg:ml-4 py-3 lg:py-0 px-4 lg:px-0 cursor-pointer transition-colors duration-300 border-b lg:border-b-0  border-rose-200 lg:border-0 ${isActive
+      className={`font-huglove block lg:inline-block ml-0 lg:ml-4 py-3 lg:py-0 px-4 lg:px-0 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 border-rose-200 lg:border-0 ${isActive
         ? "text-rose-500 font-semibold bg-transparent underline decoration-rose-500 decoration-4 underline-offset-[10px]"
-        : "text-black lg:text-xl hover:bg-rose-200 lg:hover:bg-transparent lg:hover:text-rose-500"
+        : "text-black lg:text-xl hover:text-black hover:bg-rose-300 lg:hover:bg-transparent lg:hover:text-rose-500 rounded-md"
         }`}
     >
-      <span className={`inline-flex items-center relative ${isActive ? "pb-1 after:content-[''] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-1 after:bg-rose-500" : ""}`}>
+      <span className={`inline-flex items-center relative ${isActive ? "pb-1 after:content-[''] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-1 after:bg-rose-500" : ""}`}
+        style={{
+          textShadow: "1px 1px 3px rgba(0,0,0,0.3)"
+
+
+        }}
+      >
+
         {renderPageName()}
       </span>
     </Link>
@@ -68,33 +75,22 @@ const Navbar: React.FC = () => {
               to="/"
               setIsOpen={setIsOpen}
               pageName={
-                <>
-                  h
-                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
-                  me
-                </>
+                <span>
+                  home
+                </span>
               }
             />
             <NavItem to="/play" pageName="play" setIsOpen={setIsOpen} />
             <NavItem to="/events" pageName="events" setIsOpen={setIsOpen} />
-            <NavItem to="/shop" setIsOpen={setIsOpen} pageName={<>sh
-              <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
-              p
-            </>} />
+            <NavItem to="/shop" setIsOpen={setIsOpen} pageName={<span>shop</span>} />
             <NavItem to="/gallery" pageName="gallery" setIsOpen={setIsOpen} />
             <NavItem
               to="/contact-us"
-              setIsOpen={setIsOpen} pageName={<>c
-                <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
-                ntact-us
-              </>} />
+              setIsOpen={setIsOpen} pageName={<span>contact-us</span>} />
             <NavItem
               to="/about-us"
-              setIsOpen={setIsOpen} pageName={<>ab
-                <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
-                ut-us
-              </>} />
-            <NavItem to="/Sign-In" pageName="sign-in" setIsOpen={setIsOpen} />
+              setIsOpen={setIsOpen} pageName={<span>about-us</span>} />
+            <NavItem to="/signin" pageName="sign-in" setIsOpen={setIsOpen} />
 
           </div>
 
@@ -112,17 +108,13 @@ const Navbar: React.FC = () => {
         </div>
       </div>
       {isOpen && (
-        <div className="lg:hidden absolute left-0 right-0 top-full bg-rose-100 shadow-xl w-full border-t border-rose-200 text-black">
+        <div className="lg:hidden absolute left-0 right-0 top-full bg-gradient-to-r from-rose-50 to-rose-100 shadow-xl w-full border-t border-rose-200 text-black">
           <div className="w-full">
             <NavItem
               to="/"
               setIsOpen={setIsOpen}
               pageName={
-                <>
-                  h
-                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
-                  me
-                </>
+                <span>home</span>
               }
             />
             <NavItem to="/play" pageName="play" setIsOpen={setIsOpen} />
@@ -131,11 +123,7 @@ const Navbar: React.FC = () => {
               to="/shop"
               setIsOpen={setIsOpen}
               pageName={
-                <>
-                  sh
-                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
-                  p
-                </>
+                <span>shop</span>
               }
             />
             <NavItem to="/gallery" pageName="gallery" setIsOpen={setIsOpen} />
@@ -143,25 +131,17 @@ const Navbar: React.FC = () => {
               to="/contact-us"
               setIsOpen={setIsOpen}
               pageName={
-                <>
-                  c
-                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
-                  ntact Us
-                </>
+                <span>contact-us</span>
               }
             />
             <NavItem
               to="/about-us"
               setIsOpen={setIsOpen}
               pageName={
-                <>
-                  ab
-                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5" />
-                  ut Us
-                </>
+                <span>about-us</span>
               }
             />
-            <NavItem to="/Sign-In" pageName="sign-in" setIsOpen={setIsOpen} />
+            <NavItem to="/signin" pageName="sign-in" setIsOpen={setIsOpen} />
           </div>
         </div>
       )}
