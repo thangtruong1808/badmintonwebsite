@@ -34,7 +34,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
     <Link
       to={to}
       onClick={() => setIsOpen(false)}
-      className={`font-huglove block lg:inline-block ml-0 lg:ml-4 py-3 lg:py-0 px-4 lg:px-0 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 bg-rose-100 border-rose-200 lg:border-0 ${isActive
+      className={`font-huglove block lg:inline-block ml-0 lg:ml-4 py-3 lg:py-0 px-4 lg:px-0 cursor-pointer transition-colors duration-300 border-b lg:border-b-0  border-rose-200 lg:border-0 ${isActive
         ? "text-rose-500 font-semibold bg-transparent underline decoration-rose-500 decoration-4 underline-offset-[10px]"
         : "text-black lg:text-xl hover:bg-rose-200 lg:hover:bg-transparent lg:hover:text-rose-500"
         }`}
@@ -50,7 +50,7 @@ const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="p-3 lg:p-4 w-full fixed top-0 left-0 right-0 z-50 bg-rose-100 shadow-md">
+    <nav className="p-3 lg:p-4 w-full fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-rose-50 to-rose-100 shadow-md">
       <div className="flex items-center justify-between lg:justify-center w-full max-w-7xl mx-auto">
         {/* LOGO */}
         <Link to="/" className="flex flex-col items-center leading-tight lg:mr-16">
