@@ -8,12 +8,16 @@ import MapleStory4 from "../assets/MapleStory4.png";
 import MapleStory5 from "../assets/MapleStory5.png";
 import DemonSlayerWednesday from "../assets/DemonSlayerW.png";
 import MapleStoryFriday from "../assets/MapleStoryF.png";
-import Banner from "../assets/BannerMain.png";
+import Banner from "../assets/banner.png";
 
 const images = [MapleStory, MapleStory2, MapleStory3, MapleStory4, MapleStory5];
 
 const HomePage = () => {
   const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    document.title = "ChibiBadminton - Home";
+  }, []);
 
   // Auto-slide every 3 seconds
   useEffect(() => {
@@ -26,27 +30,12 @@ const HomePage = () => {
   return (
     <div className="w-full overflow-x-hidden">
       {/* Hero Banner Section - Entirely below navbar */}
-      <div className="relative w-full mb-12 overflow-hidden pt-16 md:pt-16">
-        <div className="relative w-full h-[30vh] md:h-[30vh] lg:h-[30vh]">
-          <img
-            src={Banner}
-            alt="ChibiBadminton Banner"
-            className="w-full h-full object-contain"
-          />
-          {/* Overlay for better text readability */}
-          {/* bg-gradient-to-b from-black/40 via-black/30 to-black/40 */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40 opacity-50"></div>
-
-          {/* Header Text Over Banner */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 text-white drop-shadow-lg">
-              Welcome to ChibiBadminton's Social Groups
-            </h1>
-            <p className="text-base md:text-xl lg:text-2xl text-white max-w-3xl mx-auto drop-shadow-md font-medium">
-              Your ultimate resource for all things badminton
-            </p>
-          </div>
-        </div>
+      <div className="relative w-full mb-12 overflow-hidden pt-[56px] md:pt-[72px]">
+        <img
+          src={Banner}
+          alt="ChibiBadminton Banner"
+          className="w-full h-auto object-fill"
+        />
       </div>
 
       <div className="px-4 md:p-8 max-w-6xl mx-auto min-h-full">

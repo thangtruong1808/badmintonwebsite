@@ -11,6 +11,7 @@ export interface Product {
   price: number;
   originalPrice?: number;
   image: string;
+  images?: string[]; // Optional array for multiple images
   category: string;
   inStock: boolean;
   description?: string;
@@ -35,6 +36,32 @@ interface FormErrors {
 export const products: Product[] = [
   {
     id: 1,
+    name: "SPPHONEIX Black Badminton Shuttlecocks Gooes Feather (Tournament LEVEL)",
+    price: 59.99,
+    image: "https://www.spsport.com.au/cdn/shop/files/IMG-2889_f64cceb5-71c5-4edc-82fb-e1489b986b40.jpg?v=1753869140&width=540",
+    images: [
+      "https://www.spsport.com.au/cdn/shop/files/IMG-2889_f64cceb5-71c5-4edc-82fb-e1489b986b40.jpg?v=1753869140&width=540",
+      "https://www.spsport.com.au/cdn/shop/products/SPPHONEIX-BLACK-Badminton-Gooes-Feather-Shuttlecoc-14.jpg?v=1753869140&width=540",
+      "https://www.spsport.com.au/cdn/shop/products/SPPHONEIX-BLACK-Badminton-Gooes-Feather-Shuttlecoc-18.jpg?v=1753869140&width=540",
+    ],
+    category: "Shuttlecocks",
+    inStock: true,
+  },
+  {
+    id: 2,
+    name: "SPPHONEIX Black Badminton Shuttlecocks Gooes Feather (Tournament LEVEL)",
+    price: 59.99,
+    image: "https://www.spsport.com.au/cdn/shop/files/IMG-2888_df3f8697-099c-40a9-9b6e-b076e47b6c01.jpg?v=1753869140&width=540",
+    images: [
+      "https://www.spsport.com.au/cdn/shop/files/IMG-2888_df3f8697-099c-40a9-9b6e-b076e47b6c01.jpg?v=1753869140&width=540",
+      "https://www.spsport.com.au/cdn/shop/products/SPPHONEIX-BLACK-Badminton-Gooes-Feather-Shuttlecoc-14.jpg?v=1753869140&width=540",
+      "https://www.spsport.com.au/cdn/shop/products/SPPHONEIX-BLACK-Badminton-Gooes-Feather-Shuttlecoc-18.jpg?v=1753869140&width=540",
+    ],
+    category: "Shuttlecocks",
+    inStock: true,
+  },
+  {
+    id: 3,
     name: "Yonex Exbolt 65",
     price: 30,
     // originalPrice: 30,
@@ -43,7 +70,7 @@ export const products: Product[] = [
     inStock: true,
   },
   {
-    id: 2,
+    id: 4,
     name: "Yonex Exbolt 63",
     price: 30,
     image: "https://badmintonclick.com.au/cdn/shop/files/exbolt63_white_1024x.jpg?v=1744102637",
@@ -51,7 +78,7 @@ export const products: Product[] = [
     inStock: true,
   },
   {
-    id: 3,
+    id: 5,
     name: "Yonex BG80 Yellow Reel",
     price: 30,
     image: "https://badmintonclick.com.au/cdn/shop/files/bg80yellowreel_1024x.webp?v=1755679070",
@@ -59,7 +86,7 @@ export const products: Product[] = [
     inStock: true,
   },
   {
-    id: 4,
+    id: 6,
     name: "Yonex BG80 Sky Blue Reel",
     price: 30,
     image: "https://badmintonclick.com.au/cdn/shop/files/bg80reelskyblue_1024x.jpg?v=1724045191",
@@ -67,7 +94,7 @@ export const products: Product[] = [
     inStock: true,
   },
   {
-    id: 5,
+    id: 7,
     name: "Yonex BG80 Neon Pink Reel",
     price: 30,
     image: "https://badmintonclick.com.au/cdn/shop/files/BG80-2_NEON-PINK_1_1024x.jpg?v=1755940982",
@@ -75,7 +102,7 @@ export const products: Product[] = [
     inStock: true,
   },
   {
-    id: 6,
+    id: 8,
     name: "Yonex Exbolt 63 Red Reel",
     price: 30,
     image: "https://badmintonclick.com.au/cdn/shop/files/exbolt63redreel_1024x.jpg?v=1755942127",
@@ -83,7 +110,7 @@ export const products: Product[] = [
     inStock: true,
   },
   {
-    id: 7,
+    id: 9,
     name: "Yonex Exbolt 63 Light Pink Reel",
     price: 30,
     image: "https://badmintonclick.com.au/cdn/shop/files/exbolt_63_light_pink_a0a04d01-5bcc-4524-bb87-197ac7d2dec9_1024x.jpg?v=1755941240",
@@ -91,7 +118,7 @@ export const products: Product[] = [
     inStock: true,
   },
   {
-    id: 8,
+    id: 10,
     name: "Yonex Exbolt 63 Mint Reel",
     price: 30,
     image: "https://badmintonclick.com.au/cdn/shop/files/exbolt63_mint_a5c19fd8-9181-4b0a-b419-6b15a737af4b_1024x.jpg?v=1755941284",
@@ -99,7 +126,7 @@ export const products: Product[] = [
     inStock: true,
   },
   {
-    id: 9,
+    id: 11,
     name: "Yonex BG80 White Reel",
     price: 30,
     image: "https://badmintonclick.com.au/cdn/shop/files/bg80reelwhite_1024x.jpg?v=1724045059",
@@ -107,7 +134,7 @@ export const products: Product[] = [
     inStock: true,
   },
   {
-    id: 10,
+    id: 12,
     name: "Yonex Exbolt 68 White Reel",
     price: 30,
     image: "https://badmintonclick.com.au/cdn/shop/files/exbolt68whitereel_1024x.jpg?v=1724045586",
@@ -115,11 +142,12 @@ export const products: Product[] = [
     inStock: true,
   },
 
+
 ];
 
-const MarketplacePage = () => {
+const ShopPage = () => {
   useEffect(() => {
-    document.title = "ChibiBadminton - Marketplace";
+    document.title = "ChibiBadminton - Shop";
   }, []);
 
   const navigate = useNavigate();
@@ -134,10 +162,10 @@ const MarketplacePage = () => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<{
-    type: "success" | "error" | null;
-    message: string;
-  }>({ type: null, message: "" });
+  const [submitStatus, setSubmitStatus] = useState({
+    type: null as "success" | "error" | null,
+    message: "",
+  });
 
   // Initialize EmailJS with public key
   useEffect(() => {
@@ -280,7 +308,9 @@ const MarketplacePage = () => {
     setFormData((prev) => ({
       ...prev,
       subject: `Inquiry about ${product.name}`,
-      message: `I'm interested in purchasing: ${product.name} ($${product.price.toFixed(2)})\n\n`,
+      message: `I'm interested in purchasing: ${product.name} ($${product.price.toFixed(2)})
+
+`,
     }));
     setIsModalOpen(true);
   };
@@ -300,41 +330,18 @@ const MarketplacePage = () => {
   };
 
   return (
-    <div className="w-full overflow-x-hidden">
-      {/* Hero Banner Section - Entirely below navbar */}
-      <div className="relative w-full mb-12 overflow-hidden pt-16 md:pt-16">
-        <div className="relative w-full h-[30vh] md:h-[30vh] lg:h-[30vh]">
-          <img
-            src={Banner}
-            alt="ChibiBadminton Banner"
-            className="w-full h-full object-contain"
-          />
-          {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40 opacity-50"></div>
-
-          {/* Header Text Over Banner */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 text-white drop-shadow-lg">
-              Marketplace
-            </h1>
-            <p className="text-base md:text-xl lg:text-2xl text-white max-w-3xl mx-auto drop-shadow-md font-medium">
-              Shop Badminton Gear & Accessories
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full">
+    <div className="w-full overflow-x-hidden min-h-screen mt-[72px] md:mt-[72px]">
+      <div className="px-4 md:px-8 py-8 md:py-16 max-w-7xl mx-auto min-h-full pt-[72px] md:pt-24">
         {/* Products Grid - 5 columns */}
         <div className="mb-8">
           <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black text-center md:text-left">
-            Featured Services
+            Featured Services/Products
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
             {products.map((product) => (
               <div
                 key={product.id}
-                onClick={() => navigate(`/marketplace/product/${product.id}`)}
+                onClick={() => navigate(`/shop/product/${product.id}`)}
                 className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group cursor-pointer flex flex-col border border-slate-100"
               >
                 {/* Product Image */}
@@ -636,4 +643,4 @@ const MarketplacePage = () => {
   );
 };
 
-export default MarketplacePage;
+export default ShopPage;

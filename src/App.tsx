@@ -5,11 +5,12 @@ import Footer from "./components/Footer";
 import HomePage from "./components/HomePage";
 import EventsPage from "./components/EventsPage";
 import GalleryPage from "./components/GalleryPage";
-import MarketplacePage from "./components/MarketplacePage";
+import ShopPage from "./components/ShopPage";
 import ProductDetailPage from "./components/ProductDetailPage";
 import ContactUsPage from "./components/ContactUsPage";
 import ReviewsPage from "./components/ReviewsPage";
 import AboutUsPage from "./components/AboutUsPage";
+import SignInPage from "./components/SignInPage";
 
 function App() {
   return (
@@ -20,11 +21,12 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/marketplace" element={<MarketplacePage />} />
-          <Route path="/marketplace/product/:id" element={<ProductDetailPage />} />
+          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/shop/product/:id" element={<ProductDetailPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
+          <Route path="/signin" element={<SignInPage />} />
         </Routes>
       </main>
       <Footer />

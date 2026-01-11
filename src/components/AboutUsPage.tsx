@@ -8,8 +8,13 @@ import {
 } from "react-icons/fa";
 // import { GiShuttlecock } from "react-icons/gi";
 import Banner from "../assets/BannerMain.png";
+import { useEffect } from "react";
 
 const AboutUsPage = () => {
+  useEffect(() => {
+    document.title = "ChibiBadminton - About Us";
+  }, []);
+
   const stats = [
     { icon: FaUsers, value: "100+", label: "Active Members" },
     { icon: FaTrophy, value: "20+", label: "Tournaments" },
@@ -46,28 +51,6 @@ const AboutUsPage = () => {
 
   return (
     <div className="w-full overflow-x-hidden">
-      {/* Hero Banner Section - Entirely below navbar */}
-      <div className="relative w-full mb-12 overflow-hidden pt-16 md:pt-16">
-        <div className="relative w-full h-[30vh] md:h-[30vh] lg:h-[30vh]">
-          <img
-            src={Banner}
-            alt="ChibiBadminton Banner"
-            className="w-full h-full object-contain"
-          />
-          {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40 opacity-50"></div>
-
-          {/* Header Text Over Banner */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 text-white drop-shadow-lg">
-              About Us
-            </h1>
-            <p className="text-base md:text-xl lg:text-2xl text-white max-w-3xl mx-auto drop-shadow-md font-medium">
-              Learn more about ChibiBadminton and our community
-            </p>
-          </div>
-        </div>
-      </div>
 
       <div className="px-4 md:px-8  max-w-7xl mx-auto min-h-full">
         {/* Introduction Section */}

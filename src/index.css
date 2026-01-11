@@ -1,3 +1,14 @@
+@font-face {
+  font-family: "Huglove";
+  src: url("./assets/fonts/Huglove.ttf") format("truetype");
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    font-family: "Huglove", cursive;
+  }
+}

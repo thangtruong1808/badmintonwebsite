@@ -1,31 +1,45 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FaFacebook, FaYoutube } from "react-icons/fa";
+import { FaRegHeart } from "react-icons/fa";
+import ChibiLogo from "../assets/ChibiLogo.png";
 
 interface NavItemProps {
   to: string;
-  pageName: string;
+  pageName: string | React.ReactNode;
   setIsOpen: (open: boolean) => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({
-  to,
-  pageName,
-  setIsOpen,
-}) => {
+const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
+
+  // Replace 'o' and 'O' with empty heart icon (only if pageName is a string)
+  const renderPageName = () => {
+    if (typeof pageName === 'string') {
+      return pageName.split('').map((char, index) => {
+        if (char.toLowerCase() === 'o') {
+          return (
+            <span key={index} className="inline-flex items-center">
+              <FaRegHeart className="inline" size={14} />
+            </span>
+          );
+        }
+        return char;
+      });
+    }
+    return pageName; // Return as-is if it's already a ReactNode
+  };
 
   return (
     <Link
       to={to}
       onClick={() => setIsOpen(false)}
-      className={`block md:inline-block ml-0 md:ml-4 py-3 md:py-0 px-4 md:px-0 cursor-pointer transition-colors duration-300 border-b md:border-b-0 border-gray-600 md:border-0 ${isActive
-        ? "text-blue-400 font-semibold bg-gray-600 md:bg-transparent"
-        : "text-white hover:text-blue-400 hover:bg-gray-600 md:hover:bg-transparent"
+      className={`font-huglove block md:inline-block ml-0 md:ml-4 py-3 md:py-0 px-4 md:px-0 cursor-pointer transition-colors duration-300 border-b md:border-b-0 border-gray-200 md:border-0 ${isActive
+        ? "text-white font-semibold bg-gray-100 md:bg-transparent md:text-blue-600"
+        : "text-white hover:text-gray-600 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-gray-700"
         }`}
     >
-      {pageName}
+      {renderPageName()}
     </Link>
   );
 };
@@ -34,172 +48,101 @@ const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="p-4 bg-slate-500 text-white w-full fixed top-0 left-0 right-0 z-50">
-      <div className="flex items-center justify-between w-full">
-        {/* LOGO + TEXT STACKED */}
-        <Link to="/" className="flex flex-col items-start leading-tight">
-          <span className="text-xl font-bold whitespace-nowrap text-white hover:text-blue-400 transition-colors duration-300">
-            ChibiBadminton
-          </span>
+    <nav className="p-3 md:p-4 w-full fixed top-0 left-0 right-0 z-50 bg-neutral-800 shadow-md">
+      <div className="flex items-center justify-between md:justify-center w-full max-w-7xl mx-auto">
+        {/* LOGO */}
+        <Link to="/" className="flex flex-col items-center leading-tight md:mr-16">
+          <img
+            src={ChibiLogo}
+            alt="ChibiBadminton Logo"
+            className="h-8 md:h-10 w-auto object-cover"
+          />
         </Link>
 
-        {/* RIGHT — nav items start from the left of this column */}
-        <div className="hidden md:flex items-center space-x-6 justify-center flex-grow text-lg font-medium">
-          <NavItem
-            to="/"
-            pageName="Home"
-            setIsOpen={setIsOpen}
-          />
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center ml-16">
+          <div className="flex items-center space-x-6 justify-center flex-grow text-xl">
+            <NavItem
+              to="/"
+              setIsOpen={setIsOpen}
+              pageName={
+                <>
+                  H
+                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                  me
+                </>
+              }
+            />
+            <NavItem to="/play" pageName="Play" setIsOpen={setIsOpen} />
+            <NavItem to="/events" pageName="Events" setIsOpen={setIsOpen} />
+            <NavItem to="/shop" setIsOpen={setIsOpen} pageName={<>Sh
+              <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+              p
+            </>} />
+            <NavItem to="/gallery" pageName="Gallery" setIsOpen={setIsOpen} />
+            <NavItem
+              to="/contact-us"
+              setIsOpen={setIsOpen} pageName={<>C
+                <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                ntact Us
+              </>} />
+            <NavItem to="/Sgin-In" pageName="SignIn" setIsOpen={setIsOpen} />
 
-          <NavItem
-            to="/events"
-            pageName="Events"
-            setIsOpen={setIsOpen}
-          />
-          <NavItem
-            to="/gallery"
-            pageName="Gallery"
-            setIsOpen={setIsOpen}
-          />
-          <NavItem
-            to="/marketplace"
-            pageName="Marketplace"
-            setIsOpen={setIsOpen}
-          />
-          <NavItem
-            to="/contact-us"
-            pageName="Contact Us"
-            setIsOpen={setIsOpen}
-          />
-          <NavItem
-            to="/reviews"
-            pageName="Reviews"
-            setIsOpen={setIsOpen}
-          />
-          <NavItem
-            to="/about-us"
-            pageName="About Us"
-            setIsOpen={setIsOpen}
-          />
-        </div>
+          </div>
 
-        {/* Social Media Icons - Desktop */}
-        <div className="hidden md:flex items-center space-x-3">
-          <a
-            href="https://www.facebook.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1877F2] text-white hover:bg-[#166FE5] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-            aria-label="Facebook"
-          >
-            <FaFacebook size={18} />
-          </a>
-          <a
-            href="https://www.youtube.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FF0000] text-white hover:bg-[#CC0000] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-            aria-label="YouTube"
-          >
-            <FaYoutube size={18} />
-          </a>
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden relative flex items-center space-x-3">
-          {/* Social Media Icons - Mobile (visible when menu is closed) */}
-          {!isOpen && (
-            <div className="flex items-center space-x-2">
-              <a
-                href="https://www.facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-9 h-9 rounded-full bg-[#1877F2] text-white hover:bg-[#166FE5] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-                aria-label="Facebook"
-              >
-                <FaFacebook size={16} />
-              </a>
-              <a
-                href="https://www.youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-9 h-9 rounded-full bg-[#FF0000] text-white hover:bg-[#CC0000] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-                aria-label="YouTube"
-              >
-                <FaYoutube size={16} />
-              </a>
-            </div>
-          )}
+        <div className="md:hidden flex items-center">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="text-white text-2xl focus:outline-none"
+            className="text-white text-3xl focus:outline-none hover:text-gray-600 transition-colors"
             aria-label="Toggle menu"
           >
-            ☰
+            {isOpen ? '✕' : '☰'}
           </button>
         </div>
       </div>
       {isOpen && (
-        <div className="md:hidden absolute left-0 right-0 top-full bg-gray-700 shadow-xl w-full">
+        <div className="md:hidden absolute left-0 right-0 top-full bg-white shadow-xl w-full border-t border-gray-200">
           <div className="w-full">
             <NavItem
               to="/"
-              pageName="Home"
               setIsOpen={setIsOpen}
+              pageName={
+                <>
+                  H
+                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                  me
+                </>
+              }
             />
+            <NavItem to="/play" pageName="Play" setIsOpen={setIsOpen} />
+            <NavItem to="/events" pageName="Events" setIsOpen={setIsOpen} />
             <NavItem
-              to="/events"
-              pageName="Events"
+              to="/shop"
               setIsOpen={setIsOpen}
+              pageName={
+                <>
+                  Sh
+                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                  p
+                </>
+              }
             />
-            <NavItem
-              to="/gallery"
-              pageName="Gallery"
-              setIsOpen={setIsOpen}
-            />
-            <NavItem
-              to="/marketplace"
-              pageName="Marketplace"
-              setIsOpen={setIsOpen}
-            />
+            <NavItem to="/gallery" pageName="Gallery" setIsOpen={setIsOpen} />
             <NavItem
               to="/contact-us"
-              pageName="Contact Us"
               setIsOpen={setIsOpen}
+              pageName={
+                <>
+                  C
+                  <FaRegHeart className="inline-block w-4 h-4 mx-0.5 text-red-500" />
+                  ntact Us
+                </>
+              }
             />
-            <NavItem
-              to="/reviews"
-              pageName="Reviews"
-              setIsOpen={setIsOpen}
-            />
-            <NavItem
-              to="/about-us"
-              pageName="About Us"
-              setIsOpen={setIsOpen}
-            />
-            {/* Social Media Icons in Mobile Menu */}
-            <div className="flex items-center justify-center space-x-3 py-4 border-t border-gray-600 px-4">
-              <a
-                href="https://www.facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1877F2] text-white hover:bg-[#166FE5] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-                aria-label="Facebook"
-                onClick={() => setIsOpen(false)}
-              >
-                <FaFacebook size={18} />
-              </a>
-              <a
-                href="https://www.youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FF0000] text-white hover:bg-[#CC0000] hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out"
-                aria-label="YouTube"
-                onClick={() => setIsOpen(false)}
-              >
-                <FaYoutube size={18} />
-              </a>
-            </div>
+            <NavItem to="/Sgin-In" pageName="SignIn" setIsOpen={setIsOpen} />
           </div>
         </div>
       )}

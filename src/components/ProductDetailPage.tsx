@@ -1,10 +1,21 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaCheckCircle, FaExclamationCircle, FaTimes, FaArrowLeft, FaCheck, FaTruck, FaShieldAlt } from "react-icons/fa";
+import {
+  FaEnvelope,
+  FaUser,
+  FaPhone,
+  FaPaperPlane,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaTimes,
+  FaArrowLeft,
+  FaCheck,
+  FaTruck,
+  FaShieldAlt,
+} from "react-icons/fa";
 import emailjs from "@emailjs/browser";
-import Banner from "../assets/BannerMain.png";
-import { products } from "./MarketplacePage";
+import { products } from "./ShopPage";
 
 interface FormData {
   name: string;
@@ -26,7 +37,37 @@ const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const product = products.find((p) => p.id === Number(id));
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Quantity pricing options for products 1 and 2
+  const quantityOptions = [
+    { quantity: 1, unitPrice: 59.99, label: "1 DOZ/TUBE" },
+    { quantity: 5, unitPrice: 58.20, label: "5 DOZ/TUBES", total: 291.00 },
+    { quantity: 10, unitPrice: 54.60, label: "10 DOZ/TUBES", total: 546.00 },
+    { quantity: 25, unitPrice: 52.20, label: "25 DOZ/TUBES", total: 1305.00 },
+    { quantity: 50, unitPrice: 49.80, label: "50 DOZ/TUBES", total: 2490.00 },
+  ];
+
+  // Get current price based on selected quantity (for products 1 and 2)
+  const getCurrentPrice = () => {
+    if (product?.id === 1 || product?.id === 2) {
+      const option = quantityOptions.find(opt => opt.quantity === selectedQuantity);
+      return option ? option.unitPrice : product.price;
+    }
+    return product?.price || 0;
+  };
+
+  const getTotalPrice = () => {
+    if (product?.id === 1 || product?.id === 2) {
+      const option = quantityOptions.find(opt => opt.quantity === selectedQuantity);
+      if (option) {
+        return option.total || (option.unitPrice * option.quantity);
+      }
+    }
+    return getCurrentPrice();
+  };
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -49,27 +90,42 @@ const ProductDetailPage = () => {
     }
   }, []);
 
+  // Set document title
+  useEffect(() => {
+    if (product) {
+      document.title = `ChibiBadminton - ${product.name}`;
+    } else {
+      document.title = "ChibiBadminton - Product Not Found";
+    }
+  }, [product]);
+
   // Pre-fill form when product is available
   useEffect(() => {
     if (product) {
+      const price = (product.id === 1 || product.id === 2) ? getCurrentPrice() : product.price;
+      const quantityText = (product.id === 1 || product.id === 2)
+        ? ` (${quantityOptions.find(opt => opt.quantity === selectedQuantity)?.label || '1 DOZ/TUBE'})`
+        : '';
       setFormData((prev) => ({
         ...prev,
         subject: `Inquiry about ${product.name}`,
-        message: `I'm interested in purchasing: ${product.name} ($${product.price.toFixed(2)})\n\n`,
+        message: `I'm interested in purchasing: ${product.name}${quantityText} ($${price.toFixed(2)}${(product.id === 1 || product.id === 2) && selectedQuantity > 1 ? `, Total: $${getTotalPrice().toFixed(2)}` : ''})\n\n`,
       }));
     }
-  }, [product]);
+  }, [product, selectedQuantity]);
 
   if (!product) {
     return (
       <div className="w-full overflow-x-hidden">
         <div className="px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto min-h-full text-center">
-          <h1 className="text-3xl font-bold mb-4 text-black">Product Not Found</h1>
+          <h1 className="text-3xl font-bold mb-4 text-black">
+            Product Not Found
+          </h1>
           <button
-            onClick={() => navigate("/marketplace")}
+            onClick={() => navigate("/shop")}
             className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-300"
           >
-            Back to Marketplace
+            Back to Shop
           </button>
         </div>
       </div>
@@ -129,21 +185,37 @@ const ProductDetailPage = () => {
     setSubmitStatus({ type: null, message: "" });
 
     try {
-      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "YOUR_SERVICE_ID";
-      const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID";
-      const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
+      const serviceId =
+        import.meta.env.VITE_EMAILJS_SERVICE_ID || "YOUR_SERVICE_ID";
+      const templateId =
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID";
+      const publicKey =
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
 
       // Check if EmailJS is configured
-      if (serviceId === "YOUR_SERVICE_ID" || templateId === "YOUR_TEMPLATE_ID" || publicKey === "YOUR_PUBLIC_KEY") {
+      if (
+        serviceId === "YOUR_SERVICE_ID" ||
+        templateId === "YOUR_TEMPLATE_ID" ||
+        publicKey === "YOUR_PUBLIC_KEY"
+      ) {
         // Fallback: Open mailto link if EmailJS is not configured
-        const productInfo = `\n\nProduct Inquiry: ${product.name} ($${product.price.toFixed(2)})`;
-        const mailtoLink = `mailto:help@ChibiBadminton.com.au?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
-          `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || "Not provided"}${productInfo}\n\nMessage:\n${formData.message}`
+        const price = (product.id === 1 || product.id === 2) ? getCurrentPrice() : product.price;
+        const totalPrice = (product.id === 1 || product.id === 2) ? getTotalPrice() : price;
+        const quantityText = (product.id === 1 || product.id === 2)
+          ? ` (${quantityOptions.find(opt => opt.quantity === selectedQuantity)?.label || '1 DOZ/TUBE'})`
+          : '';
+        const productInfo = `\n\nProduct Inquiry: ${product.name}${quantityText} ($${price.toFixed(2)}${(product.id === 1 || product.id === 2) && selectedQuantity > 1 ? `, Total: $${totalPrice.toFixed(2)}` : ''})`;
+        const mailtoLink = `mailto:help@ChibiBadminton.com.au?subject=${encodeURIComponent(
+          formData.subject
+        )}&body=${encodeURIComponent(
+          `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || "Not provided"
+          }${productInfo}\n\nMessage:\n${formData.message}`
         )}`;
         window.location.href = mailtoLink;
         setSubmitStatus({
           type: "success",
-          message: "Opening your email client. If it doesn't open, please send an email to help@ChibiBadminton.com.au",
+          message:
+            "Opening your email client. If it doesn't open, please send an email to help@ChibiBadminton.com.au",
         });
         setTimeout(() => {
           setIsModalOpen(false);
@@ -160,7 +232,12 @@ const ProductDetailPage = () => {
       }
 
       // Using EmailJS to send email
-      const productInfo = `Product Inquiry: ${product.name} ($${product.price.toFixed(2)})`;
+      const price = (product.id === 1 || product.id === 2) ? getCurrentPrice() : product.price;
+      const totalPrice = (product.id === 1 || product.id === 2) ? getTotalPrice() : price;
+      const quantityText = (product.id === 1 || product.id === 2)
+        ? ` (${quantityOptions.find(opt => opt.quantity === selectedQuantity)?.label || '1 DOZ/TUBE'})`
+        : '';
+      const productInfo = `Product Inquiry: ${product.name}${quantityText} ($${price.toFixed(2)}${(product.id === 1 || product.id === 2) && selectedQuantity > 1 ? `, Total: $${totalPrice.toFixed(2)}` : ''})`;
       await emailjs.send(
         serviceId,
         templateId,
@@ -177,7 +254,8 @@ const ProductDetailPage = () => {
 
       setSubmitStatus({
         type: "success",
-        message: "Thank you! Your message has been sent successfully. We'll get back to you soon!",
+        message:
+          "Thank you! Your message has been sent successfully. We'll get back to you soon!",
       });
       setTimeout(() => {
         setIsModalOpen(false);
@@ -194,7 +272,8 @@ const ProductDetailPage = () => {
       console.error("Error sending email:", error);
       setSubmitStatus({
         type: "error",
-        message: "Oops! Something went wrong. Please try again or contact us directly at help@ChibiBadminton.com.au",
+        message:
+          "Oops! Something went wrong. Please try again or contact us directly at help@ChibiBadminton.com.au",
       });
     } finally {
       setIsSubmitting(false);
@@ -215,49 +294,27 @@ const ProductDetailPage = () => {
   };
 
   return (
-    <div className="w-full overflow-x-hidden">
-      {/* Hero Banner Section - Entirely below navbar */}
-      <div className="relative w-full mb-12 overflow-hidden pt-16 md:pt-16">
-        <div className="relative w-full h-[30vh] md:h-[30vh] lg:h-[30vh]">
-          <img
-            src={Banner}
-            alt="ChibiBadminton Banner"
-            className="w-full h-full object-contain"
-          />
-          {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/40"></div>
-
-          {/* Header Text Over Banner */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 text-white drop-shadow-lg">
-              Product Details
-            </h1>
-            <p className="text-base md:text-xl lg:text-2xl text-white max-w-3xl mx-auto drop-shadow-md font-medium">
-              {product.name}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full">
+    <div className="w-full overflow-x-hidden min-h-screen mt-[72px] md:mt-[72px]">
+      <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full pt-[72px] md:pt-24">
         {/* Back Button */}
         <button
-          onClick={() => navigate("/marketplace")}
+          onClick={() => navigate("/shop")}
           className="flex items-center gap-2 text-gray-600 hover:text-black mb-6 transition-colors duration-300"
         >
           <FaArrowLeft size={18} />
-          <span className="font-medium">Back to Marketplace</span>
+          <span className="font-medium">Back to Shop</span>
         </button>
 
         {/* Product Detail Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 mb-12">
-          {/* Product Image */}
+          {/* Product Image Gallery */}
           <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+            {/* Main Image */}
+            <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100 mb-4">
               <img
-                src={product.image}
+                src={product.images && product.images.length > 0 ? product.images[selectedImageIndex] : product.image}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
               {product.originalPrice && (
                 <div className="absolute top-4 left-4 bg-red-600 text-white text-sm font-bold px-3 py-2 rounded">
@@ -265,6 +322,27 @@ const ProductDetailPage = () => {
                 </div>
               )}
             </div>
+            {/* Thumbnail Images */}
+            {product.images && product.images.length > 1 && (
+              <div className="grid grid-cols-3 gap-3">
+                {product.images.map((img, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all duration-300 ${selectedImageIndex === index
+                      ? "border-green-600 ring-2 ring-green-200"
+                      : "border-gray-200 hover:border-gray-400"
+                      }`}
+                  >
+                    <img
+                      src={img}
+                      alt={`${product.name} - View ${index + 1}`}
+                      className="w-full h-full object-contain"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Information */}
@@ -278,19 +356,82 @@ const ProductDetailPage = () => {
               {product.name}
             </h2>
 
+            {/* Quantity Selector (Only for products 1 and 2) */}
+            {(product.id === 1 || product.id === 2) && (
+              <div className="mb-6 pb-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold mb-4 text-black">Select Quantity</h3>
+                <div className="space-y-3">
+                  {quantityOptions.map((option) => (
+                    <button
+                      key={option.quantity}
+                      onClick={() => setSelectedQuantity(option.quantity)}
+                      className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-300 ${selectedQuantity === option.quantity
+                        ? "border-green-600 bg-green-50 ring-2 ring-green-200"
+                        : "border-gray-200 hover:border-gray-400 bg-white"
+                        }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-black">{option.label}</div>
+                          <div className="text-sm text-gray-600">
+                            ${option.unitPrice.toFixed(2)} per dozen
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xl font-bold text-green-600">
+                            ${option.total ? option.total.toFixed(2) : (option.unitPrice * option.quantity).toFixed(2)}
+                          </div>
+                          {option.quantity > 1 && (
+                            <div className="text-xs text-gray-500">
+                              (${option.unitPrice.toFixed(2)} × {option.quantity})
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Price */}
             <div className="mb-6 pb-6 border-b border-gray-200">
-              <div className="flex items-center gap-4">
-                <span className="text-4xl md:text-5xl font-bold text-green-600">
-                  ${product.price.toFixed(2)}
-                </span>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-4">
+                  <span className="text-4xl md:text-5xl font-bold text-green-600">
+                    ${getCurrentPrice().toFixed(2)}
+                  </span>
+                  {(product.id === 1 || product.id === 2) && selectedQuantity > 1 && (
+                    <span className="text-lg text-gray-600">
+                      per dozen
+                    </span>
+                  )}
+                </div>
+                {(product.id === 1 || product.id === 2) && selectedQuantity > 1 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl md:text-3xl font-bold text-gray-900">
+                      Total: ${getTotalPrice().toFixed(2)}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      ({quantityOptions.find(opt => opt.quantity === selectedQuantity)?.label})
+                    </span>
+                  </div>
+                )}
+                {/* Tax and Shipping Message (for products 1 and 2) */}
+                {(product.id === 1 || product.id === 2) && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-sm text-gray-600 italic">
+                      Tax included. Shipping calculated at checkout.
+                    </p>
+                  </div>
+                )}
                 {product.originalPrice && (
-                  <div className="flex flex-col">
+                  <div className="flex flex-col mt-2">
                     <span className="text-xl text-gray-400 line-through">
                       ${product.originalPrice.toFixed(2)}
                     </span>
                     <span className="text-sm text-red-600 font-semibold">
-                      Save ${(product.originalPrice - product.price).toFixed(2)}
+                      Save ${(product.originalPrice - getCurrentPrice()).toFixed(2)}
                     </span>
                   </div>
                 )}
@@ -322,22 +463,36 @@ const ProductDetailPage = () => {
 
             {/* Features */}
             <div className="mb-6">
-              <h3 className="text-xl font-bold mb-3 text-black">Key Features</h3>
+              <h3 className="text-xl font-bold mb-3 text-black">
+                Key Features
+              </h3>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2 text-gray-700">
-                  <FaCheck className="text-green-600 mt-1 flex-shrink-0" size={16} />
+                  <FaCheck
+                    className="text-green-600 mt-1 flex-shrink-0"
+                    size={16}
+                  />
                   <span>Premium quality materials</span>
                 </li>
                 <li className="flex items-start gap-2 text-gray-700">
-                  <FaCheck className="text-green-600 mt-1 flex-shrink-0" size={16} />
+                  <FaCheck
+                    className="text-green-600 mt-1 flex-shrink-0"
+                    size={16}
+                  />
                   <span>Durable and long-lasting</span>
                 </li>
                 <li className="flex items-start gap-2 text-gray-700">
-                  <FaCheck className="text-green-600 mt-1 flex-shrink-0" size={16} />
+                  <FaCheck
+                    className="text-green-600 mt-1 flex-shrink-0"
+                    size={16}
+                  />
                   <span>Perfect for all skill levels</span>
                 </li>
                 <li className="flex items-start gap-2 text-gray-700">
-                  <FaCheck className="text-green-600 mt-1 flex-shrink-0" size={16} />
+                  <FaCheck
+                    className="text-green-600 mt-1 flex-shrink-0"
+                    size={16}
+                  />
                   <span>Warranty included</span>
                 </li>
               </ul>
@@ -362,7 +517,7 @@ const ProductDetailPage = () => {
                 <FaTruck className="text-green-600" size={24} />
                 <div>
                   <p className="font-semibold text-black">Free Shipping</p>
-                  <p className="text-sm text-gray-600">On orders over $50</p>
+                  <p className="text-sm text-gray-600">On orders over $100</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -383,12 +538,16 @@ const ProductDetailPage = () => {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products
-              .filter((p) => p.category === product.category && p.id !== product.id)
+              .filter(
+                (p) => p.category === product.category && p.id !== product.id
+              )
               .slice(0, 4)
               .map((relatedProduct) => (
                 <div
                   key={relatedProduct.id}
-                  onClick={() => navigate(`/marketplace/product/${relatedProduct.id}`)}
+                  onClick={() =>
+                    navigate(`/shop/product/${relatedProduct.id}`)
+                  }
                   className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden cursor-pointer border border-slate-100"
                 >
                   <div className="relative h-60 md:h-60 overflow-hidden bg-white border-b border-slate-100">
@@ -416,8 +575,14 @@ const ProductDetailPage = () => {
 
       {/* Contact Form Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-black">Contact Us</h2>
               <button
@@ -432,7 +597,27 @@ const ProductDetailPage = () => {
               <div className="mb-6 p-4 bg-slate-50 rounded-lg">
                 <p className="text-sm text-gray-600 mb-1">Product Inquiry:</p>
                 <p className="font-semibold text-black">{product.name}</p>
-                <p className="text-green-600 font-bold">${product.price.toFixed(2)}</p>
+                {(product.id === 1 || product.id === 2) && selectedQuantity > 1 && (
+                  <p className="text-sm text-gray-600">
+                    {quantityOptions.find(opt => opt.quantity === selectedQuantity)?.label}
+                  </p>
+                )}
+                <p className="text-green-600 font-bold">
+                  ${getCurrentPrice().toFixed(2)}
+                  {(product.id === 1 || product.id === 2) && selectedQuantity > 1 && (
+                    <span className="text-sm text-gray-600 font-normal"> per dozen</span>
+                  )}
+                </p>
+                {(product.id === 1 || product.id === 2) && selectedQuantity > 1 && (
+                  <p className="text-lg text-gray-900 font-bold">
+                    Total: ${getTotalPrice().toFixed(2)}
+                  </p>
+                )}
+                {(product.id === 1 || product.id === 2) && (
+                  <p className="text-xs text-gray-500 italic mt-2">
+                    Tax included. Shipping calculated at checkout.
+                  </p>
+                )}
               </div>
 
               {/* Status Messages */}
@@ -446,7 +631,10 @@ const ProductDetailPage = () => {
                   {submitStatus.type === "success" ? (
                     <FaCheckCircle className="flex-shrink-0 mt-0.5" size={20} />
                   ) : (
-                    <FaExclamationCircle className="flex-shrink-0 mt-0.5" size={20} />
+                    <FaExclamationCircle
+                      className="flex-shrink-0 mt-0.5"
+                      size={20}
+                    />
                   )}
                   <p className="text-sm">{submitStatus.message}</p>
                 </div>
@@ -503,7 +691,9 @@ const ProductDetailPage = () => {
                       placeholder="john@example.com"
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.email}
+                      </p>
                     )}
                   </div>
 
@@ -514,7 +704,8 @@ const ProductDetailPage = () => {
                       className="block text-sm font-semibold text-gray-700 mb-2"
                     >
                       <FaPhone className="inline mr-2" size={14} />
-                      Phone Number <span className="text-gray-400">(Optional)</span>
+                      Phone Number{" "}
+                      <span className="text-gray-400">(Optional)</span>
                     </label>
                     <input
                       type="tel"
@@ -529,7 +720,9 @@ const ProductDetailPage = () => {
                       placeholder="+61 400 000 000"
                     />
                     {errors.phone && (
-                      <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+                      <p className="mt-1 text-sm text-red-500">
+                        {errors.phone}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -555,7 +748,9 @@ const ProductDetailPage = () => {
                     placeholder="What is this regarding?"
                   />
                   {errors.subject && (
-                    <p className="mt-1 text-sm text-red-500">{errors.subject}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.subject}
+                    </p>
                   )}
                 </div>
 
@@ -580,7 +775,9 @@ const ProductDetailPage = () => {
                     placeholder="Tell us more about your inquiry..."
                   />
                   {errors.message && (
-                    <p className="mt-1 text-sm text-red-500">{errors.message}</p>
+                    <p className="mt-1 text-sm text-red-500">
+                      {errors.message}
+                    </p>
                   )}
                 </div>
 

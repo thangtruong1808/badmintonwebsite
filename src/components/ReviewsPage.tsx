@@ -1,5 +1,6 @@
 import { FaStar, FaUserCircle, FaStarHalfAlt } from "react-icons/fa";
 import Banner from "../assets/BannerMain.png";
+import { useEffect } from "react";
 
 interface Review {
   id: number;
@@ -41,6 +42,10 @@ const reviews: Review[] = [
 ];
 
 const ReviewsPage = () => {
+  useEffect(() => {
+    document.title = "ChibiBadminton - Reviews";
+  }, []);
+
   const averageRating =
     reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
   const totalReviews = reviews.length;
