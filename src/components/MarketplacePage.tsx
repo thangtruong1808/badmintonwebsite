@@ -117,7 +117,7 @@ export const products: Product[] = [
 
 ];
 
-const MarketplacePage = () => {
+const ShopPage = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -311,7 +311,7 @@ const MarketplacePage = () => {
           {/* Header Text Over Banner */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 text-white drop-shadow-lg">
-              Marketplace
+              Shop
             </h1>
             <p className="text-base md:text-xl lg:text-2xl text-white max-w-3xl mx-auto drop-shadow-md font-medium">
               Shop Badminton Gear & Accessories
@@ -330,7 +330,7 @@ const MarketplacePage = () => {
             {products.map((product) => (
               <div
                 key={product.id}
-                onClick={() => navigate(`/marketplace/product/${product.id}`)}
+                onClick={() => navigate(`/shop/product/${product.id}`)}
                 className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group cursor-pointer flex flex-col border border-slate-100"
               >
                 {/* Product Image */}
@@ -632,4 +632,4 @@ const MarketplacePage = () => {
   );
 };
 
-export default MarketplacePage;
+export default ShopPage;
