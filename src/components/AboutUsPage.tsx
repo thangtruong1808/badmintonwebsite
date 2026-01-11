@@ -7,7 +7,6 @@ import {
   FaHandshake,
 } from "react-icons/fa";
 // import { GiShuttlecock } from "react-icons/gi";
-import Banner from "../assets/BannerMain.png";
 import { useEffect } from "react";
 
 const AboutUsPage = () => {

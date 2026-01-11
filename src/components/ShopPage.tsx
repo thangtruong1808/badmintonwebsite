@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
-import Banner from "../assets/BannerMain.png";
+
 
 export interface Product {
   id: number;
