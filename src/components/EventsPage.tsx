@@ -212,7 +212,7 @@ const EventsPage = () => {
     const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
     const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
     const toEmail =
-      import.meta.env.VITE_EMAIL_TO || "help@ChibiBadminton.com.au";
+      import.meta.env.VITE_EMAIL_TO || "support@chibibadminton.com.au";
 
     if (
       !serviceId ||
