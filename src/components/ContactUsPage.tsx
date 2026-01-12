@@ -130,7 +130,7 @@ const ContactUsPage = () => {
         publicKey === "YOUR_PUBLIC_KEY"
       ) {
         // Fallback: Open mailto link if EmailJS is not configured
-        const mailtoLink = `mailto:help@ChibiBadminton.com.au?subject=${encodeURIComponent(
+        const mailtoLink = `mailto:support@chibibadminton.com.au?subject=${encodeURIComponent(
           formData.subject
         )}&body=${encodeURIComponent(
           `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || "Not provided"
@@ -140,7 +140,7 @@ const ContactUsPage = () => {
         setSubmitStatus({
           type: "success",
           message:
-            "Opening your email client. If it doesn't open, please send an email to help@ChibiBadminton.com.au",
+            "Opening your email client. If it doesn't open, please send an email to support@ChibiBadminton.com.au",
         });
         setFormData({
           name: "",
@@ -163,7 +163,7 @@ const ContactUsPage = () => {
           phone: formData.phone || "Not provided",
           subject: formData.subject,
           message: formData.message,
-          to_email: "help@ChibiBadminton.com.au",
+          to_email: "support@ChibiBadminton.com.au",
         },
         publicKey
       );
@@ -185,7 +185,7 @@ const ContactUsPage = () => {
       setSubmitStatus({
         type: "error",
         message:
-          "Oops! Something went wrong. Please try again or contact us directly at help@ChibiBadminton.com.au",
+          "Oops! Something went wrong. Please try again or contact us directly at support@ChibiBadminton.com.au",
       });
     } finally {
       setIsSubmitting(false);
@@ -229,10 +229,10 @@ const ContactUsPage = () => {
                     <div>
                       <h3 className="font-semibold text-gray-600 mb-1">Email</h3>
                       <a
-                        href="mailto:help@ChibiBadminton.com.au"
+                        href="mailto:support@ChibiBadminton.com.au"
                         className="text-gray-600 hover:text-green-600 transition-colors break-all"
                       >
-                        help@ChibiBadminton.com.au
+                        support@ChibiBadminton.com.au
                       </a>
                     </div>
                   </div>
