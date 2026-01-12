@@ -205,7 +205,7 @@ const ProductDetailPage = () => {
           ? ` (${quantityOptions.find(opt => opt.quantity === selectedQuantity)?.label || '1 DOZ/TUBE'})`
           : '';
         const productInfo = `\n\nProduct Inquiry: ${product.name}${quantityText} ($${price.toFixed(2)}${(product.id === 1 || product.id === 2) && selectedQuantity > 1 ? `, Total: $${totalPrice.toFixed(2)}` : ''})`;
-        const mailtoLink = `mailto:help@ChibiBadminton.com.au?subject=${encodeURIComponent(
+        const mailtoLink = `mailto:support@chibibadminton.com.au?subject=${encodeURIComponent(
           formData.subject
         )}&body=${encodeURIComponent(
           `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || "Not provided"
@@ -215,7 +215,7 @@ const ProductDetailPage = () => {
         setSubmitStatus({
           type: "success",
           message:
-            "Opening your email client. If it doesn't open, please send an email to help@ChibiBadminton.com.au",
+            "Opening your email client. If it doesn't open, please send an email to support@chibibadminton.com.au",
         });
         setTimeout(() => {
           setIsModalOpen(false);
@@ -247,7 +247,7 @@ const ProductDetailPage = () => {
           phone: formData.phone || "Not provided",
           subject: formData.subject,
           message: `${productInfo}\n\n${formData.message}`,
-          to_email: "help@ChibiBadminton.com.au",
+          to_email: "support@chibibadminton.com.au",
         },
         publicKey
       );
@@ -273,7 +273,7 @@ const ProductDetailPage = () => {
       setSubmitStatus({
         type: "error",
         message:
-          "Oops! Something went wrong. Please try again or contact us directly at help@ChibiBadminton.com.au",
+          "Oops! Something went wrong. Please try again or contact us directly at support@chibibadminton.com.au",
       });
     } finally {
       setIsSubmitting(false);
