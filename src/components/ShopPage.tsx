@@ -236,13 +236,13 @@ const ShopPage = () => {
       if (serviceId === "YOUR_SERVICE_ID" || templateId === "YOUR_TEMPLATE_ID" || publicKey === "YOUR_PUBLIC_KEY") {
         // Fallback: Open mailto link if EmailJS is not configured
         const productInfo = selectedProduct ? `\n\nProduct Inquiry: ${selectedProduct.name} ($${selectedProduct.price.toFixed(2)})` : "";
-        const mailtoLink = `mailto:help@ChibiBadminton.com.au?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
+        const mailtoLink = `mailto:support@chibibadminton.com.au?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
           `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || "Not provided"}${productInfo}\n\nMessage:\n${formData.message}`
         )}`;
         window.location.href = mailtoLink;
         setSubmitStatus({
           type: "success",
-          message: "Opening your email client. If it doesn't open, please send an email to help@ChibiBadminton.com.au",
+          message: "Opening your email client. If it doesn't open, please send an email to support@chibibadminton.com.au",
         });
         setTimeout(() => {
           setIsModalOpen(false);
@@ -270,7 +270,7 @@ const ShopPage = () => {
           phone: formData.phone || "Not provided",
           subject: formData.subject,
           message: `${productInfo ? productInfo + "\n\n" : ""}${formData.message}`,
-          to_email: "help@ChibiBadminton.com.au",
+          to_email: "support@chibibadminton.com.au",
         },
         publicKey
       );
@@ -295,7 +295,7 @@ const ShopPage = () => {
       console.error("Error sending email:", error);
       setSubmitStatus({
         type: "error",
-        message: "Oops! Something went wrong. Please try again or contact us directly at help@ChibiBadminton.com.au",
+        message: "Oops! Something went wrong. Please try again or contact us directly at support@chibibadminton.com.au",
       });
     } finally {
       setIsSubmitting(false);
