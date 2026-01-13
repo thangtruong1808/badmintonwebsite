@@ -1,7 +1,6 @@
 import { useEffect } from "react";
-import { GiShuttlecock } from "react-icons/gi";
 
-import Banner from "../assets/banner.png";
+import BannerCarousel from "./BannerCarousel";
 import FeaturedNews from "./FeaturedNews";
 import FeaturedImages from "./FeaturedImages";
 
@@ -13,13 +12,7 @@ const HomePage = () => {
   return (
     <div className="w-full overflow-x-hidden">
       {/* Hero Banner Section - Entirely below navbar */}
-      <div className="relative w-full overflow-hidden">
-        <img
-          src={Banner}
-          alt="ChibiBadminton Banner"
-          className="w-full h-auto object-fill"
-        />
-      </div>
+      <BannerCarousel />
 
       <FeaturedNews />
       <FeaturedImages />

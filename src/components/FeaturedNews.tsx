@@ -6,14 +6,16 @@ import MapleStory2 from "../assets/MapleStory2.png";
 import MapleStory3 from "../assets/MapleStory3.png";
 import MapleStory4 from "../assets/MapleStory4.png";
 import MapleStory5 from "../assets/MapleStory5.png";
+import kaisen1 from "../assets/kaisen1.png";
+
 
 const newsData = [
   {
     id: 1,
-    image: MapleStory,
-    title: "New Tournament Announced",
-    description: "Join our exciting new tournament and win amazing prizes!",
-    badge: "EVENTS",
+    image: kaisen1,
+    title: "Kaisen x ChibiBadminton Collaboration",
+    description: "Join us for a special collaboration event with Kaisen and ChibiBadminton!",
+    badge: "COLLABORATION",
   },
   {
     id: 2,
