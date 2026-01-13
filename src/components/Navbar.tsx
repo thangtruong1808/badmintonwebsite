@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { FaRegHeart } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { FaRegHeart, FaShoppingCart } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
+import { getCartCount } from "../utils/cartStorage";
 
 interface NavItemProps {
   to: string;
@@ -75,6 +76,25 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const navigate = useNavigate();
+
+  // Update cart count when it changes
+  useEffect(() => {
+    const updateCartCount = () => {
+      setCartCount(getCartCount());
+    };
+
+    // Initial load
+    updateCartCount();
+
+    // Listen for cart updates
+    window.addEventListener("cartUpdated", updateCartCount);
+
+    return () => {
+      window.removeEventListener("cartUpdated", updateCartCount);
+    };
+  }, []);
 
   return (
     <nav className="p-3 lg:p-4 w-full fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-rose-50 to-rose-100 shadow-md">
@@ -121,8 +141,36 @@ const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Menu Button */}
-        <div className="lg:hidden flex items-center">
+        {/* Cart Icon */}
+        <div className="hidden lg:flex items-center ml-4">
+          <button
+            onClick={() => navigate("/play")}
+            className="relative p-2 text-gray-700 hover:text-rose-500 transition-colors"
+            aria-label="View cart"
+          >
+            <FaShoppingCart size={24} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {cartCount > 9 ? "9+" : cartCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Menu Button and Cart */}
+        <div className="lg:hidden flex items-center gap-3">
+          <button
+            onClick={() => navigate("/play")}
+            className="relative p-2 text-gray-700"
+            aria-label="View cart"
+          >
+            <FaShoppingCart size={20} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                {cartCount > 9 ? "9+" : cartCount}
+              </span>
+            )}
+          </button>
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="text-rose-500 text-3xl focus:outline-none hover:text-rose-700 transition-colors"

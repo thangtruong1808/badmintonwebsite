@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { finalDate } from "../utils/formateDate";
 
 // import MapleStory from "../assets/MapleStory.png";
 import MapleStory2 from "../assets/MapleStory2.png";
@@ -8,13 +9,13 @@ import MapleStory4 from "../assets/MapleStory4.png";
 import MapleStory5 from "../assets/MapleStory5.png";
 import Kaisen1 from "../assets/Kaisen1.png";
 
-
 const newsData = [
   {
     id: 1,
     image: Kaisen1,
     title: "Kaisen x ChibiBadminton Collaboration",
-    description: "Join us for a special collaboration event with Kaisen and ChibiBadminton!",
+    description:
+      "Join us for a special collaboration event with Kaisen and ChibiBadminton!",
     badge: "COLLABORATION",
   },
   {
@@ -90,14 +91,23 @@ const FeaturedNews: React.FC = () => {
               <div className="p-4 flex-shrink-0">
                 <h3 className="font-bold text-xl mb-2">{news.title}</h3>
                 <p className="text-gray-700 text-sm">{news.description}</p>
-                <Link to={`/featured-news/${news.id}`} className="text-rose-500 hover:underline mt-4 inline-block font-semibold">
-                  Read More
-                </Link>
+                <div className="xl:flex flex-row justify-between items-center mt-3">
+                  <div className="flex items-center gap-2 text-md">
+                    <span className="font-huglove">{finalDate}</span>
+                  </div>
+
+                  <Link
+                    to={`/featured-news/${news.id}`}
+                    className="text-rose-500 hover:underline font-semibold uppercase underline"
+                  >
+                    Read More
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
         </div>
-        <div className="text-center mt-8">
+        <div className="text-center mt-8 ">
           <Link
             to="/featured-news"
             className="bg-rose-500 text-white font-bold py-2 px-6 rounded-full hover:bg-rose-600 transition-colors"

@@ -9,7 +9,7 @@ import Banner5 from "../assets/banner5.png";
 import Banner6 from "../assets/banner6.png";
 
 const BannerCarousel: React.FC = () => {
-  const banners = [Banner, Banner2, Banner3, Banner4, Banner5, Banner6];
+  const banners = [Banner6, Banner, Banner2, Banner3, Banner4, Banner5];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -49,10 +49,11 @@ const BannerCarousel: React.FC = () => {
         {banners.map((banner, index) => (
           <div
             key={index}
-            className={`transition-opacity duration-700 ease-in-out ${index === currentIndex
-              ? "opacity-100 block"
-              : "opacity-0 absolute top-0 left-0 w-full pointer-events-none"
-              }`}
+            className={`transition-opacity duration-700 ease-in-out ${
+              index === currentIndex
+                ? "opacity-100 block"
+                : "opacity-0 absolute top-0 left-0 w-full pointer-events-none"
+            }`}
           >
             <img
               src={banner}
@@ -87,10 +88,11 @@ const BannerCarousel: React.FC = () => {
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentIndex
-              ? "bg-white w-8"
-              : "bg-white/50 hover:bg-white/75"
-              }`}
+            className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              index === currentIndex
+                ? "bg-white w-8"
+                : "bg-white/50 hover:bg-white/75"
+            }`}
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}
