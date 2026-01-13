@@ -6,9 +6,9 @@ import MapleStory2 from "../assets/MapleStory2.png";
 import MapleStory3 from "../assets/MapleStory3.png";
 import MapleStory4 from "../assets/MapleStory4.png";
 import MapleStory5 from "../assets/MapleStory5.png";
-import DemonSlayerWednesday from "../assets/DemonSlayerW.png";
-import MapleStoryFriday from "../assets/MapleStoryF.png";
 import Banner from "../assets/banner.png";
+import FeaturedNews from "./FeaturedNews";
+import FeaturedImages from "./FeaturedImages";
 
 const images = [MapleStory, MapleStory2, MapleStory3, MapleStory4, MapleStory5];
 
@@ -30,7 +30,7 @@ const HomePage = () => {
   return (
     <div className="w-full overflow-x-hidden">
       {/* Hero Banner Section - Entirely below navbar */}
-      <div className="relative w-full mb-12 overflow-hidden">
+      <div className="relative w-full overflow-hidden">
         <img
           src={Banner}
           alt="ChibiBadminton Banner"
@@ -38,19 +38,21 @@ const HomePage = () => {
         />
       </div>
 
+      <FeaturedNews />
+
       <div className="px-4 md:p-8 max-w-6xl mx-auto min-h-full">
         {/* Description Section */}
-        <div className="text-center mb-8">
+        {/* <div className="text-center mb-8">
           <p className="text-md md:text-xl mb-6 max-w-7xl mx-auto px-4 text-gray-700">
             Whether you're a beginner or a seasoned pro, join our social groups
             to stay updated on events, tips, and exclusive content. We are a
             group of badminton enthusiasts who are dedicated to promoting
             badminton excellence and social engagement.
           </p>
-        </div>
+        </div> */}
 
         {/* Carousel */}
-        <div className="relative w-full flex justify-center mb-12 h-48 md:h-72 overflow-hidden">
+        {/* <div className="relative w-full flex justify-center mb-12 h-48 md:h-72 overflow-hidden">
           {images.map((img, i) => (
             <img
               key={i}
@@ -63,39 +65,9 @@ const HomePage = () => {
             `}
             />
           ))}
-        </div>
+        </div> */}
         {/* Featured Images Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 bg-white p-6 md:p-8 rounded-lg mb-16 max-w-7xl mx-auto">
-          {/* Left Image */}
-          <div className="text-center">
-            <img
-              src={DemonSlayerWednesday}
-              alt="Chibi Wednesday Playtime"
-              className="rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 mb-4 w-full h-auto object-cover"
-            />
-            <p className="text-md md:text-lg text-gray-700">
-              Chibi Wednesday Playtime from 7:00 PM to 10:00 PM
-            </p>
-          </div>
-
-          {/* Right Image */}
-          <div className="text-center">
-            <img
-              src={MapleStoryFriday}
-              alt="Chibi Friday Playtime"
-              className="rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 mb-4 w-full h-auto object-cover"
-            />
-            <p className="text-md md:text-lg text-gray-700">
-              Chibi Friday Playtime from 7:00 PM to 10:00 PM
-            </p>
-          </div>
-
-          {/* Note Section — centered under both images */}
-          <div className="text-center text-md md:text-lg md:col-span-2 text-gray-700">
-            Please contact us for any questions or to schedule a time. Please
-            check the events page for the most up to date information.
-          </div>
-        </div>
+        <FeaturedImages />
 
         {/* Call to Action Section */}
         <section className="bg-white py-16 px-4 md:px-8 w-full rounded-lg shadow-lg">

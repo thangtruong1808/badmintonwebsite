@@ -203,7 +203,7 @@ const ContactUsPage = () => {
         backgroundAttachment: 'fixed'
       }}
     >
-      <div className="w-full overflow-x-hidden min-h-screen">
+      <div className="w-full overflow-x-hidden min-h-screen pt-20">
 
         <div className="px-4 md:px-8 max-w-7xl mx-auto min-h-full">
           {/* Subtitle Section */}

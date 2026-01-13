@@ -11,6 +11,9 @@ import ContactUsPage from "./components/ContactUsPage";
 import ReviewsPage from "./components/ReviewsPage";
 import AboutUsPage from "./components/AboutUsPage";
 import SignInPage from "./components/SignInPage";
+import FeaturedNewsPage from "./components/FeaturedNewsPage";
+import PlayPage from "./components/PlayPage";
+import NewsDetailPage from "./components/NewsDetailPage";
 
 function App() {
   return (
@@ -19,6 +22,7 @@ function App() {
       <main className="flex-grow w-full pt-[56px] lg:pt-[72px]">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/play" element={<PlayPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/shop" element={<ShopPage />} />
@@ -27,6 +31,8 @@ function App() {
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
           <Route path="/signin" element={<SignInPage />} />
+          <Route path="/featured-news" element={<FeaturedNewsPage />} />
+          <Route path="/featured-news/:id" element={<NewsDetailPage />} />
         </Routes>
       </main>
       <Footer />
