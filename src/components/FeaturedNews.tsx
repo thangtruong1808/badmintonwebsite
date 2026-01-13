@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-import MapleStory from "../assets/MapleStory.png";
+// import MapleStory from "../assets/MapleStory.png";
 import MapleStory2 from "../assets/MapleStory2.png";
 import MapleStory3 from "../assets/MapleStory3.png";
 import MapleStory4 from "../assets/MapleStory4.png";
