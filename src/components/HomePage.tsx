@@ -1,30 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { GiShuttlecock } from "react-icons/gi";
 
-import MapleStory from "../assets/MapleStory.png";
-import MapleStory2 from "../assets/MapleStory2.png";
-import MapleStory3 from "../assets/MapleStory3.png";
-import MapleStory4 from "../assets/MapleStory4.png";
-import MapleStory5 from "../assets/MapleStory5.png";
 import Banner from "../assets/banner.png";
 import FeaturedNews from "./FeaturedNews";
 import FeaturedImages from "./FeaturedImages";
 
-const images = [MapleStory, MapleStory2, MapleStory3, MapleStory4, MapleStory5];
-
 const HomePage = () => {
-  const [index, setIndex] = useState(0);
-
   useEffect(() => {
     document.title = "ChibiBadminton - Home";
-  }, []);
-
-  // Auto-slide every 3 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % images.length);
-    }, 3000);
-    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -39,10 +22,9 @@ const HomePage = () => {
       </div>
 
       <FeaturedNews />
-
-      <div className="px-4 md:p-8 max-w-6xl mx-auto min-h-full">
-        {/* Description Section */}
-        {/* <div className="text-center mb-8">
+      <FeaturedImages />
+      {/* Description Section */}
+      {/* <div className="text-center mb-8">
           <p className="text-md md:text-xl mb-6 max-w-7xl mx-auto px-4 text-gray-700">
             Whether you're a beginner or a seasoned pro, join our social groups
             to stay updated on events, tips, and exclusive content. We are a
@@ -51,8 +33,8 @@ const HomePage = () => {
           </p>
         </div> */}
 
-        {/* Carousel */}
-        {/* <div className="relative w-full flex justify-center mb-12 h-48 md:h-72 overflow-hidden">
+      {/* Carousel */}
+      {/* <div className="relative w-full flex justify-center mb-12 h-48 md:h-72 overflow-hidden">
           {images.map((img, i) => (
             <img
               key={i}
@@ -66,11 +48,11 @@ const HomePage = () => {
             />
           ))}
         </div> */}
-        {/* Featured Images Section */}
-        <FeaturedImages />
+      {/* Featured Images Section */}
 
-        {/* Call to Action Section */}
-        <section className="bg-white py-16 px-4 md:px-8 w-full rounded-lg shadow-lg">
+
+      {/* Call to Action Section */}
+      {/* <section className="bg-white py-16 px-4 md:px-8 w-full rounded-lg shadow-lg">
           <div className="max-w-4xl mx-auto text-center w-full">
             <h2 className="text-2xl md:text-4xl font-bold mb-4 text-gray-700">
               Ready to Join the Fun?
@@ -86,8 +68,7 @@ const HomePage = () => {
               </span>
             </div>
           </div>
-        </section>
-      </div>
+        </section> */}
     </div>
   );
 };

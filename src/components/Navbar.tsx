@@ -38,11 +38,10 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
         className="font-huglove text-xl lg:text-2xl inline-block cursor-pointer"
       >
         <span
-          className={`inline-flex items-center relative px-2 lg:px-4 py-1 rounded-full transition-colors duration-300 ${
-            isActive
-              ? "bg-rose-600 text-white"
-              : "bg-rose-500 text-white hover:bg-rose-600"
-          }`}
+          className={`inline-flex items-center relative px-2 2xl:px-4 py-1 rounded-full transition-colors duration-300 ${isActive
+            ? "bg-rose-600 text-white"
+            : "bg-rose-500 text-white hover:bg-rose-600"
+            }`}
         >
           {renderPageName()}
         </span>
@@ -54,18 +53,16 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
     <Link
       to={to}
       onClick={() => setIsOpen(false)}
-      className={`font-huglove text-xl lg:text-2xl block lg:inline-block py-3 lg:py-0 px-2 lg:px-4 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 border-rose-200 lg:border-0 ${
-        isActive
-          ? "text-rose-500 font-semibold bg-transparent underline decoration-rose-500 decoration-4 underline-offset-[10px]"
-          : "text-black hover:text-black hover:bg-rose-300 lg:hover:bg-transparent lg:hover:text-rose-500 rounded-md"
-      }`}
+      className={`font-huglove text-xl lg:text-2xl block lg:inline-block py-3 lg:py-0 px-2 lg:px-4 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 border-rose-200 lg:border-0 whitespace-nowrap ${isActive
+        ? "text-rose-500 font-semibold bg-transparent underline decoration-rose-500 decoration-4 underline-offset-[10px]"
+        : "text-black hover:text-black hover:bg-rose-300 lg:hover:bg-transparent lg:hover:text-rose-500 rounded-md"
+        }`}
     >
       <span
-        className={`inline-flex items-center relative ${
-          isActive
-            ? "pb-1 after:content-[''] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-1 after:bg-rose-500"
-            : ""
-        }`}
+        className={`inline-flex items-center relative ${isActive
+          ? "pb-1 after:content-[''] after:absolute after:bottom-0 after:left-2 after:right-2 after:h-1 after:bg-rose-500"
+          : ""
+          }`}
         style={{
           textShadow: "1px 1px 3px rgba(0,0,0,0.3)",
         }}
@@ -81,22 +78,22 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className="p-3 lg:p-4 w-full fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-rose-50 to-rose-100 shadow-md">
-      <div className="flex items-center justify-between lg:justify-center w-full max-w-7xl mx-auto">
+      <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* LOGO */}
         <Link
           to="/"
-          className="flex flex-col items-center leading-tight lg:mr-16"
+          className="flex flex-col items-center leading-tight flex-shrink-0"
         >
           <img
             src={ChibiLogo}
             alt="ChibiBadminton Logo"
-            className="h-8 lg:h-10 w-auto object-cover"
+            className="h-10 w-auto object-cover"
           />
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center lg:ml-16">
-          <div className="flex items-center space-x-4 justify-center flex-grow text-2xl">
+        <div className="hidden lg:flex items-center flex-1 justify-center min-w-0">
+          <div className="flex items-center space-x-1 xl:space-x-2 2xl:space-x-4 justify-center flex-nowrap whitespace-nowrap">
             <NavItem
               to="/"
               setIsOpen={setIsOpen}
