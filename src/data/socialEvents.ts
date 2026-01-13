@@ -5,13 +5,6 @@ import BannerMain from "../assets/BannerMain.png";
 
 import type { SocialEvent } from "../types/socialEvent";
 
-// Helper function to get future dates
-const getFutureDate = (daysFromNow: number): string => {
-  const date = new Date();
-  date.setDate(date.getDate() + daysFromNow);
-  return date.toISOString().split("T")[0];
-};
-
 export const socialEvents: SocialEvent[] = [
   {
     id: 1,

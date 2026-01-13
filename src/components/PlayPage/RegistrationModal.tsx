@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent } from "react";
+import React, { useState, useEffect, type FormEvent } from "react";
 import {
   FaTimes,
   FaCheckCircle,

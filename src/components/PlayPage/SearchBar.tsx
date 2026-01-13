@@ -1,5 +1,5 @@
 import React from "react";
-import { FaSearch, FaFilter, FaTimes, FaBookmark } from "react-icons/fa";
+import { FaSearch, FaTimes, FaBookmark } from "react-icons/fa";
 
 interface SearchBarProps {
   searchQuery: string;
