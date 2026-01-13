@@ -1,5 +1,5 @@
 import React from "react";
-import { FaSearch, FaFilter, FaTimes } from "react-icons/fa";
+import { FaSearch, FaFilter, FaTimes, FaBookmark } from "react-icons/fa";
 
 interface SearchBarProps {
   searchQuery: string;
@@ -10,6 +10,8 @@ interface SearchBarProps {
   onCategoryFilterChange: (category: "all" | "regular" | "tournament") => void;
   selectedDays: string[];
   onDayFilterChange: (day: string) => void;
+  myRegistrationsFilter: boolean;
+  onMyRegistrationsFilterChange: (filter: boolean) => void;
   onClearFilters: () => void;
 }
 
@@ -22,6 +24,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onCategoryFilterChange,
   selectedDays,
   onDayFilterChange,
+  myRegistrationsFilter,
+  onMyRegistrationsFilterChange,
   onClearFilters,
 }) => {
   const daysOfWeek = [
@@ -38,10 +42,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
     searchQuery !== "" ||
     statusFilter !== "all" ||
     categoryFilter !== "all" ||
-    selectedDays.length > 0;
+    selectedDays.length > 0 ||
+    myRegistrationsFilter;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-md p-4 mb-6 shadow-xl">
       {/* Search Input */}
       <div className="relative mb-4">
         <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -64,6 +69,22 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
       {/* Filters - All in one row */}
       <div className="flex flex-wrap items-end gap-4">
+        {/* My Registrations Filter */}
+        <div className="flex-1 min-w-[120px]">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            My Events
+          </label>
+          <button
+            onClick={() => onMyRegistrationsFilterChange(!myRegistrationsFilter)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors w-full ${myRegistrationsFilter
+              ? "bg-purple-600 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              } flex items-center justify-center gap-2`}
+          >
+            <FaBookmark />
+            My Registrations
+          </button>
+        </div>
         {/* Status Filter */}
         <div className="flex-1 min-w-[120px]">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -74,11 +95,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
               <button
                 key={status}
                 onClick={() => onStatusFilterChange(status)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  statusFilter === status
-                    ? "bg-rose-500 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${statusFilter === status
+                  ? "bg-rose-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </button>
@@ -96,11 +116,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
               <button
                 key={category}
                 onClick={() => onCategoryFilterChange(category)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  categoryFilter === category
-                    ? "bg-rose-500 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === category
+                  ? "bg-rose-500 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
               >
                 {category.charAt(0).toUpperCase() + category.slice(1)}
               </button>
@@ -120,11 +139,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 <button
                   key={day}
                   onClick={() => onDayFilterChange(day)}
-                  className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
-                    isSelected
-                      ? "bg-rose-500 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
+                  className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${isSelected
+                    ? "bg-rose-500 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
                 >
                   {day.slice(0, 3)}
                 </button>

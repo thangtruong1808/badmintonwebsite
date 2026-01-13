@@ -2,17 +2,24 @@ import React, { useState, useEffect, useMemo } from "react";
 import SearchBar from "./PlayPage/SearchBar";
 import EventList from "./PlayPage/EventList";
 import RegistrationModal from "./PlayPage/RegistrationModal";
-import { socialEvents } from "../data/socialEvents";
-import type { SocialEvent } from "../types/socialEvent";
+import Pagination from "./PlayPage/Pagination";
+import { socialEvents as initialSocialEvents } from "../data/socialEvents";
 import { setCartItems, getCartItems, clearCart } from "../utils/cartStorage";
+import { getInitialEvents, getUserRegistrations } from "../utils/registrationService";
+import { getOrCreateUserId } from "../utils/userStorage";
+import type { SocialEvent, Registration } from "../types/socialEvent";
 
 const PlayPage: React.FC = () => {
   useEffect(() => {
     document.title = "ChibiBadminton - Play Sessions";
   }, []);
 
+  const userId = getOrCreateUserId();
+
   // State management
-  const [allEvents] = useState<SocialEvent[]>(socialEvents);
+  const [allEvents, setAllEvents] = useState<SocialEvent[]>(() => getInitialEvents(initialSocialEvents));
+  const [userRegistrations, setUserRegistrations] = useState<Registration[]>([]);
+  const [myRegistrationsFilter, setMyRegistrationsFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "available" | "completed"
@@ -26,10 +33,24 @@ const PlayPage: React.FC = () => {
   const [registrationEvents, setRegistrationEvents] = useState<SocialEvent[]>([]);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<SocialEvent | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setUserRegistrations(getUserRegistrations(userId));
+  }, [userId, allEvents]); // Re-fetch registrations if events change (e.g., after a new registration)
+
+  const EVENTS_PER_PAGE = 8; // 2 rows × 4 columns = 8 events
 
   // Filter and search logic
   const filteredEvents = useMemo(() => {
-    return allEvents.filter((event) => {
+    let eventsToFilter = allEvents;
+
+    if (myRegistrationsFilter) {
+      const registeredEventIds = userRegistrations.map(reg => reg.eventId);
+      eventsToFilter = allEvents.filter(event => registeredEventIds.includes(event.id));
+    }
+
+    return eventsToFilter.filter((event) => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -62,7 +83,7 @@ const PlayPage: React.FC = () => {
 
       return true;
     });
-  }, [allEvents, searchQuery, statusFilter, categoryFilter, selectedDays]);
+  }, [allEvents, searchQuery, statusFilter, categoryFilter, selectedDays, myRegistrationsFilter, userRegistrations]);
 
   // Get selected events
   const selectedEvents = useMemo(() => {
@@ -126,9 +147,12 @@ const PlayPage: React.FC = () => {
     setStatusFilter("all");
     setCategoryFilter("all");
     setSelectedDays([]);
+    setMyRegistrationsFilter(false);
   };
 
-  const handleRegistrationSuccess = () => {
+  const handleRegistrationSuccess = (updatedEvents: SocialEvent[]) => {
+    // Update all events with the new state
+    setAllEvents(updatedEvents);
     // Clear selected events after successful registration
     setSelectedEventIds([]);
     clearCart();
@@ -145,15 +169,32 @@ const PlayPage: React.FC = () => {
     });
   }, [filteredEvents]);
 
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedEvents.length / EVENTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * EVENTS_PER_PAGE;
+  const endIndex = startIndex + EVENTS_PER_PAGE;
+  const paginatedEvents = sortedEvents.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, categoryFilter, selectedDays, myRegistrationsFilter]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of events list
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <div className="pt-6 min-h-screen bg-gradient-to-t from-pink-50 to-pink-100">
-      <div className="container mx-auto px-4 py-8">
+    <div className="pt-6 min-h-screen bg-gradient-to-b from-pink-100 to-pink-200">
+      <div className="container mx-auto px-4 py-8 ">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-huglove">
             Play Sessions
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 text-xl max-w-7xl mx-auto">
             Register for our social badminton sessions. Select multiple events
             and book them all at once!
           </p>
@@ -169,6 +210,8 @@ const PlayPage: React.FC = () => {
           onCategoryFilterChange={setCategoryFilter}
           selectedDays={selectedDays}
           onDayFilterChange={handleDayFilterChange}
+          myRegistrationsFilter={myRegistrationsFilter}
+          onMyRegistrationsFilterChange={setMyRegistrationsFilter}
           onClearFilters={handleClearFilters}
         />
 
@@ -178,6 +221,11 @@ const PlayPage: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900">
               {sortedEvents.length} Event{sortedEvents.length !== 1 ? "s" : ""}{" "}
               Found
+              {totalPages > 1 && (
+                <span className="text-lg font-normal text-gray-600 ml-2">
+                  (Page {currentPage} of {totalPages})
+                </span>
+              )}
             </h2>
             {selectedEventIds.length > 0 && (
               <div className="flex items-center gap-4">
@@ -200,11 +248,16 @@ const PlayPage: React.FC = () => {
             )}
           </div>
           <EventList
-            events={sortedEvents}
+            events={paginatedEvents}
             selectedEventIds={selectedEventIds}
             onSelectEvent={handleSelectEvent}
             onRegister={handleRegister}
             onViewDetails={handleViewDetails}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
           />
         </div>
       </div>

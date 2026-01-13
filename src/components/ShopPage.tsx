@@ -330,7 +330,7 @@ const ShopPage = () => {
   };
 
   return (
-    <div className="w-full overflow-x-hidden min-h-screen">
+    <div className="w-full overflow-x-hidden min-h-screen bg-gradient-to-b from-pink-100 to-pink-200">
       <div className="px-4 md:px-8 py-8 md:py-16 max-w-7xl mx-auto min-h-full">
         {/* Products Grid - 5 columns */}
         <div className="mb-8">
@@ -405,7 +405,7 @@ const ShopPage = () => {
         </div>
 
         {/* Additional Info Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 mt-12">
+        <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 mt-12 bg-gradient-to-b from-pink-100 to-pink-200 shadow-xl">
           <h3 className="text-2xl font-bold mb-4 text-black text-center">
             Why Shop with ChibiBadminton?
           </h3>

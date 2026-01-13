@@ -11,13 +11,14 @@ import {
 import emailjs from "@emailjs/browser";
 import type { SocialEvent } from "../../types/socialEvent";
 import type { RegistrationFormData, FormErrors } from "../../types/socialEvent";
+import { registerUserForEvents } from "../../utils/registrationService";
 
 interface RegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
   events: SocialEvent[];
   isMultiEvent: boolean;
-  onSuccess: () => void;
+  onSuccess: (updatedEvents: SocialEvent[]) => void;
 }
 
 const RegistrationModal: React.FC<RegistrationModalProps> = ({
@@ -164,6 +165,18 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
     }
 
     try {
+      // Step 1: Register the user for events locally
+      const registrationResult = registerUserForEvents(events, formData);
+
+      if (!registrationResult.success) {
+        setSubmitStatus({
+          type: "error",
+          message: registrationResult.message,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       const templateParams = {
         to_email: toEmail,
         from_name: formData.name,
@@ -185,7 +198,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
       // Reset form after success
       setTimeout(() => {
         setFormData({ name: "", email: "", phone: "" });
-        onSuccess();
+        onSuccess(registrationResult.updatedEvents);
         onClose();
       }, 2000);
     } catch (error) {

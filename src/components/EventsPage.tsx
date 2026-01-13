@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
-import type { FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   FaCalendarAlt,
   FaClock,
   FaMapMarkerAlt,
-  FaUsers,
   FaEnvelope,
   FaUser,
   FaPhone,
@@ -14,75 +12,12 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
-import ChibiBattleRoyal from "../assets/ChibiBattleRoyal.png";
-import ChibiBattleRoyale2 from "../assets/ChibiBattle Royale2.png";
-import BannerMain from "../assets/BannerMain.png";
-import Banner from "../assets/banner.png";
-import ChibiBattleRoyalBG from "../assets/ChibiBattleRoyalBG.png";
+import EventsHistory from "./EventsHistory";
+import UpcomingEvents from "./UpcomingEvents";
+import type { Event } from "../data/eventData";
+import { events } from "../data/eventData";
 
-interface Event {
-  id: number;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  description: string;
-  attendees: number;
-  imageUrl: string;
-  status: "completed" | "upcoming";
-}
 
-const events: Event[] = [
-  {
-    id: 1,
-    title: "Chibi Battle Royale #1",
-    date: "November 11, 2023",
-    time: "9:00 AM - 5:00 PM",
-    location: "Altona Meadows Badminton Club",
-    description:
-      "The first ever ChibiBadminton Battle Royale. 56 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
-    attendees: 56,
-    imageUrl: ChibiBattleRoyal as string,
-    status: "completed",
-  },
-  {
-    id: 2,
-    title: "Chibi Battle Royale #2",
-    date: "December 16, 2024",
-    time: "9:00 AM - 5:00 PM",
-    location: "Altona Meadows Badminton Club",
-    description:
-      "The second ever ChibiBadminton Battle Royale. 104 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
-    attendees: 68,
-    imageUrl: ChibiBattleRoyale2 as string,
-    status: "completed",
-  },
-  {
-    id: 3,
-    title: "Chibi Battle Royale #3",
-    date: "November 12, 2025",
-    time: "9:00 AM - 5:00 PM",
-    location: "Altona Meadows Badminton Club",
-    description:
-      "The third ever ChibiBadminton Battle Royale. 104 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
-    attendees: 68,
-    imageUrl: BannerMain as string,
-    status: "completed",
-  },
-  {
-    id: 4,
-    title: "Chibi Battle Royale #4",
-    date: "Expected date: December 2026",
-    time: "Expected time: 9:00 AM - 5:00 PM",
-    location:
-      "Expected location: Krisna Badminton Club and Stomers Badminton Club",
-    description:
-      "Expected description: The fourth ever ChibiBadminton Battle Royale is officially in the works!\n\nThe event is planned to open in December 2026, bringing together many players to compete for the title of ChibiBadminton Champion. We're excited to build on the success of previous tournaments and deliver the biggest Battle Royale yet. More information will be released soon.",
-    attendees: 0,
-    imageUrl: Banner as string,
-    status: "upcoming",
-  },
-];
 
 interface FormData {
   name: string;
@@ -269,194 +204,32 @@ const EventsPage = () => {
   };
 
   return (
-    <div className="w-full min-h-screen overflow-x-hidden relative">
-      <div
-        className="fixed inset-0 -z-10"
-        style={{
-          backgroundImage: `url(${ChibiBattleRoyalBG})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          width: '100vw',
-          height: '100%'
-        }}
-      />
+    <div className="w-full min-h-screen overflow-x-hidden relative ">
       <div className="relative z-10">
-        <div className="px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto min-h-full">
-          {/* Upcoming Events Section - Full Width */}
-          {upcomingEvents.length > 0 && (
-            <section className="mb-20">
-              <div className="text-center mb-12">
-                <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
-                  UPCOMING
+        {/* Upcoming Events Section - Full Width */}
+        <UpcomingEvents upcomingEvents={upcomingEvents} openRegistrationModal={openRegistrationModal} />
+
+        {/* Events History Section */}
+        <EventsHistory completedEvents={completedEvents} />
+
+        {/* Empty State (if no events) */}
+        {events.length === 0 && (
+          <div className="px-4 md:px-8 py-12 md:py-16">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center py-20">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-12 md:p-16 max-w-2xl mx-auto">
+                  <FaCalendarAlt className="mx-auto text-gray-400 mb-6" size={64} />
+                  <h3 className="text-3xl font-bold mb-3 text-gray-800">
+                    No Events Yet
+                  </h3>
+                  <p className="text-gray-600 text-lg">
+                    Check back soon for upcoming events and gatherings!
+                  </p>
                 </div>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-white drop-shadow-lg">
-                  Upcoming Events
-                </h2>
-                <p className="text-white/90 text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md">
-                  Don't miss out on these exciting upcoming events!
-                </p>
-              </div>
-              <div className="w-full space-y-8">
-                {upcomingEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-green-500/50 w-full"
-                  >
-                    <div className="flex flex-col md:flex-row w-full">
-                      <div className="relative w-full md:w-1/2 h-64 md:h-auto md:min-h-[400px] overflow-hidden bg-white">
-                        <img
-                          src={event.imageUrl}
-                          alt={event.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-4 left-4 bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-lg">
-                          Upcoming
-                        </div>
-                      </div>
-                      <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-between bg-white/95">
-                        <div>
-                          <h3 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900">
-                            {event.title}
-                          </h3>
-                          <div className="space-y-3 mb-6">
-                            <div className="flex items-center text-gray-700">
-                              <FaCalendarAlt
-                                className="mr-3 text-green-600"
-                                size={20}
-                              />
-                              <span className="text-base font-medium">{event.date}</span>
-                            </div>
-                            <div className="flex items-center text-gray-700">
-                              <FaClock
-                                className="mr-3 text-green-600"
-                                size={20}
-                              />
-                              <span className="text-base font-medium">{event.time}</span>
-                            </div>
-                            <div className="flex items-start text-gray-700">
-                              <FaMapMarkerAlt
-                                className="mr-3 mt-1 text-green-600 flex-shrink-0"
-                                size={20}
-                              />
-                              <span className="text-base font-medium">{event.location}</span>
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                            <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
-                              {event.description}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
-                          <button
-                            onClick={() => openRegistrationModal(event)}
-                            className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
-                          >
-                            Register Now
-                          </button>
-                          <button className="flex-1 bg-white hover:bg-gray-50 text-green-600 border-2 border-green-600 font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg hover:shadow-lg">
-                            Learn More
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Events History Section */}
-          <section className="pt-8 pb-4">
-            <div className="text-center mb-12">
-              <div className="inline-block bg-gray-700 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
-                PAST EVENTS
-              </div>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-white drop-shadow-lg">
-                Events History
-              </h2>
-              <p className="text-white/90 text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md">
-                Take a look back at our amazing past events and gatherings
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-              {completedEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group"
-                >
-                  <div className="relative h-64 overflow-hidden bg-gray-100">
-                    <img
-                      src={event.imageUrl}
-                      alt={event.title}
-                      className="w-full h-full object-fill group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute top-4 left-4 bg-gray-800/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg">
-                      Completed
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-                  <div className="p-6 bg-white/95">
-                    <h3 className="text-xl md:text-2xl font-bold mb-4 text-gray-900 line-clamp-2">
-                      {event.title}
-                    </h3>
-                    <div className="space-y-3 mb-4">
-                      <div className="flex items-center text-gray-700">
-                        <FaCalendarAlt
-                          className="mr-3 text-green-600 flex-shrink-0"
-                          size={16}
-                        />
-                        <span className="text-sm font-medium">{event.date}</span>
-                      </div>
-                      <div className="flex items-center text-gray-700">
-                        <FaClock className="mr-3 text-green-600 flex-shrink-0" size={16} />
-                        <span className="text-sm font-medium">{event.time}</span>
-                      </div>
-                      <div className="flex items-start text-gray-700">
-                        <FaMapMarkerAlt
-                          className="mr-3 mt-1 text-green-600 flex-shrink-0"
-                          size={16}
-                        />
-                        <span className="text-sm font-medium line-clamp-2">{event.location}</span>
-                      </div>
-                      <div className="flex items-center text-gray-700">
-                        <FaUsers className="mr-3 text-green-600 flex-shrink-0" size={16} />
-                        <span className="text-sm font-medium">
-                          {event.attendees} Attendees
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-gray-600 text-sm mb-5 line-clamp-3 leading-relaxed">
-                      {event.description}
-                    </p>
-                    <div className="pt-4 border-t border-gray-200">
-                      <button className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg">
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Empty State (if no events) */}
-          {events.length === 0 && (
-            <div className="text-center py-20">
-              <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-12 md:p-16 max-w-2xl mx-auto">
-                <FaCalendarAlt className="mx-auto text-gray-400 mb-6" size={64} />
-                <h3 className="text-3xl font-bold mb-3 text-gray-800">
-                  No Events Yet
-                </h3>
-                <p className="text-gray-600 text-lg">
-                  Check back soon for upcoming events and gatherings!
-                </p>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Registration Form Modal */}
         {isModalOpen && selectedEvent && (
