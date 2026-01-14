@@ -12,9 +12,10 @@ const HomePage = () => {
   return (
     <div className="w-full overflow-x-hidden">
       {/* Hero Banner Section - Entirely below navbar */}
+      <FeaturedNews />
       <BannerCarousel />
 
-      <FeaturedNews />
+
       <FeaturedImages />
       {/* Description Section */}
       {/* <div className="text-center mb-8">

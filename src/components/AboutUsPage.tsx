@@ -49,7 +49,7 @@ const AboutUsPage = () => {
   ];
 
   return (
-    <div className="w-full overflow-x-hidden min-h-screen pt-20">
+    <div className="w-full overflow-x-hidden min-h-screen pt-20 bg-gradient-to-b from-pink-100 to-pink-200">
 
       <div className="px-4 md:px-8  max-w-7xl mx-auto min-h-full">
         {/* Introduction Section */}

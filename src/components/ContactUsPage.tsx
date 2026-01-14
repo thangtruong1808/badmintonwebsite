@@ -194,21 +194,14 @@ const ContactUsPage = () => {
 
   return (
     <div
-      className="w-full overflow-x-hidden min-h-screen"
-      style={{
-        backgroundImage: `url(${ChibiBattleRoyalBG})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
+      className="w-full overflow-x-hidden min-h-screen bg-gradient-to-b from-pink-100 to-pink-200"
     >
       <div className="w-full overflow-x-hidden min-h-screen pt-20">
 
         <div className="px-4 md:px-8 max-w-7xl mx-auto min-h-full">
           {/* Subtitle Section */}
           <div className="text-center mb-12">
-            <p className="text-xl lg:text-2xl text-black max-w-2xl mx-auto">
+            <p className="text-xl lg:text-3xl text-black max-w-7xl mx-auto">
               Send us a message and we'll respond as soon as possible.
             </p>
           </div>
@@ -216,7 +209,7 @@ const ContactUsPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-2">
             {/* Contact Information */}
             <div className="lg:col-span-1">
-              <div className="bg-slate-50 rounded-lg p-6 md:p-8 shadow-lg h-full border border-slate-200">
+              <div className="bg-gradient-to-b from-pink-100 to-pink-200 lg:bg-gradient-to-r from-pink-100 to-pink-200 rounded-lg p-6 md:p-8 shadow-lg h-full border border-slate-200">
                 <h2 className="text-2xl font-bold mb-6 text-gray-800">
                   Get In Touch
                 </h2>
@@ -249,7 +242,7 @@ const ContactUsPage = () => {
 
             {/* Contact Form */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg p-6 md:p-8 shadow-lg border border-slate-200">
+              <div className="bg-gradient-to-t from-pink-100 to-pink-200 lg:bg-gradient-to-l from-pink-100 to-pink-200 rounded-lg p-6 md:p-8 shadow-lg border border-slate-200">
                 <h2 className="text-2xl font-bold mb-6 text-gray-800">
                   Send Us a Message
                 </h2>
