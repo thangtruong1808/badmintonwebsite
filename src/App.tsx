@@ -11,6 +11,8 @@ import ContactUsPage from "./components/ContactUsPage";
 import ReviewsPage from "./components/ReviewsPage";
 import AboutUsPage from "./components/AboutUsPage";
 import SignInPage from "./components/SignInPage";
+import RegisterPage from "./components/RegisterPage";
+import ResetPasswordPage from "./components/ResetPasswordPage";
 import FeaturedNewsPage from "./components/FeaturedNewsPage";
 import PlayPage from "./components/PlayPage";
 import NewsDetailPage from "./components/NewsDetailPage";
@@ -19,7 +21,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col transition-all duration-300 w-full overflow-x-hidden">
       <Navbar />
-      <main className="flex-grow w-full pt-[56px] lg:pt-[72px]">
+      <main className="flex-grow w-full pt-[56px] lg:pt-[72px] relative">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/play" element={<PlayPage />} />
@@ -31,6 +33,8 @@ function App() {
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
           <Route path="/signin" element={<SignInPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/featured-news" element={<FeaturedNewsPage />} />
           <Route path="/featured-news/:id" element={<NewsDetailPage />} />
         </Routes>

@@ -1,0 +1,340 @@
+import { useState, useEffect, type FormEvent } from "react";
+import { Link } from "react-router-dom";
+import {
+  FaUser,
+  FaEnvelope,
+  FaLock,
+  FaEye,
+  FaEyeSlash,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaPhone,
+} from "react-icons/fa";
+
+interface RegisterFormData {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface FormErrors {
+  [key: string]: string;
+}
+
+const RegisterPage = () => {
+  useEffect(() => {
+    document.title = "ChibiBadminton - Register";
+  }, []);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [registerData, setRegisterData] = useState<RegisterFormData>({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [registerErrors, setRegisterErrors] = useState<FormErrors>({});
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
+
+  const validateRegister = (): boolean => {
+    const errors: FormErrors = {};
+    if (!registerData.name.trim()) {
+      errors.name = "Name is required";
+    }
+    if (!registerData.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerData.email)) {
+      errors.email = "Please enter a valid email address";
+    }
+    if (registerData.phone && !/^[\d\s\-\+\(\)]+$/.test(registerData.phone)) {
+      errors.phone = "Please enter a valid phone number";
+    }
+    if (!registerData.password) {
+      errors.password = "Password is required";
+    } else if (registerData.password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
+    }
+    if (!registerData.confirmPassword) {
+      errors.confirmPassword = "Please confirm your password";
+    } else if (registerData.password !== registerData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
+    setRegisterErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setRegisterData((prev) => ({ ...prev, [name]: value }));
+    if (registerErrors[name]) {
+      setRegisterErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleRegisterSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!validateRegister()) return;
+
+    setIsRegistering(true);
+    setSubmitStatus({ type: null, message: "" });
+
+    // Simulate API call
+    setTimeout(() => {
+      setIsRegistering(false);
+      setSubmitStatus({
+        type: "success",
+        message: "Account created successfully! You can now sign in.",
+      });
+      setRegisterData({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+      });
+    }, 1500);
+  };
+
+  return (
+    <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-pink-100 to-pink-200 px-4 py-12 flex items-center justify-center">
+      <div className="w-full max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2 font-huglove">
+            Create Account
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Register for a new account to get started
+          </p>
+        </div>
+
+        {/* Form Card */}
+        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-white">
+          <div className="p-8 md:p-10">
+            <form onSubmit={handleRegisterSubmit} className="space-y-6">
+              {/* Name Field */}
+              <div>
+                <label
+                  htmlFor="register-name"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  <FaUser className="inline mr-2" size={14} />
+                  Full Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="register-name"
+                  name="name"
+                  value={registerData.name}
+                  onChange={handleRegisterChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${registerErrors.name
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-green-500"
+                    }`}
+                  placeholder="Enter your full name"
+                />
+                {registerErrors.name && (
+                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                    <FaExclamationCircle className="mr-1" size={12} />
+                    {registerErrors.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Email Field */}
+              <div>
+                <label
+                  htmlFor="register-email"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  <FaEnvelope className="inline mr-2" size={14} />
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="register-email"
+                  name="email"
+                  value={registerData.email}
+                  onChange={handleRegisterChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${registerErrors.email
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-green-500"
+                    }`}
+                  placeholder="Enter your email"
+                />
+                {registerErrors.email && (
+                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                    <FaExclamationCircle className="mr-1" size={12} />
+                    {registerErrors.email}
+                  </p>
+                )}
+              </div>
+
+              {/* Phone Field */}
+              <div>
+                <label
+                  htmlFor="register-phone"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  <FaPhone className="inline mr-2" size={14} />
+                  Phone Number{" "}
+                  <span className="text-gray-500 text-xs">(Optional)</span>
+                </label>
+                <input
+                  type="tel"
+                  id="register-phone"
+                  name="phone"
+                  value={registerData.phone}
+                  onChange={handleRegisterChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${registerErrors.phone
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-green-500"
+                    }`}
+                  placeholder="Enter your phone number"
+                />
+                {registerErrors.phone && (
+                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                    <FaExclamationCircle className="mr-1" size={12} />
+                    {registerErrors.phone}
+                  </p>
+                )}
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label
+                  htmlFor="register-password"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  <FaLock className="inline mr-2" size={14} />
+                  Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="register-password"
+                    name="password"
+                    value={registerData.password}
+                    onChange={handleRegisterChange}
+                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${registerErrors.password
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-green-500"
+                      }`}
+                    placeholder="Enter your password (min. 8 characters)"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    aria-label="Toggle password visibility"
+                  >
+                    {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                  </button>
+                </div>
+                {registerErrors.password && (
+                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                    <FaExclamationCircle className="mr-1" size={12} />
+                    {registerErrors.password}
+                  </p>
+                )}
+              </div>
+
+              {/* Confirm Password Field */}
+              <div>
+                <label
+                  htmlFor="register-confirm-password"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  <FaLock className="inline mr-2" size={14} />
+                  Confirm Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    id="register-confirm-password"
+                    name="confirmPassword"
+                    value={registerData.confirmPassword}
+                    onChange={handleRegisterChange}
+                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${registerErrors.confirmPassword
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-300 focus:ring-green-500"
+                      }`}
+                    placeholder="Confirm your password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    aria-label="Toggle password visibility"
+                  >
+                    {showConfirmPassword ? (
+                      <FaEyeSlash size={18} />
+                    ) : (
+                      <FaEye size={18} />
+                    )}
+                  </button>
+                </div>
+                {registerErrors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                    <FaExclamationCircle className="mr-1" size={12} />
+                    {registerErrors.confirmPassword}
+                  </p>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isRegistering}
+                className={`w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ${isRegistering ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+              >
+                {isRegistering ? "Creating Account..." : "Create Account"}
+              </button>
+
+              {/* Submit Status */}
+              {submitStatus.message && (
+                <div
+                  className={`p-4 rounded-lg flex items-center ${submitStatus.type === "success"
+                    ? "bg-green-50 text-green-800 border border-green-200"
+                    : "bg-red-50 text-red-800 border border-red-200"
+                    }`}
+                >
+                  {submitStatus.type === "success" ? (
+                    <FaCheckCircle className="mr-2" size={20} />
+                  ) : (
+                    <FaExclamationCircle className="mr-2" size={20} />
+                  )}
+                  <span className="text-sm font-medium">{submitStatus.message}</span>
+                </div>
+              )}
+            </form>
+
+            {/* Sign In Link */}
+            <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+              <p className="text-gray-600 text-sm">
+                Already have an account?{" "}
+                <Link
+                  to="/signin"
+                  className="text-green-600 hover:text-green-700 font-semibold"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RegisterPage;
