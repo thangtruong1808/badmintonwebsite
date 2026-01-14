@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import emailjs from "@emailjs/browser";
-import ChibiBattleRoyalBG from "../assets/ChibiBattleRoyalBG.png";
 import {
   FaEnvelope,
   FaUser,
