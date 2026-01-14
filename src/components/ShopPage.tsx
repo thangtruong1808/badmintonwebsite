@@ -334,7 +334,7 @@ const ShopPage = () => {
       <div className="px-4 md:px-8 py-8 md:py-16 max-w-7xl mx-auto min-h-full">
         {/* Products Grid - 5 columns */}
         <div className="mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black text-center md:text-left">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black text-left font-huglove lg:text-center">
             Featured Services/Products
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
