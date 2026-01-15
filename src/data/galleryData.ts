@@ -61,15 +61,15 @@ export const videos: Video[] = [
   {
     id: 1,
     title: "Chibi Wednesday Playtime",
-    embedId: "-BW1Cf0IPX8",
-    thumbnail: "https://img.youtube.com/vi/-BW1Cf0IPX8/0.jpg",
+    embedId: "cmh7Eilcg0k",
+    thumbnail: "https://img.youtube.com/vi/cmh7Eilcg0k/0.jpg",
     category: "Wednesday",
   },
   {
     id: 2,
     title: "Chibi Friday Playtime",
-    embedId: "d3RmpKNzgsI",
-    thumbnail: "https://img.youtube.com/vi/d3RmpKNzgsI/0.jpg",
+    embedId: "xrVX-8j3LiU",
+    thumbnail: "https://img.youtube.com/vi/xrVX-8j3LiU/0.jpg",
     category: "Friday",
   },
   {
