@@ -329,6 +329,10 @@ const RegisterPage = () => {
                   Sign in
                 </Link>
               </p>
+              <div className="mt-4 flex items-center justify-center text-gray-500 text-xs">
+                <FaLock className="mr-2 text-green-600" size={14} />
+                <span>Secure authentication powered by encrypted connections</span>
+              </div>
             </div>
           </div>
         </div>

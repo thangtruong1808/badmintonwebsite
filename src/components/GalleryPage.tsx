@@ -84,8 +84,8 @@ const GalleryPage = () => {
                         )
                       }
                       className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${selectedPhotoFilter === option.value
-                          ? "bg-green-600 text-white"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                         }`}
                     >
                       {option.label}
@@ -149,8 +149,8 @@ const GalleryPage = () => {
                         )
                       }
                       className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${selectedVideoCategory === option.value
-                          ? "bg-red-600 text-white"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        ? "bg-red-600 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                         }`}
                     >
                       {option.label}
@@ -165,11 +165,15 @@ const GalleryPage = () => {
                         key={video.id}
                         className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                       >
-                        <div className="relative aspect-video bg-gray-200">
+                        <div className="relative aspect-video bg-gray-200 flex items-center justify-center">
                           <img
                             src={video.thumbnail}
                             alt={video.title}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = `https://img.youtube.com/vi/${video.embedId}/0.jpg`;
+                            }}
                           />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-all duration-300">
                             <a

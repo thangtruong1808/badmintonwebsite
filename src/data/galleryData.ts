@@ -77,15 +77,15 @@ export const videos: Video[] = [
     title: "Chibi Battle Royale #1",
     embedId: "cDn4hZ3pWFU",
     thumbnail:
-      "https://i.ytimg.com/pl_c/PL9_wYoxgAnQjpAPbSlTmfvZMM57Q11H8E/studio_square_thumbnail.jpg?sqp=CICMm8sG-oaymwEICKoDEPABSFqi85f_AwYIyrrxvQY=&rs=AOn4CLDT1QKphpvinBhynFSPjcXn_cEH7w",
+      "https://i.ytimg.com/pl_c/PL9_wYoxgAnQjpAPbSlTmfvZMM57Q11H8E/studio_square_thumbnail.jpg?sqp=CLSqo8sG-oaymwEICKoDEPABSFqi85f_AwYIyrrxvQY=&rs=AOn4CLCbXP1djWAINMt89dfypDefFU9dfg",
     category: "tournament",
   },
   {
     id: 4,
-    title: "Badminton Veteran Tournament 2025 (Albury/Wodonga)",
+    title: "Badminton Veteran Tournament 2025 (Kilsyth)",
     embedId: "5Uq_Sv-b1K0",
     thumbnail:
-      "https://i.ytimg.com/pl_c/PL9_wYoxgAnQiN7Y3wjHFEuJ3LicBnUFTD/studio_square_thumbnail.jpg?sqp=CPyHm8sG-oaymwEICKoDEPABSFqi85f_AwYI_sGdyAY=&rs=AOn4CLC8z2mcCaptMCvhAMRcL_JZMjlZUA",
+      "https://i.ytimg.com/pl_c/PL9_wYoxgAnQirxtrlQOu2KnjlA44S_aJO/studio_square_thumbnail.jpg?sqp=CMaKo8sG-oaymwEICKoDEPABSFqi85f_AwYI-bPkxgY=&rs=AOn4CLAGxYRMFIe3JSKFw-24QDVgD1Zv1A",
     category: "tournament",
   },
   {
@@ -93,7 +93,7 @@ export const videos: Video[] = [
     title: "Chibi Wednesday Playlists",
     embedId: "PL9_wYoxgAnQiSNtLldFJBBL1yt4oQHC9q",
     thumbnail:
-      "https://i.ytimg.com/pl_c/PL9_wYoxgAnQiSNtLldFJBBL1yt4oQHC9q/studio_square_thumbnail.jpg?sqp=CIrLm8sG-oaymwEICKoDEPABSFqi85f_AwYI_OfwvQY=&rs=AOn4CLBCm71At5yQ_i1GU7R8nssDqel97Q",
+      "https://i.ytimg.com/pl_c/PL9_wYoxgAnQiSNtLldFJBBL1yt4oQHC9q/studio_square_thumbnail.jpg?sqp=CKK2o8sG-oaymwEICKoDEPABSFqi85f_AwYI_OfwvQY=&rs=AOn4CLAeRe824m7ZA926kYIKR_a5tBhUCg",
     category: "playlists",
   },
   {
@@ -101,7 +101,7 @@ export const videos: Video[] = [
     title: "Chibi Friday Playlists",
     embedId: "PL9_wYoxgAnQhbxaCNsDD2ff-K1U2oKONc",
     thumbnail:
-      "https://i.ytimg.com/pl_c/PL9_wYoxgAnQhbxaCNsDD2ff-K1U2oKONc/studio_square_thumbnail.jpg?sqp=CLjBm8sG-oaymwEICKoDEPABSFqi85f_AwYI2-rwvQY=&rs=AOn4CLDcSbfHGgozKgDovQKsrYR3-Ik5VA",
+      "https://i.ytimg.com/pl_c/PL9_wYoxgAnQhbxaCNsDD2ff-K1U2oKONc/studio_square_thumbnail.jpg?sqp=CNnJo8sG-oaymwEICKoDEPABSFqi85f_AwYI2-rwvQY=&rs=AOn4CLDQpAeqv_H5-3UWSY6a4mi7yHGAvQ",
     category: "playlists",
   },
   {
@@ -109,7 +109,7 @@ export const videos: Video[] = [
     title: "Badminton Veteran Tournament 2025 (Altona)",
     embedId: "5Uq_Sv-b1K0",
     thumbnail:
-      "https://i.ytimg.com/pl_c/PL9_wYoxgAnQjoe8751uGGArfK4jAzvnEF/studio_square_thumbnail.jpg?sqp=CNKom8sG-oaymwEICKoDEPABSFqi85f_AwYIuYXOwwY=&rs=AOn4CLDHKjVFgkcuuYK1yJYxHfUidjcExg",
+      "https://i.ytimg.com/pl_c/PL9_wYoxgAnQjoe8751uGGArfK4jAzvnEF/studio_square_thumbnail.jpg?sqp=CICJo8sG-oaymwEICKoDEPABSFqi85f_AwYIuYXOwwY=&rs=AOn4CLCWzX2hUDc89RxoHJVKUV_OyuK0VQ",
     category: "tournament",
   },
 ];

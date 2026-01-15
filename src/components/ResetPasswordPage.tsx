@@ -4,6 +4,7 @@ import {
   FaEnvelope,
   FaCheckCircle,
   FaExclamationCircle,
+  FaShieldAlt,
 } from "react-icons/fa";
 
 interface ResetFormData {
@@ -156,6 +157,16 @@ const ResetPasswordPage = () => {
                 ← Back to Sign In
               </Link>
             </div>
+
+            {/* Authenticated / Secure Message */}
+            <div className="mt-4 w-full bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col items-center text-gray-500 text-xs">
+              <FaShieldAlt className="text-green-600 mb-2" size={20} />
+              <p className="text-center leading-relaxed">
+                Your information is securely encrypted. We never share your data with third parties.
+              </p>
+            </div>
+
+
           </div>
         </div>
       </div>
