@@ -81,7 +81,7 @@ const FeaturedNews: React.FC = () => {
                   className="w-full h-full object-contain"
                 />
                 <span
-                  className={`absolute top-2 right-2 text-white text-md font-bold px-2 py-1 rounded ${badgeColor(
+                  className={`absolute top-2 right-2 text-white text-md font-bold px-2 py-1 rounded font-calibri ${badgeColor(
                     news.badge
                   )}`}
                 >
@@ -89,16 +89,16 @@ const FeaturedNews: React.FC = () => {
                 </span>
               </div>
               <div className="p-4 flex-shrink-0">
-                <h3 className="font-bold text-xl mb-2">{news.title}</h3>
-                <p className="text-gray-700 text-sm">{news.description}</p>
+                <h3 className="font-bold text-xl mb-2 font-calibri">{news.title}</h3>
+                <p className="text-gray-800 text-md font-calibri">{news.description}</p>
                 <div className="xl:flex flex-row justify-between items-center mt-3">
-                  <div className="flex items-center gap-2 text-md">
-                    <span className="font-huglove">{finalDate}</span>
+                  <div className="flex items-center gap-2 text-md font-calibri">
+                    <span>{finalDate}</span>
                   </div>
 
                   <Link
                     to={`/featured-news/${news.id}`}
-                    className="text-rose-500 hover:underline font-semibold uppercase underline"
+                    className="text-rose-500 hover:underline font-semibold uppercase underline font-calibri"
                   >
                     Read More
                   </Link>
@@ -110,7 +110,7 @@ const FeaturedNews: React.FC = () => {
         <div className="text-center mt-8 ">
           <Link
             to="/featured-news"
-            className="bg-rose-500 text-white font-bold py-2 px-6 rounded-full hover:bg-rose-600 transition-colors"
+            className="bg-rose-500 text-white font-bold py-2 px-6 rounded-full hover:bg-rose-600 transition-colors font-calibri"
           >
             View More
           </Link>

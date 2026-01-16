@@ -46,7 +46,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     myRegistrationsFilter;
 
   return (
-    <div className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-md p-4 mb-6 shadow-xl">
+    <div className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-md p-4 mb-6 shadow-xl font-calibri">
       {/* Search Input */}
       <div className="relative mb-4">
         <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -55,7 +55,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           placeholder="Search events by title, location, or description..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent font-calibri"
         />
         {searchQuery && (
           <button
@@ -71,14 +71,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
       <div className="flex flex-wrap items-end gap-4">
         {/* My Registrations Filter */}
         <div className="flex-1 min-w-[120px]">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2 font-calibri">
             My Events
           </label>
           <button
             onClick={() => onMyRegistrationsFilterChange(!myRegistrationsFilter)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors w-full ${myRegistrationsFilter
-              ? "bg-purple-600 text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              ? "bg-purple-600 text-white font-calibri"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
               } flex items-center justify-center gap-2`}
           >
             <FaBookmark />
@@ -96,8 +96,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 key={status}
                 onClick={() => onStatusFilterChange(status)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${statusFilter === status
-                  ? "bg-rose-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  ? "bg-rose-500 text-white font-calibri"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
                   }`}
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -117,8 +117,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 key={category}
                 onClick={() => onCategoryFilterChange(category)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === category
-                  ? "bg-rose-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  ? "bg-rose-500 text-white font-calibri"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
                   }`}
               >
                 {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -140,8 +140,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   key={day}
                   onClick={() => onDayFilterChange(day)}
                   className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${isSelected
-                    ? "bg-rose-500 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    ? "bg-rose-500 text-white font-calibri"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
                     }`}
                 >
                   {day.slice(0, 3)}

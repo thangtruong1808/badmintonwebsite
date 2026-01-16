@@ -218,29 +218,29 @@ const PlayPage: React.FC = () => {
         {/* Main Content */}
         <div>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-gray-900 font-calibri">
               {sortedEvents.length} Event{sortedEvents.length !== 1 ? "s" : ""}{" "}
               Found
               {totalPages > 1 && (
-                <span className="text-lg font-normal text-gray-600 ml-2">
+                <span className="text-lg font-normal text-gray-600 ml-2 font-calibri">
                   (Page {currentPage} of {totalPages})
                 </span>
               )}
             </h2>
             {selectedEventIds.length > 0 && (
               <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 font-calibri">
                   {selectedEventIds.length} event{selectedEventIds.length !== 1 ? "s" : ""} selected
                 </span>
                 <button
                   onClick={handleBookAll}
-                  className="bg-rose-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-rose-600 transition-colors"
+                  className="bg-rose-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-rose-600 transition-colors font-calibri"
                 >
                   Book All ({selectedEventIds.length})
                 </button>
                 <button
                   onClick={handleClearCart}
-                  className="text-sm text-gray-600 hover:text-gray-900"
+                  className="text-sm text-gray-600 hover:text-gray-900 font-calibri"
                 >
                   Clear
                 </button>

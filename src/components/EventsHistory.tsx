@@ -42,13 +42,13 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
                       alt={event.title}
                       className="w-full h-full object-fill group-hover:scale-110 transition-transform duration-500"
                     />
-                    <div className="absolute top-4 left-4 bg-gray-800/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg">
+                    <div className="absolute top-4 left-4 bg-gray-800/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg font-calibri">
                       Completed
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
                   <div className="p-6 bg-white/95">
-                    <h3 className="text-xl md:text-2xl font-bold mb-4 text-gray-900 line-clamp-2">
+                    <h3 className="text-xl md:text-2xl font-bold mb-4 text-gray-900 line-clamp-2 font-calibri">
                       {event.title}
                     </h3>
                     <div className="space-y-3 mb-4">
@@ -57,21 +57,21 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
                           className="mr-3 text-green-600 flex-shrink-0"
                           size={16}
                         />
-                        <span className="text-sm font-medium">{event.date}</span>
+                        <span className="text-sm font-medium font-calibri">{event.date}</span>
                       </div>
                       <div className="flex items-center text-gray-700">
                         <FaClock
                           className="mr-3 text-green-600 flex-shrink-0"
                           size={16}
                         />
-                        <span className="text-sm font-medium">{event.time}</span>
+                        <span className="text-sm font-medium font-calibri">{event.time}</span>
                       </div>
                       <div className="flex items-start text-gray-700">
                         <FaMapMarkerAlt
                           className="mr-3 mt-1 text-green-600 flex-shrink-0"
                           size={16}
                         />
-                        <span className="text-sm font-medium line-clamp-2">
+                        <span className="text-sm font-medium line-clamp-2 font-calibri">
                           {event.location}
                         </span>
                       </div>
@@ -80,16 +80,16 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
                           className="mr-3 text-green-600 flex-shrink-0"
                           size={16}
                         />
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium font-calibri">
                           {event.attendees} Attendees
                         </span>
                       </div>
                     </div>
-                    <p className="text-gray-600 text-sm mb-5 line-clamp-3 leading-relaxed">
+                    <p className="text-gray-600 text-sm mb-5 line-clamp-3 leading-relaxed font-calibri">
                       {event.description}
                     </p>
                     <div className="pt-4 border-t border-gray-200">
-                      <button className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg">
+                      <button className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-calibri">
                         View Details
                       </button>
                     </div>

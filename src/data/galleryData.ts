@@ -100,6 +100,9 @@ export const videos: Video[] = [
     id: 6,
     title: "Chibi Friday Playlists",
     embedId: "PL9_wYoxgAnQhbxaCNsDD2ff-K1U2oKONc",
+    // TODO: The thumbnail URL for this playlist is broken.
+    // To fix this, find a video in the playlist on YouTube, get its video ID,
+    // and construct a URL like this: https://i.ytimg.com/vi/VIDEO_ID/hqdefault.jpg
     thumbnail:
       "https://i.ytimg.com/pl_c/PL9_wYoxgAnQhbxaCNsDD2ff-K1U2oKONc/studio_square_thumbnail.jpg?sqp=CNnJo8sG-oaymwEICKoDEPABSFqi85f_AwYI2-rwvQY=&rs=AOn4CLDQpAeqv_H5-3UWSY6a4mi7yHGAvQ",
     category: "playlists",

@@ -5,7 +5,11 @@ module.exports = {
     extend: {
       fontFamily: {
         huglove: ["Huglove", "cursive"],
-        sans: ["Huglove", "cursive"], // Set Huglove as default sans font
+        roboto: ["Roboto", "sans-serif"],
+        "noto-sans": ["Noto Sans", "sans-serif"],
+        calibri: ["Calibri", "Arial", "sans-serif"],
+        "poynter-gothic": ["Playfair Display", "serif"],
+        sans: ["Roboto", "Huglove", "cursive"], // Set Roboto as default sans font
       },
     },
   },

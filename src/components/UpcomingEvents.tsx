@@ -47,7 +47,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                       </div>
                       <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-between bg-white/95">
                         <div>
-                          <h3 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900">
+                          <h3 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 font-calibri">
                             {event.title}
                           </h3>
                           <div className="space-y-3 mb-6">
@@ -56,7 +56,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                                 className="mr-3 text-green-600"
                                 size={20}
                               />
-                              <span className="text-base font-medium">
+                              <span className="text-base font-medium font-calibri">
                                 {event.date}
                               </span>
                             </div>
@@ -65,7 +65,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                                 className="mr-3 text-green-600"
                                 size={20}
                               />
-                              <span className="text-base font-medium">
+                              <span className="text-base font-medium font-calibri">
                                 {event.time}
                               </span>
                             </div>
@@ -74,13 +74,13 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                                 className="mr-3 mt-1 text-green-600 flex-shrink-0"
                                 size={20}
                               />
-                              <span className="text-base font-medium">
+                              <span className="text-base font-medium font-calibri">
                                 {event.location}
                               </span>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                            <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line">
+                            <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line font-calibri">
                               {event.description}
                             </p>
                           </div>
@@ -88,11 +88,11 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                         <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
                           <button
                             onClick={() => openRegistrationModal(event)}
-                            className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
+                            className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl transform hover:scale-105 font-calibri"
                           >
                             Register Now
                           </button>
-                          <button className="flex-1 bg-white hover:bg-gray-50 text-green-600 border-2 border-green-600 font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg hover:shadow-lg">
+                          <button className="flex-1 bg-white hover:bg-gray-50 text-green-600 border-2 border-green-600 font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg hover:shadow-lg font-calibri">
                             Learn More
                           </button>
                         </div>

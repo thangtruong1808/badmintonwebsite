@@ -18,7 +18,7 @@ const FeaturedImages: React.FC = () => {
               alt="Chibi Wednesday Playtime"
               className="rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 mb-4 w-full h-auto object-cover"
             />
-            <p className="text-md md:text-lg text-gray-700">
+            <p className="text-md md:text-lg text-gray-700 font-calibri font-semibold">
               Chibi Wednesday Playtime from 7:00 PM to 10:00 PM
             </p>
           </div>
@@ -30,13 +30,13 @@ const FeaturedImages: React.FC = () => {
               alt="Chibi Friday Playtime"
               className="rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 mb-4 w-full h-auto object-cover"
             />
-            <p className="text-md md:text-lg text-gray-700">
+            <p className="text-md md:text-lg text-gray-700 font-calibri font-semibold">
               Chibi Friday Playtime from 7:00 PM to 10:00 PM
             </p>
           </div>
 
           {/* Note Section — centered under both images */}
-          <div className="text-center text-md md:text-lg md:col-span-2 text-gray-700 mb-8">
+          <div className="text-center text-md md:text-lg md:col-span-2 text-gray-700 mb-8 font-calibri ">
             Please contact us for any questions or to schedule a time. Please
             check the events page for the most up to date information.
           </div>

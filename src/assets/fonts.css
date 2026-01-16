@@ -1,0 +1,23 @@
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./Roboto-Regular.woff2) format('woff2');
+}
+
+/* Noto Sans - Google Fonts (loaded via index.html) */
+/* Font is loaded via Google Fonts link in index.html */
+
+/* Calibri - System font with fallback (Calibri is a Microsoft proprietary font) */
+/* Will use system Calibri if available, otherwise falls back to Arial */
+@font-face {
+  font-family: 'Calibri';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Calibri'), local('Calibri-Regular'), local('Arial');
+}
+
+/* Poynter Gothic - Using Playfair Display as similar alternative (loaded via index.html) */
+/* Font is loaded via Google Fonts link in index.html */
