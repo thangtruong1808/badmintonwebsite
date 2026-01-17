@@ -43,11 +43,10 @@ const ProductDetailPage = () => {
 
   // Quantity pricing options for products 1 and 2
   const quantityOptions = [
-    { quantity: 1, unitPrice: 59.99, label: "1 DOZ/TUBE" },
-    { quantity: 5, unitPrice: 58.20, label: "5 DOZ/TUBES", total: 291.00 },
-    { quantity: 10, unitPrice: 54.60, label: "10 DOZ/TUBES", total: 546.00 },
-    { quantity: 25, unitPrice: 52.20, label: "25 DOZ/TUBES", total: 1305.00 },
-    { quantity: 50, unitPrice: 49.80, label: "50 DOZ/TUBES", total: 2490.00 },
+    { quantity: 1, unitPrice: 55, label: "1 DOZ/TUBE" },
+    { quantity: 5, unitPrice: 54, label: "5 DOZ/TUBES", total: 270.00 },
+    { quantity: 10, unitPrice: 53, label: "10 DOZ/TUBES", total: 530.00 },
+
   ];
 
   // Get current price based on selected quantity (for products 1 and 2)
@@ -294,21 +293,21 @@ const ProductDetailPage = () => {
   };
 
   return (
-    <div className="w-full overflow-x-hidden min-h-screen">
-      <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full">
+    <div className="w-full overflow-x-hidden min-h-screen font-calibri text-lg bg-gradient-to-r from-pink-100 to-pink-200">
+      <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full font-calibri text-lg">
         {/* Back Button */}
         <button
           onClick={() => navigate("/shop")}
-          className="flex items-center gap-2 text-gray-600 hover:text-black mb-6 transition-colors duration-300"
+          className="flex items-center gap-2 text-gray-600 hover:text-black mb-6 transition-colors duration-300 font-calibri text-lg"
         >
           <FaArrowLeft size={18} />
-          <span className="font-medium">Back to Shop</span>
+          <span className="font-large font-calibri text-lg">Back to Shop</span>
         </button>
 
         {/* Product Detail Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 mb-12 font-calibri text-lg">
           {/* Product Image Gallery */}
-          <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
+          <div className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-lg shadow-lg p-4 md:p-6">
             {/* Main Image */}
             <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100 mb-4">
               <img
@@ -346,7 +345,7 @@ const ProductDetailPage = () => {
           </div>
 
           {/* Product Information */}
-          <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
+          <div className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 md:p-8">
             <div className="mb-4">
               <span className="text-sm text-gray-500 uppercase tracking-wide">
                 {product.category}
@@ -366,8 +365,8 @@ const ProductDetailPage = () => {
                       key={option.quantity}
                       onClick={() => setSelectedQuantity(option.quantity)}
                       className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-300 ${selectedQuantity === option.quantity
-                        ? "border-green-600 bg-green-50 ring-2 ring-green-200"
-                        : "border-gray-200 hover:border-gray-400 bg-white"
+                        ? "border-rose-500 bg-rose-50 ring-2 ring-rose-200"
+                        : "border-gray-200 hover:border-gray-400 bg-white/50"
                         }`}
                     >
                       <div className="flex items-center justify-between">
@@ -441,12 +440,12 @@ const ProductDetailPage = () => {
             {/* Stock Status */}
             <div className="mb-6">
               {product.inStock ? (
-                <div className="flex items-center gap-2 text-green-600 font-semibold">
+                <div className="flex items-center gap-2 text-rose-500 font-semibold">
                   <FaCheck size={20} />
                   <span>In Stock</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-red-600 font-semibold">
+                <div className="flex items-center gap-2 text-rose-500 font-semibold">
                   <span>Out of Stock</span>
                 </div>
               )}
@@ -454,8 +453,8 @@ const ProductDetailPage = () => {
 
             {/* Description */}
             <div className="mb-6">
-              <h3 className="text-xl font-bold mb-3 text-black">Description</h3>
-              <p className="text-gray-700 leading-relaxed">
+              <h3 className="text-xl font-bold mb-3 text-black font-calibri text-lg">Description</h3>
+              <p className="text-gray-700 leading-relaxed font-calibri text-lg">
                 {product.description ||
                   `High-quality ${product.name.toLowerCase()} perfect for badminton enthusiasts. This product is carefully selected to meet the needs of players at all skill levels. Whether you're a beginner or a professional, this item will enhance your badminton experience.`}
               </p>
@@ -463,34 +462,34 @@ const ProductDetailPage = () => {
 
             {/* Features */}
             <div className="mb-6">
-              <h3 className="text-xl font-bold mb-3 text-black">
+              <h3 className="text-xl font-bold mb-3 text-black font-calibri text-lg">
                 Key Features
               </h3>
               <ul className="space-y-2">
-                <li className="flex items-start gap-2 text-gray-700">
+                <li className="flex items-start gap-2 text-gray-700 font-calibri text-lg">
                   <FaCheck
-                    className="text-green-600 mt-1 flex-shrink-0"
+                    className="text-rose-500 mt-1 flex-shrink-0"
                     size={16}
                   />
                   <span>Premium quality materials</span>
                 </li>
-                <li className="flex items-start gap-2 text-gray-700">
+                <li className="flex items-start gap-2 text-gray-700 font-calibri text-lg">
                   <FaCheck
-                    className="text-green-600 mt-1 flex-shrink-0"
+                    className="text-rose-500 mt-1 flex-shrink-0"
                     size={16}
                   />
                   <span>Durable and long-lasting</span>
                 </li>
-                <li className="flex items-start gap-2 text-gray-700">
+                <li className="flex items-start gap-2 text-gray-700 font-calibri text-lg">
                   <FaCheck
-                    className="text-green-600 mt-1 flex-shrink-0"
+                    className="text-rose-500 mt-1 flex-shrink-0"
                     size={16}
                   />
                   <span>Perfect for all skill levels</span>
                 </li>
-                <li className="flex items-start gap-2 text-gray-700">
+                <li className="flex items-start gap-2 text-gray-700 font-calibri text-lg">
                   <FaCheck
-                    className="text-green-600 mt-1 flex-shrink-0"
+                    className="text-rose-500 mt-1 flex-shrink-0"
                     size={16}
                   />
                   <span>Warranty included</span>
@@ -502,8 +501,8 @@ const ProductDetailPage = () => {
             <button
               onClick={() => setIsModalOpen(true)}
               disabled={!product.inStock}
-              className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg font-bold text-lg transition duration-300 mb-4 ${product.inStock
-                ? "bg-green-600 hover:bg-green-700 text-white"
+              className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg font-bold text-lg transition duration-300 mb-4 font-calibri text-lg ${product.inStock
+                ? "bg-rose-500 hover:bg-rose-600 text-white"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
             >
@@ -514,14 +513,14 @@ const ProductDetailPage = () => {
             {/* Shipping & Guarantee Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-gray-200">
               <div className="flex items-center gap-3">
-                <FaTruck className="text-green-600" size={24} />
+                <FaTruck className="text-rose-500" size={24} />
                 <div>
                   <p className="font-semibold text-black">Free Shipping</p>
                   <p className="text-sm text-gray-600">On orders over $100</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <FaShieldAlt className="text-green-600" size={24} />
+                <FaShieldAlt className="text-rose-500" size={24} />
                 <div>
                   <p className="font-semibold text-black">Quality Guarantee</p>
                   <p className="text-sm text-gray-600">30-day return policy</p>
@@ -533,7 +532,7 @@ const ProductDetailPage = () => {
 
         {/* Related Products Section */}
         <div className="mt-16">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black font-calibri text-lg">
             Related Products
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -580,11 +579,11 @@ const ProductDetailPage = () => {
           onClick={closeModal}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-black">Contact Us</h2>
+              <h2 className="text-2xl font-bold text-black font-calibri text-2xl">Contact Us</h2>
               <button
                 onClick={closeModal}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -593,28 +592,28 @@ const ProductDetailPage = () => {
               </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 font-calibri text-lg">
               <div className="mb-6 p-4 bg-slate-50 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">Product Inquiry:</p>
-                <p className="font-semibold text-black">{product.name}</p>
+                <p className="text-sm text-gray-600 mb-1 font-calibri text-lg">Product Inquiry:</p>
+                <p className="font-semibold text-black font-calibri text-lg">{product.name}</p>
                 {(product.id === 1 || product.id === 2) && selectedQuantity > 1 && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-gray-600 font-calibri text-lg">
                     {quantityOptions.find(opt => opt.quantity === selectedQuantity)?.label}
                   </p>
                 )}
-                <p className="text-green-600 font-bold">
+                <p className="text-green-600 font-bold font-calibri text-lg">
                   ${getCurrentPrice().toFixed(2)}
                   {(product.id === 1 || product.id === 2) && selectedQuantity > 1 && (
-                    <span className="text-sm text-gray-600 font-normal"> per dozen</span>
+                    <span className="text-gray-600 font-normal font-calibri text-lg"> per dozen</span>
                   )}
                 </p>
                 {(product.id === 1 || product.id === 2) && selectedQuantity > 1 && (
-                  <p className="text-lg text-gray-900 font-bold">
+                  <p className="text-gray-900 font-bold font-calibri text-lg">
                     Total: ${getTotalPrice().toFixed(2)}
                   </p>
                 )}
                 {(product.id === 1 || product.id === 2) && (
-                  <p className="text-xs text-gray-500 italic mt-2">
+                  <p className="text-gray-500 italic mt-2 font-calibri text-lg">
                     Tax included. Shipping calculated at checkout.
                   </p>
                 )}
@@ -624,7 +623,7 @@ const ProductDetailPage = () => {
               {submitStatus.type && (
                 <div
                   className={`mb-6 p-4 rounded-lg flex items-start space-x-3 ${submitStatus.type === "success"
-                    ? "bg-green-50 text-green-800 border border-green-200"
+                    ? "bg-rose-50 text-rose-800 border border-rose-200"
                     : "bg-red-50 text-red-800 border border-red-200"
                     }`}
                 >
@@ -636,7 +635,7 @@ const ProductDetailPage = () => {
                       size={20}
                     />
                   )}
-                  <p className="text-sm">{submitStatus.message}</p>
+                  <p className="text-md font-calibri text-lg">{submitStatus.message}</p>
                 </div>
               )}
 
@@ -645,10 +644,10 @@ const ProductDetailPage = () => {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-semibold text-gray-700 mb-2"
+                    className="block text-md font-semibold text-gray-700 mb-2 font-calibri text-lg"
                   >
                     <FaUser className="inline mr-2" size={14} />
-                    Full Name <span className="text-red-500">*</span>
+                    Full Name <span className="text-red-500 font-calibri text-lg">*</span>
                   </label>
                   <input
                     type="text"
@@ -660,10 +659,10 @@ const ProductDetailPage = () => {
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-green-500"
                       }`}
-                    placeholder="John Doe"
+                    placeholder="Enter your full name"
                   />
                   {errors.name && (
-                    <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                    <p className="mt-1 text-red-500 font-calibri text-lg">{errors.name}</p>
                   )}
                 </div>
 
@@ -673,10 +672,10 @@ const ProductDetailPage = () => {
                   <div>
                     <label
                       htmlFor="email"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-md font-semibold text-gray-700 mb-2 font-calibri text-lg"
                     >
                       <FaEnvelope className="inline mr-2" size={14} />
-                      Email Address <span className="text-red-500">*</span>
+                      Email Address <span className="text-red-500 font-calibri text-lg">*</span>
                     </label>
                     <input
                       type="email"
@@ -688,10 +687,10 @@ const ProductDetailPage = () => {
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
-                      placeholder="john@example.com"
+                      placeholder="Enter your email"
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-red-500">
+                      <p className="mt-1 text-red-500 font-calibri text-lg">
                         {errors.email}
                       </p>
                     )}
@@ -701,11 +700,11 @@ const ProductDetailPage = () => {
                   <div>
                     <label
                       htmlFor="phone"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-md font-semibold text-gray-700 mb-2 font-calibri text-lg"
                     >
                       <FaPhone className="inline mr-2" size={14} />
                       Phone Number{" "}
-                      <span className="text-gray-400">(Optional)</span>
+                      <span className="text-gray-400 font-calibri text-lg">(Optional)</span>
                     </label>
                     <input
                       type="tel"
@@ -731,9 +730,9 @@ const ProductDetailPage = () => {
                 <div>
                   <label
                     htmlFor="subject"
-                    className="block text-sm font-semibold text-gray-700 mb-2"
+                    className="block text-md font-semibold text-gray-700 mb-2 font-calibri text-lg"
                   >
-                    Subject <span className="text-red-500">*</span>
+                    Subject <span className="text-red-500 font-calibri text-lg">*</span>
                   </label>
                   <input
                     type="text"
@@ -745,10 +744,10 @@ const ProductDetailPage = () => {
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-green-500"
                       }`}
-                    placeholder="What is this regarding?"
+                    placeholder="Enter the subject of your inquiry"
                   />
                   {errors.subject && (
-                    <p className="mt-1 text-sm text-red-500">
+                    <p className="mt-1 text-red-500 font-calibri text-lg">
                       {errors.subject}
                     </p>
                   )}
@@ -758,9 +757,9 @@ const ProductDetailPage = () => {
                 <div>
                   <label
                     htmlFor="message"
-                    className="block text-sm font-semibold text-gray-700 mb-2"
+                    className="block text-md font-semibold text-gray-700 mb-2 font-calibri text-lg"
                   >
-                    Message <span className="text-red-500">*</span>
+                    Message <span className="text-red-500 font-calibri text-lg">*</span>
                   </label>
                   <textarea
                     id="message"
@@ -772,10 +771,10 @@ const ProductDetailPage = () => {
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-green-500"
                       }`}
-                    placeholder="Tell us more about your inquiry..."
+                    placeholder="Enter your message"
                   />
                   {errors.message && (
-                    <p className="mt-1 text-sm text-red-500">
+                    <p className="mt-1 text-red-500 font-calibri text-lg">
                       {errors.message}
                     </p>
                   )}
@@ -786,14 +785,14 @@ const ProductDetailPage = () => {
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors font-calibri text-lg"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ${isSubmitting
+                    className={`flex-1 flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-lg ${isSubmitting
                       ? "opacity-70 cursor-not-allowed"
                       : "hover:shadow-lg transform hover:-translate-y-0.5"
                       }`}
@@ -801,12 +800,12 @@ const ProductDetailPage = () => {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Sending...
+                        <span className="font-calibri text-lg">Sending...</span>
                       </>
                     ) : (
                       <>
                         <FaPaperPlane size={18} />
-                        Send Message
+                        <span className="font-calibri text-lg">Send Message</span>
                       </>
                     )}
                   </button>

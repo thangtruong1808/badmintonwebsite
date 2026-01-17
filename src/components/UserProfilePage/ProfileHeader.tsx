@@ -1,5 +1,5 @@
 import React from "react";
-import { FaUser, FaEnvelope, FaPhone, FaCalendarAlt } from "react-icons/fa";
+import { FaEnvelope, FaPhone, FaCalendarAlt } from "react-icons/fa";
 import type { User } from "../../types/user";
 import RewardPointsCard from "./RewardPointsCard";
 

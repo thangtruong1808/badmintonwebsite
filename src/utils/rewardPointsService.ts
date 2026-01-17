@@ -1,4 +1,4 @@
-import type { User, RewardPointTransaction, UserEventHistory } from "../types/user";
+import type { RewardPointTransaction, UserEventHistory } from "../types/user";
 import { getCurrentUser, setCurrentUser } from "./mockAuth";
 import { mockRewardTransactions, mockUserEventHistory } from "../data/mockUserData";
 

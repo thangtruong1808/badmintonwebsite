@@ -11,7 +11,7 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import { mockLogin } from "../utils/mockAuth";
-import { getUserEventHistory, getUnclaimedPointsCount } from "../utils/rewardPointsService";
+import { getUserEventHistory } from "../utils/rewardPointsService";
 import type { UserEventHistory } from "../types/user";
 
 interface SignInFormData {

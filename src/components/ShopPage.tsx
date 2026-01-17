@@ -3,6 +3,9 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
+import VICTORYBADMINTONPRO from "../assets/VICTORNCSPRO.jpg";
+import VICTORYBADMINTONPRO2 from "../assets/VICTORNCSPRO2.jpg";
+import VICTORYBADMINTONPRO3 from "../assets/VICTORNCSPRO3.jpg";
 
 
 export interface Product {
@@ -34,28 +37,28 @@ interface FormErrors {
 }
 
 export const products: Product[] = [
-  {
-    id: 1,
-    name: "SPPHONEIX Black Badminton Shuttlecocks Gooes Feather (Tournament LEVEL)",
-    price: 59.99,
-    image: "https://www.spsport.com.au/cdn/shop/files/IMG-2889_f64cceb5-71c5-4edc-82fb-e1489b986b40.jpg?v=1753869140&width=540",
-    images: [
-      "https://www.spsport.com.au/cdn/shop/files/IMG-2889_f64cceb5-71c5-4edc-82fb-e1489b986b40.jpg?v=1753869140&width=540",
-      "https://www.spsport.com.au/cdn/shop/products/SPPHONEIX-BLACK-Badminton-Gooes-Feather-Shuttlecoc-14.jpg?v=1753869140&width=540",
-      "https://www.spsport.com.au/cdn/shop/products/SPPHONEIX-BLACK-Badminton-Gooes-Feather-Shuttlecoc-18.jpg?v=1753869140&width=540",
-    ],
-    category: "Shuttlecocks",
-    inStock: true,
-  },
+  // {
+  //   id: 1,
+  //   name: "VICTOR NCS PRO (Synthetic/Carbon)",
+  //   price: 42,
+  //   image: VICTORYBADMINTONPRO,
+  //   images: [
+  //     VICTORYBADMINTONPRO,
+  //     VICTORYBADMINTONPRO2,
+  //     VICTORYBADMINTONPRO3,
+  //   ],
+  //   category: "Shuttlecocks",
+  //   inStock: true,
+  // },
   {
     id: 2,
-    name: "SPPHONEIX Black Badminton Shuttlecocks Gooes Feather (Tournament LEVEL)",
-    price: 59.99,
-    image: "https://www.spsport.com.au/cdn/shop/files/IMG-2888_df3f8697-099c-40a9-9b6e-b076e47b6c01.jpg?v=1753869140&width=540",
+    name: "LINGMEI 90 (Goose feather)",
+    price: 55,
+    image: "https://alphabadminton.com.au/cdn/shop/products/003_1024x_7e3b263c-545c-4775-9553-0033737aee7d.jpg?v=1620527313",
     images: [
-      "https://www.spsport.com.au/cdn/shop/files/IMG-2888_df3f8697-099c-40a9-9b6e-b076e47b6c01.jpg?v=1753869140&width=540",
-      "https://www.spsport.com.au/cdn/shop/products/SPPHONEIX-BLACK-Badminton-Gooes-Feather-Shuttlecoc-14.jpg?v=1753869140&width=540",
-      "https://www.spsport.com.au/cdn/shop/products/SPPHONEIX-BLACK-Badminton-Gooes-Feather-Shuttlecoc-18.jpg?v=1753869140&width=540",
+      "https://alphabadminton.com.au/cdn/shop/products/003_1024x_7e3b263c-545c-4775-9553-0033737aee7d.jpg?v=1620527313",
+      "https://www.spsport.com.au/cdn/shop/files/169528433854595100.jpg?v=1760683258&width=1080",
+      "https://www.spsport.com.au/cdn/shop/files/169528434886492400.jpg?v=1760683258&width=1080",
     ],
     category: "Shuttlecocks",
     inStock: true,
@@ -337,7 +340,7 @@ const ShopPage = () => {
           <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black text-left font-huglove lg:text-center">
             Featured Services/Products
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 font-calibri text-lg">
             {products.map((product) => (
               <div
                 key={product.id}
@@ -365,21 +368,21 @@ const ShopPage = () => {
 
                 {/* Product Info - Name and Price in same row */}
                 <div className="p-3 md:p-4 flex-1 flex flex-col">
-                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">
+                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide font-calibri text-lg">
                     {product.category}
                   </p>
 
                   {/* Name and Price in same row */}
                   <div className="flex items-start justify-between gap-2 mb-3">
-                    <h3 className="text-sm md:text-base font-semibold text-black line-clamp-2 flex-1">
+                    <h3 className="text-sm md:text-base font-semibold text-black line-clamp-2 flex-1 font-calibri text-lg">
                       {product.name}
                     </h3>
                     <div className="flex flex-col items-end flex-shrink-0">
-                      <span className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap">
+                      <span className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap font-calibri text-lg">
                         ${product.price.toFixed(2)}
                       </span>
                       {product.originalPrice && (
-                        <span className="text-xs text-gray-400 line-through">
+                        <span className="text-xs text-gray-400 line-through font-calibri text-lg">
                           ${product.originalPrice.toFixed(2)}
                         </span>
                       )}
@@ -390,8 +393,8 @@ const ShopPage = () => {
                   <button
                     onClick={(e) => openContactModal(product, e)}
                     disabled={!product.inStock}
-                    className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm transition duration-300 mt-auto ${product.inStock
-                      ? "bg-green-600 hover:bg-green-700 text-white"
+                    className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm transition duration-300 mt-auto font-calibri text-lg ${product.inStock
+                      ? "bg-rose-500 hover:bg-rose-600 text-white"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                   >
@@ -406,24 +409,24 @@ const ShopPage = () => {
 
         {/* Additional Info Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 mt-12 bg-gradient-to-b from-pink-100 to-pink-200 shadow-xl">
-          <h3 className="text-2xl font-bold mb-4 text-black text-center">
+          <h3 className="text-2xl font-bold mb-4 text-black text-center font-calibri text-lg">
             Why Shop with ChibiBadminton !
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div>
-              <h4 className="font-semibold text-black mb-2 font-calibri text-lg">Quality Guaranteed</h4>
+              <h4 className="font-semibold text-black mb-2 font-calibri text-md">Quality Guaranteed</h4>
               <p className="text-sm text-gray-800 font-calibri text-lg">
                 All products are carefully selected for quality and performance
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-black mb-2 font-calibri text-lg">Fast Shipping</h4>
+              <h4 className="font-semibold text-black mb-2 font-calibri text-md">Fast Shipping</h4>
               <p className="text-sm text-gray-800 font-calibri text-lg">
                 Quick and reliable delivery to get your gear fast
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-black mb-2 font-calibri text-lg">Expert Service</h4>
+              <h4 className="font-semibold text-black mb-2 font-calibri text-md">Expert Service</h4>
               <p className="text-sm text-gray-800 font-calibri text-lg">
                 Professional stringing and equipment services available
               </p>
@@ -437,7 +440,7 @@ const ShopPage = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-black">Contact Us</h2>
+              <h2 className="text-2xl font-bold text-black font-calibri text-lg">Contact Us</h2>
               <button
                 onClick={closeModal}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
