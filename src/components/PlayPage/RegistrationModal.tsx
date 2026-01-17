@@ -1,4 +1,4 @@
-import React, { useState, useEffect, type FormEvent } from "react";
+import React, { useState, useEffect, useMemo, type FormEvent } from "react";
 import {
   FaTimes,
   FaCheckCircle,
@@ -7,11 +7,17 @@ import {
   FaEnvelope,
   FaPhone,
   FaPaperPlane,
+  FaCoins,
+  FaMoneyBillWave,
+  FaExchangeAlt,
 } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
 import type { SocialEvent } from "../../types/socialEvent";
 import type { RegistrationFormData, FormErrors } from "../../types/socialEvent";
 import { registerUserForEvents } from "../../utils/registrationService";
+import { getCurrentUser } from "../../utils/mockAuth";
+import { canUsePointsForBooking, formatPoints } from "../../utils/rewardPoints";
+import { usePointsForBooking } from "../../utils/rewardPointsService";
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -39,6 +45,21 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "points" | "mixed">("cash");
+  const [pointsToUse, setPointsToUse] = useState<number>(0);
+  const [user, setUser] = useState(() => getCurrentUser());
+
+  // Update user when modal opens (only once)
+  useEffect(() => {
+    if (isOpen) {
+      const currentUser = getCurrentUser();
+      setUser(currentUser);
+    }
+  }, [isOpen]);
+
+  const totalPrice = useMemo(() => events.reduce((sum, e) => sum + (e.price || 0), 0), [events]);
+  const userPoints = user?.rewardPoints || 0;
+  const canPayWithPoints = canUsePointsForBooking(totalPrice, userPoints);
 
   // Initialize EmailJS
   useEffect(() => {
@@ -54,8 +75,17 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setFormData({ name: "", email: "", phone: "" });
       setErrors({});
       setSubmitStatus({ type: null, message: "" });
+      setPaymentMethod("cash");
+      setPointsToUse(0);
+      return;
     }
-  }, [isOpen]);
+
+    // Auto-select points if user has enough (only when modal first opens)
+    if (user && canPayWithPoints && paymentMethod === "cash") {
+      setPaymentMethod("points");
+      setPointsToUse(totalPrice);
+    }
+  }, [isOpen]); // Only depend on isOpen to prevent infinite loops
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -165,7 +195,23 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
     }
 
     try {
-      // Step 1: Register the user for events locally
+      // Step 1: Use points if payment method is points or mixed
+      if (user && (paymentMethod === "points" || paymentMethod === "mixed")) {
+        const pointsNeeded = paymentMethod === "points" ? totalPrice : pointsToUse;
+        if (pointsNeeded > 0) {
+          const success = usePointsForBooking(user.id, events[0].id, pointsNeeded);
+          if (!success) {
+            setSubmitStatus({
+              type: "error",
+              message: "Failed to process points payment. Please try again.",
+            });
+            setIsSubmitting(false);
+            return;
+          }
+        }
+      }
+
+      // Step 2: Register the user for events locally
       const registrationResult = registerUserForEvents(events, formData);
 
       if (!registrationResult.success) {
@@ -235,7 +281,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
         </div>
 
         {/* Event Summary */}
-        <div className="p-6 bg-gray-50 border-b border-gray-200">
+        <div className="p-6 bg-gray-50 border-b border-gray-200 font-calibri">
           <h3 className="font-semibold text-gray-900 mb-3">Selected Events:</h3>
           <div className="space-y-2">
             {events.map((event) => (
@@ -258,7 +304,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-6 font-calibri">
           <div className="space-y-4">
             {/* Name Field */}
             <div>
@@ -275,11 +321,10 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                  errors.name
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-rose-500"
-                }`}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.name
+                  ? "border-red-500 focus:ring-red-500"
+                  : "border-gray-300 focus:ring-rose-500"
+                  }`}
                 placeholder="Enter your full name"
               />
               {errors.name && (
@@ -302,11 +347,10 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                  errors.email
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-rose-500"
-                }`}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.email
+                  ? "border-red-500 focus:ring-red-500"
+                  : "border-gray-300 focus:ring-rose-500"
+                  }`}
                 placeholder="Enter your email address"
               />
               {errors.email && (
@@ -329,27 +373,126 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                  errors.phone
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-300 focus:ring-rose-500"
-                }`}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.phone
+                  ? "border-red-500 focus:ring-red-500"
+                  : "border-gray-300 focus:ring-rose-500"
+                  }`}
                 placeholder="Enter your phone number (optional)"
               />
               {errors.phone && (
                 <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
               )}
             </div>
+
+            {/* Payment Method Selection */}
+            {user && totalPrice > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Payment Method
+                </label>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPaymentMethod("cash");
+                      setPointsToUse(0);
+                    }}
+                    className={`w-full flex items-center justify-between p-3 border-2 rounded-lg transition-colors ${paymentMethod === "cash"
+                      ? "border-rose-500 bg-rose-50"
+                      : "border-gray-300 hover:border-gray-400"
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FaMoneyBillWave className="text-green-600" size={20} />
+                      <div className="text-left">
+                        <div className="font-semibold text-gray-900">Pay with Cash</div>
+                        <div className="text-sm text-gray-600">${totalPrice.toFixed(2)}</div>
+                      </div>
+                    </div>
+                    {paymentMethod === "cash" && (
+                      <FaCheckCircle className="text-rose-500" size={20} />
+                    )}
+                  </button>
+
+                  {canPayWithPoints && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentMethod("points");
+                        setPointsToUse(totalPrice);
+                      }}
+                      className={`w-full flex items-center justify-between p-3 border-2 rounded-lg transition-colors ${paymentMethod === "points"
+                        ? "border-rose-500 bg-rose-50"
+                        : "border-gray-300 hover:border-gray-400"
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <FaCoins className="text-yellow-600" size={20} />
+                        <div className="text-left">
+                          <div className="font-semibold text-gray-900">Pay with Points</div>
+                          <div className="text-sm text-gray-600">
+                            {formatPoints(totalPrice)} points (You have {formatPoints(userPoints)})
+                          </div>
+                        </div>
+                      </div>
+                      {paymentMethod === "points" && (
+                        <FaCheckCircle className="text-rose-500" size={20} />
+                      )}
+                    </button>
+                  )}
+
+                  {userPoints > 0 && userPoints < totalPrice && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentMethod("mixed");
+                        setPointsToUse(userPoints);
+                      }}
+                      className={`w-full flex items-center justify-between p-3 border-2 rounded-lg transition-colors ${paymentMethod === "mixed"
+                        ? "border-rose-500 bg-rose-50"
+                        : "border-gray-300 hover:border-gray-400"
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <FaExchangeAlt className="text-blue-600" size={20} />
+                        <div className="text-left">
+                          <div className="font-semibold text-gray-900">Mixed Payment</div>
+                          <div className="text-sm text-gray-600">
+                            {formatPoints(userPoints)} points + ${(totalPrice - userPoints).toFixed(2)} cash
+                          </div>
+                        </div>
+                      </div>
+                      {paymentMethod === "mixed" && (
+                        <FaCheckCircle className="text-rose-500" size={20} />
+                      )}
+                    </button>
+                  )}
+                </div>
+                {paymentMethod === "points" && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-800 font-calibri">
+                      ✓ You have enough points! This booking will be free.
+                    </p>
+                  </div>
+                )}
+                {paymentMethod === "mixed" && (
+                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800 font-calibri">
+                      Using {formatPoints(pointsToUse)} points, remaining ${(totalPrice - pointsToUse).toFixed(2)} will be paid in cash.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Status Message */}
           {submitStatus.type && (
             <div
-              className={`mt-4 p-4 rounded-lg flex items-start gap-3 ${
-                submitStatus.type === "success"
-                  ? "bg-green-50 border border-green-200"
-                  : "bg-red-50 border border-red-200"
-              }`}
+              className={`mt-4 p-4 rounded-lg flex items-start gap-3 ${submitStatus.type === "success"
+                ? "bg-green-50 border border-green-200"
+                : "bg-red-50 border border-red-200"
+                }`}
             >
               {submitStatus.type === "success" ? (
                 <FaCheckCircle className="text-green-600 flex-shrink-0 mt-0.5" />
@@ -357,11 +500,10 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 <FaExclamationCircle className="text-red-600 flex-shrink-0 mt-0.5" />
               )}
               <p
-                className={`text-sm ${
-                  submitStatus.type === "success"
-                    ? "text-green-800"
-                    : "text-red-800"
-                }`}
+                className={`text-sm ${submitStatus.type === "success"
+                  ? "text-green-800"
+                  : "text-red-800"
+                  }`}
               >
                 {submitStatus.message}
               </p>

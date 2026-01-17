@@ -5,6 +5,7 @@ import {
   FaMapMarkerAlt,
   FaUsers,
   FaDollarSign,
+  FaCheckCircle,
 } from "react-icons/fa";
 import type { SocialEvent } from "../../types/socialEvent";
 
@@ -123,6 +124,10 @@ const EventCard: React.FC<EventCardProps> = ({
               <span className="font-medium">${event.price}</span>
             </div>
           )}
+          <div className="flex items-center text-gray-700 text-sm font-calibri">
+            <FaCheckCircle className="mr-2 text-green-600 flex-shrink-0" size={14} />
+            <span className="font-medium">Available</span>
+          </div>
         </div>
 
         <p className="text-gray-600 text-xs mb-4 line-clamp-2 font-calibri">

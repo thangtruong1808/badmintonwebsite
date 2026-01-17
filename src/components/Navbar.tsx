@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FaRegHeart, FaShoppingCart } from "react-icons/fa";
+import { FaRegHeart, FaShoppingCart, FaUser, FaSignOutAlt } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
 import { getCartCount } from "../utils/cartStorage";
+import { getCurrentUser, clearCurrentUser } from "../utils/mockAuth";
 
 interface NavItemProps {
   to: string;
@@ -77,6 +78,8 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [user, setUser] = useState(getCurrentUser());
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
 
   // Update cart count when it changes
@@ -95,6 +98,18 @@ const Navbar: React.FC = () => {
       window.removeEventListener("cartUpdated", updateCartCount);
     };
   }, []);
+
+  // Update user when it changes
+  useEffect(() => {
+    setUser(getCurrentUser());
+  }, [navigate]);
+
+  const handleLogout = () => {
+    clearCurrentUser();
+    setUser(null);
+    setShowUserMenu(false);
+    navigate("/signin");
+  };
 
   return (
     <nav className="p-3 lg:p-4 w-full fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-rose-50 to-rose-100 shadow-md">
@@ -137,7 +152,41 @@ const Navbar: React.FC = () => {
               setIsOpen={setIsOpen}
               pageName={<span>about-us</span>}
             />
-            <NavItem to="/signin" pageName="sign-in" setIsOpen={setIsOpen} />
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="font-huglove text-xl lg:text-2xl inline-flex items-center gap-2 px-2 2xl:px-4 py-1 rounded-full bg-rose-500 text-white hover:bg-rose-600 transition-colors"
+                >
+                  <FaUser size={16} />
+                  <span className="hidden md:inline">{user.name.split(" ")[0]}</span>
+                </button>
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                    <Link
+                      to="/profile"
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        setIsOpen(false);
+                      }}
+                      className="block px-4 py-2 text-gray-700 hover:bg-rose-50 transition-colors font-calibri"
+                    >
+                      <FaUser className="inline mr-2" size={14} />
+                      My Profile
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-rose-50 transition-colors font-calibri"
+                    >
+                      <FaSignOutAlt className="inline mr-2" size={14} />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <NavItem to="/signin" pageName="sign-in" setIsOpen={setIsOpen} />
+            )}
           </div>
         </div>
 
@@ -206,7 +255,20 @@ const Navbar: React.FC = () => {
               setIsOpen={setIsOpen}
               pageName={<span>about-us</span>}
             />
-            <NavItem to="/signin" pageName="sign-in" setIsOpen={setIsOpen} />
+            {user ? (
+              <Link
+                to="/profile"
+                onClick={() => {
+                  setIsOpen(false);
+                }}
+                className="font-huglove text-xl block py-3 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
+              >
+                <FaUser className="inline mr-2" size={14} />
+                Profile
+              </Link>
+            ) : (
+              <NavItem to="/signin" pageName="sign-in" setIsOpen={setIsOpen} />
+            )}
           </div>
         </div>
       )}

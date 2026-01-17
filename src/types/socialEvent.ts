@@ -23,6 +23,11 @@ export interface Registration {
   phone: string;
   registrationDate: string;
   status: "pending" | "confirmed" | "cancelled";
+  attendanceStatus?: "attended" | "no-show" | "cancelled" | "upcoming";
+  pointsEarned?: number;
+  pointsClaimed?: boolean;
+  paymentMethod?: "cash" | "points" | "mixed";
+  pointsUsed?: number;
 }
 
 export interface RegistrationFormData {

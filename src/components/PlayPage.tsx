@@ -37,17 +37,21 @@ const PlayPage: React.FC = () => {
 
   useEffect(() => {
     setUserRegistrations(getUserRegistrations(userId));
-  }, [userId, allEvents]); // Re-fetch registrations if events change (e.g., after a new registration)
+  }, [userId]); // Re-fetch registrations when userId changes
 
   const EVENTS_PER_PAGE = 8; // 2 rows × 4 columns = 8 events
+
+  // Memoize registered event IDs to prevent unnecessary recalculations
+  const registeredEventIds = useMemo(() => {
+    return new Set(userRegistrations.map(reg => reg.eventId));
+  }, [userRegistrations]);
 
   // Filter and search logic
   const filteredEvents = useMemo(() => {
     let eventsToFilter = allEvents;
 
     if (myRegistrationsFilter) {
-      const registeredEventIds = userRegistrations.map(reg => reg.eventId);
-      eventsToFilter = allEvents.filter(event => registeredEventIds.includes(event.id));
+      eventsToFilter = allEvents.filter(event => registeredEventIds.has(event.id));
     }
 
     return eventsToFilter.filter((event) => {
@@ -83,7 +87,7 @@ const PlayPage: React.FC = () => {
 
       return true;
     });
-  }, [allEvents, searchQuery, statusFilter, categoryFilter, selectedDays, myRegistrationsFilter, userRegistrations]);
+  }, [allEvents, searchQuery, statusFilter, categoryFilter, selectedDays, myRegistrationsFilter, registeredEventIds]);
 
   // Get selected events
   const selectedEvents = useMemo(() => {
@@ -153,6 +157,8 @@ const PlayPage: React.FC = () => {
   const handleRegistrationSuccess = (updatedEvents: SocialEvent[]) => {
     // Update all events with the new state
     setAllEvents(updatedEvents);
+    // Refresh user registrations after successful registration
+    setUserRegistrations(getUserRegistrations(userId));
     // Clear selected events after successful registration
     setSelectedEventIds([]);
     clearCart();

@@ -16,6 +16,7 @@ import ResetPasswordPage from "./components/ResetPasswordPage";
 import FeaturedNewsPage from "./components/FeaturedNewsPage";
 import PlayPage from "./components/PlayPage";
 import NewsDetailPage from "./components/NewsDetailPage";
+import UserProfilePage from "./components/UserProfilePage/UserProfilePage";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/featured-news" element={<FeaturedNewsPage />} />
           <Route path="/featured-news/:id" element={<NewsDetailPage />} />
         </Routes>

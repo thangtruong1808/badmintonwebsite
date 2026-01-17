@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaEnvelope,
   FaLock,
@@ -7,7 +7,12 @@ import {
   FaEyeSlash,
   FaCheckCircle,
   FaExclamationCircle,
+  FaCoins,
+  FaTimes,
 } from "react-icons/fa";
+import { mockLogin } from "../utils/mockAuth";
+import { getUserEventHistory, getUnclaimedPointsCount } from "../utils/rewardPointsService";
+import type { UserEventHistory } from "../types/user";
 
 interface SignInFormData {
   email: string;
@@ -23,6 +28,7 @@ const SignInPage = () => {
     document.title = "ChibiBadminton - Sign In";
   }, []);
 
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [signInData, setSignInData] = useState<SignInFormData>({
     email: "",
@@ -34,6 +40,8 @@ const SignInPage = () => {
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
+  const [showRewardModal, setShowRewardModal] = useState(false);
+  const [unclaimedEvents, setUnclaimedEvents] = useState<UserEventHistory[]>([]);
 
   const validateSignIn = (): boolean => {
     const errors: FormErrors = {};
@@ -66,15 +74,40 @@ const SignInPage = () => {
     setIsSigningIn(true);
     setSubmitStatus({ type: null, message: "" });
 
-    // Simulate API call
-    setTimeout(() => {
+    // Mock login
+    const user = mockLogin(signInData.email, signInData.password);
+    
+    if (user) {
+      // Get unclaimed events
+      const history = getUserEventHistory(user.id);
+      const unclaimed = history.filter(
+        (h) => h.attendanceStatus === "attended" && !h.pointsClaimed
+      );
+      setUnclaimedEvents(unclaimed);
+
       setIsSigningIn(false);
       setSubmitStatus({
         type: "success",
-        message: "Successfully signed in! Redirecting...",
+        message: "Successfully signed in!",
       });
       setSignInData({ email: "", password: "" });
-    }, 1500);
+
+      // Show reward modal if there are unclaimed points
+      if (unclaimed.length > 0) {
+        setShowRewardModal(true);
+      } else {
+        // Redirect to profile after 1.5 seconds
+        setTimeout(() => {
+          navigate("/profile");
+        }, 1500);
+      }
+    } else {
+      setIsSigningIn(false);
+      setSubmitStatus({
+        type: "error",
+        message: "Invalid email or password. Please try again.",
+      });
+    }
   };
 
   return (
@@ -88,6 +121,11 @@ const SignInPage = () => {
           <p className="text-gray-600 text-lg">
             Sign in to your account to continue
           </p>
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800 font-calibri">
+              <strong>Demo Mode:</strong> Enter any email and password (min. 6 characters) to sign in.
+            </p>
+          </div>
         </div>
 
         {/* Form Card */}
@@ -219,6 +257,76 @@ const SignInPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Reward Points Modal */}
+      {showRewardModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900 font-huglove">
+                Welcome Back!
+              </h2>
+              <button
+                onClick={() => {
+                  setShowRewardModal(false);
+                  navigate("/profile");
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <FaTimes size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
+                  <FaCoins className="text-yellow-600" size={32} />
+                </div>
+                <p className="text-gray-700 font-calibri">
+                  You have {unclaimedEvents.length} event{unclaimedEvents.length !== 1 ? "s" : ""} with unclaimed reward points!
+                </p>
+                <p className="text-sm text-gray-600 mt-2 font-calibri">
+                  Visit your profile to claim them.
+                </p>
+              </div>
+              {unclaimedEvents.length > 0 && (
+                <div className="mb-6">
+                  <p className="text-sm font-semibold text-gray-700 mb-3 font-calibri">
+                    Unclaimed Points:
+                  </p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {unclaimedEvents.map((event) => (
+                      <div
+                        key={event.eventId}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div>
+                          <p className="font-semibold text-sm text-gray-900 font-calibri">
+                            {event.eventTitle}
+                          </p>
+                          <p className="text-xs text-gray-600 font-calibri">
+                            +{event.pointsEarned} points
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowRewardModal(false);
+                    navigate("/profile");
+                  }}
+                  className="flex-1 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors font-semibold font-calibri"
+                >
+                  View Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

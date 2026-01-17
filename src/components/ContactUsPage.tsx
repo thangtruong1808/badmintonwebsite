@@ -219,10 +219,10 @@ const ContactUsPage = () => {
                       <FaEnvelope className="text-white" size={20} />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-600 mb-1">Email</h3>
+                      <h3 className="font-semibold text-gray-600 mb-1 font-calibri">Email</h3>
                       <a
                         href="mailto:support@ChibiBadminton.com.au"
-                        className="text-gray-600 hover:text-green-600 transition-colors break-all"
+                        className="text-gray-600 hover:text-green-600 transition-colors break-all font-calibri"
                       >
                         support@ChibiBadminton.com.au
                       </a>
@@ -230,7 +230,7 @@ const ContactUsPage = () => {
                   </div>
 
                   <div className="pt-6 border-t border-gray-200">
-                    <p className="text-sm text-gray-600 leading-relaxed">
+                    <p className="text-sm text-gray-600 leading-relaxed font-calibri">
                       Our team typically responds within 24-48 hours. For urgent
                       matters, please reach out directly via email.
                     </p>
@@ -271,10 +271,10 @@ const ContactUsPage = () => {
                   <div>
                     <label
                       htmlFor="name"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-sm font-semibold text-gray-700 mb-2 font-calibri"
                     >
                       <FaUser className="inline mr-2" size={14} />
-                      Full Name <span className="text-red-500">*</span>
+                      Full Name <span className="text-red-500 font-calibri">*</span>
                     </label>
                     <input
                       type="text"
@@ -282,14 +282,14 @@ const ContactUsPage = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.name
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri ${errors.name
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
                       placeholder="Your full name"
                     />
                     {errors.name && (
-                      <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                      <p className="mt-1 text-sm text-red-500 font-calibri">{errors.name}</p>
                     )}
                   </div>
 
@@ -299,10 +299,10 @@ const ContactUsPage = () => {
                     <div>
                       <label
                         htmlFor="email"
-                        className="block text-sm font-semibold text-gray-700 mb-2"
+                        className="block text-sm font-semibold text-gray-700 mb-2 font-calibri"
                       >
                         <FaEnvelope className="inline mr-2" size={14} />
-                        Email Address <span className="text-red-500">*</span>
+                        Email Address <span className="text-red-500 font-calibri">*</span>
                       </label>
                       <input
                         type="email"
@@ -310,14 +310,14 @@ const ContactUsPage = () => {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.email
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri ${errors.email
                           ? "border-red-500 focus:ring-red-500"
                           : "border-gray-300 focus:ring-green-500"
                           }`}
                         placeholder="Your email address"
                       />
                       {errors.email && (
-                        <p className="mt-1 text-sm text-red-500">
+                        <p className="mt-1 text-sm text-red-500 font-calibri">
                           {errors.email}
                         </p>
                       )}
@@ -327,11 +327,11 @@ const ContactUsPage = () => {
                     <div>
                       <label
                         htmlFor="phone"
-                        className="block text-sm font-semibold text-gray-700 mb-2"
+                        className="block text-sm font-semibold text-gray-700 mb-2 font-calibri"
                       >
                         <FaPhone className="inline mr-2" size={14} />
                         Phone Number{" "}
-                        <span className="text-gray-400">(Optional)</span>
+                        <span className="text-gray-400 font-calibri">(Optional)</span>
                       </label>
                       <input
                         type="tel"
@@ -339,14 +339,14 @@ const ContactUsPage = () => {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.phone
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri ${errors.phone
                           ? "border-red-500 focus:ring-red-500"
                           : "border-gray-300 focus:ring-green-500"
                           }`}
                         placeholder="+61 400 000 000"
                       />
                       {errors.phone && (
-                        <p className="mt-1 text-sm text-red-500">
+                        <p className="mt-1 text-sm text-red-500 font-calibri  ">
                           {errors.phone}
                         </p>
                       )}
@@ -357,9 +357,9 @@ const ContactUsPage = () => {
                   <div>
                     <label
                       htmlFor="subject"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-sm font-semibold text-gray-700 mb-2 font-calibri"
                     >
-                      Subject <span className="text-red-500">*</span>
+                      Subject <span className="text-red-500 font-calibri">*</span>
                     </label>
                     <input
                       type="text"
@@ -367,14 +367,14 @@ const ContactUsPage = () => {
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.subject
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri ${errors.subject
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
                       placeholder="What is this regarding?"
                     />
                     {errors.subject && (
-                      <p className="mt-1 text-sm text-red-500">
+                      <p className="mt-1 text-sm text-red-500 font-calibri">
                         {errors.subject}
                       </p>
                     )}
@@ -384,9 +384,9 @@ const ContactUsPage = () => {
                   <div>
                     <label
                       htmlFor="message"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-sm font-semibold text-gray-700 mb-2 font-calibri"
                     >
-                      Message <span className="text-red-500">*</span>
+                      Message <span className="text-red-500 font-calibri">*</span>
                     </label>
                     <textarea
                       id="message"
@@ -394,14 +394,14 @@ const ContactUsPage = () => {
                       value={formData.message}
                       onChange={handleChange}
                       rows={6}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all resize-none ${errors.message
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all resize-none font-calibri ${errors.message
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
                       placeholder="Tell us more about your inquiry..."
                     />
                     {errors.message && (
-                      <p className="mt-1 text-sm text-red-500">
+                      <p className="mt-1 text-sm text-red-500 font-calibri">
                         {errors.message}
                       </p>
                     )}
@@ -411,7 +411,7 @@ const ContactUsPage = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold p-3 px-8 rounded-lg text-lg transition duration-300 ${isSubmitting
+                    className={`w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold p-3 px-8 rounded-lg text-lg transition duration-300 font-calibri ${isSubmitting
                       ? "opacity-70 cursor-not-allowed"
                       : "hover:shadow-lg transform hover:-translate-y-0.5"
                       }`}
