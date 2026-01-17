@@ -8,6 +8,7 @@ import { setCartItems, getCartItems, clearCart } from "../utils/cartStorage";
 import { getInitialEvents, getUserRegistrations } from "../utils/registrationService";
 import { getOrCreateUserId } from "../utils/userStorage";
 import type { SocialEvent, Registration } from "../types/socialEvent";
+import { FaPaperPlane } from "react-icons/fa";
 
 const PlayPage: React.FC = () => {
   useEffect(() => {
@@ -348,9 +349,12 @@ const PlayPage: React.FC = () => {
                     setIsDetailsModalOpen(false);
                     handleRegister(selectedEvent);
                   }}
-                  className="mt-6 w-full bg-rose-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-rose-600 transition-colors"
+                  className="mt-6 w-full bg-rose-500 text-white text-xl py-3 px-4 rounded-lg hover:bg-rose-600 transition-colors font-calibri"
                 >
-                  Register Now
+                  <div className="flex items-center justify-center gap-4">
+                    <FaPaperPlane size={18} />
+                    <span className="font-calibri text-md font-bold">Register Now</span>
+                  </div>
                 </button>
               )}
             </div>

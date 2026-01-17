@@ -438,23 +438,23 @@ const ShopPage = () => {
       {/* Contact Form Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-black font-calibri text-lg">Contact Us</h2>
+          <div className="bg-gradient-to-r from-pink-100 to-pink-200 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between font-calibri">
+              <h2 className="text-2xl font-bold text-black font-huglove text-2xl">Contact Us</h2>
               <button
                 onClick={closeModal}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
               >
-                <FaTimes size={24} />
+                <FaTimes size={24} className="text-gray-500 font-calibri text-md" />
               </button>
             </div>
 
             <div className="p-6">
               {selectedProduct && (
-                <div className="mb-6 p-4 bg-slate-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Product Inquiry:</p>
-                  <p className="font-semibold text-black">{selectedProduct.name}</p>
-                  <p className="text-green-600 font-bold">${selectedProduct.price.toFixed(2)}</p>
+                <div className="mb-6 p-4 bg-stone-50 rounded-lg font-calibri text-md">
+                  <p className="text-md text-gray-600 mb-1 font-calibri text-md">Product Inquiry:</p>
+                  <p className="font-semibold text-black font-calibri text-md">{selectedProduct.name}</p>
+                  <p className="text-rose-500 font-bold font-calibri text-md">${selectedProduct.price.toFixed(2)}</p>
                 </div>
               )}
 
@@ -462,8 +462,8 @@ const ShopPage = () => {
               {submitStatus.type && (
                 <div
                   className={`mb-6 p-4 rounded-lg flex items-start space-x-3 ${submitStatus.type === "success"
-                    ? "bg-green-50 text-green-800 border border-green-200"
-                    : "bg-red-50 text-red-800 border border-red-200"
+                    ? "bg-green-50 text-green-800 border border-green-200 font-calibri text-md"
+                    : "bg-red-50 text-red-800 border border-red-200 font-calibri text-md"
                     }`}
                 >
                   {submitStatus.type === "success" ? (
@@ -471,7 +471,7 @@ const ShopPage = () => {
                   ) : (
                     <FaExclamationCircle className="flex-shrink-0 mt-0.5" size={20} />
                   )}
-                  <p className="text-sm">{submitStatus.message}</p>
+                  <p className="text-sm font-calibri text-md">{submitStatus.message}</p>
                 </div>
               )}
 
@@ -480,10 +480,10 @@ const ShopPage = () => {
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-semibold text-gray-700 mb-2"
+                    className="block text-md font-bold text-gray-700 mb-2 font-calibri"
                   >
                     <FaUser className="inline mr-2" size={14} />
-                    Full Name <span className="text-red-500">*</span>
+                    Full Name <span className="text-red-500 font-calibri text-md">*</span>
                   </label>
                   <input
                     type="text"
@@ -491,14 +491,14 @@ const ShopPage = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.name
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri text-md ${errors.name
                       ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
+                      : "border-gray-300 focus:ring-rose-500"
                       }`}
                     placeholder="John Doe"
                   />
                   {errors.name && (
-                    <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                    <p className="mt-1 text-sm text-red-500 font-calibri text-md">{errors.name}</p>
                   )}
                 </div>
 
@@ -508,10 +508,10 @@ const ShopPage = () => {
                   <div>
                     <label
                       htmlFor="email"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-md font-bold text-gray-700 mb-2 font-calibri"
                     >
                       <FaEnvelope className="inline mr-2" size={14} />
-                      Email Address <span className="text-red-500">*</span>
+                      Email Address <span className="text-red-500 font-calibri text-md">*</span>
                     </label>
                     <input
                       type="email"
@@ -519,14 +519,14 @@ const ShopPage = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.email
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri text-md ${errors.email
                         ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-green-500"
+                        : "border-gray-300 focus:ring-rose-500"
                         }`}
                       placeholder="john@example.com"
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                      <p className="mt-1 text-sm text-red-500 font-calibri text-md text-justify">{errors.email}</p>
                     )}
                   </div>
 
@@ -534,10 +534,10 @@ const ShopPage = () => {
                   <div>
                     <label
                       htmlFor="phone"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-md font-bold text-gray-700 mb-2 font-calibri"
                     >
                       <FaPhone className="inline mr-2" size={14} />
-                      Phone Number <span className="text-gray-400">(Optional)</span>
+                      Phone Number <span className="text-gray-500 font-calibri text-md">(Optional)</span>
                     </label>
                     <input
                       type="tel"
@@ -545,14 +545,14 @@ const ShopPage = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.phone
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri text-md ${errors.phone
                         ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-green-500"
+                        : "border-gray-300 focus:ring-rose-500"
                         }`}
                       placeholder="+61 400 000 000"
                     />
                     {errors.phone && (
-                      <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+                      <p className="mt-1 text-sm text-red-500 font-calibri text-md text-justify">{errors.phone}</p>
                     )}
                   </div>
                 </div>
@@ -561,9 +561,9 @@ const ShopPage = () => {
                 <div>
                   <label
                     htmlFor="subject"
-                    className="block text-sm font-semibold text-gray-700 mb-2"
+                    className="block text-md font-bold text-gray-700 mb-2 font-calibri"
                   >
-                    Subject <span className="text-red-500">*</span>
+                    Subject <span className="text-red-500 font-calibri text-md">*</span>
                   </label>
                   <input
                     type="text"
@@ -571,14 +571,14 @@ const ShopPage = () => {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.subject
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri text-md ${errors.subject
                       ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
+                      : "border-gray-300 focus:ring-rose-500"
                       }`}
                     placeholder="What is this regarding?"
                   />
                   {errors.subject && (
-                    <p className="mt-1 text-sm text-red-500">{errors.subject}</p>
+                    <p className="mt-1 text-sm text-red-500 font-calibri text-md text-justify">{errors.subject}</p>
                   )}
                 </div>
 
@@ -586,9 +586,9 @@ const ShopPage = () => {
                 <div>
                   <label
                     htmlFor="message"
-                    className="block text-sm font-semibold text-gray-700 mb-2"
+                    className="block text-md font-bold text-gray-700 mb-2 font-calibri"
                   >
-                    Message <span className="text-red-500">*</span>
+                    Message <span className="text-red-500 font-calibri text-md">*</span>
                   </label>
                   <textarea
                     id="message"
@@ -596,14 +596,14 @@ const ShopPage = () => {
                     value={formData.message}
                     onChange={handleChange}
                     rows={6}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all resize-none ${errors.message
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all resize-none font-calibri text-md ${errors.message
                       ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-green-500"
+                      : "border-gray-300 focus:ring-rose-500"
                       }`}
                     placeholder="Tell us more about your inquiry..."
                   />
                   {errors.message && (
-                    <p className="mt-1 text-sm text-red-500">{errors.message}</p>
+                    <p className="mt-1 text-sm text-red-500 font-calibri text-md text-justify">{errors.message}</p>
                   )}
                 </div>
 
@@ -612,14 +612,17 @@ const ShopPage = () => {
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-6 py-3 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors font-calibri text-md text-justify"
                   >
-                    Cancel
+                    <div className="flex items-center justify-center gap-2">
+                      <FaTimes size={16} />
+                      <span className="font-calibri text-md">Cancel</span>
+                    </div>
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ${isSubmitting
+                    className={`flex-1 flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-md ${isSubmitting
                       ? "opacity-70 cursor-not-allowed"
                       : "hover:shadow-lg transform hover:-translate-y-0.5"
                       }`}
@@ -627,12 +630,12 @@ const ShopPage = () => {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Sending...
+                        <span className="font-calibri text-md">Sending...</span>
                       </>
                     ) : (
                       <>
                         <FaPaperPlane size={18} />
-                        Send Message
+                        <span className="font-calibri text-md">Send Message</span>
                       </>
                     )}
                   </button>

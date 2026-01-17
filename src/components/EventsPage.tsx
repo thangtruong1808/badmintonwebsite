@@ -233,8 +233,8 @@ const EventsPage = () => {
 
         {/* Registration Form Modal */}
         {isModalOpen && selectedEvent && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 ">
+            <div className="bg-gradient-to-r from-pink-100 to-pink-200 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}
               <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
                 <h2 className="text-2xl md:text-2xl font-bold text-black">
@@ -252,21 +252,21 @@ const EventsPage = () => {
               {/* Modal Body */}
               <div className="p-6 md:p-8">
                 {/* Event Info */}
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                  <h3 className="font-semibold text-green-800 mb-2">
+                <div className="bg-stone-50 border border-gray-200 rounded-lg p-4 mb-6 font-calibri">
+                  <h3 className="font-bold text-gray-800 mb-2 font-calibri">
                     Event Details:
                   </h3>
-                  <div className="space-y-1 text-sm text-green-700">
+                  <div className="space-y-1 text-md font-medium text-gray-700 font-calibri">
                     <div className="flex items-center">
-                      <FaCalendarAlt className="mr-2" size={14} />
+                      <FaCalendarAlt className="mr-2 text-rose-500" size={14} />
                       <span>{selectedEvent.date}</span>
                     </div>
                     <div className="flex items-center">
-                      <FaClock className="mr-2" size={14} />
+                      <FaClock className="mr-2 text-rose-500" size={14} />
                       <span>{selectedEvent.time}</span>
                     </div>
                     <div className="flex items-center">
-                      <FaMapMarkerAlt className="mr-2" size={14} />
+                      <FaMapMarkerAlt className="mr-2 text-rose-500" size={14} />
                       <span>{selectedEvent.location}</span>
                     </div>
                   </div>
@@ -278,10 +278,10 @@ const EventsPage = () => {
                   <div>
                     <label
                       htmlFor="name"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-md font-bold text-gray-700 mb-2 font-calibri"
                     >
                       <FaUser className="inline mr-2" size={14} />
-                      Full Name <span className="text-red-500">*</span>
+                      Full Name <span className="text-red-500 font-calibri text-md">*</span>
                     </label>
                     <input
                       type="text"
@@ -289,15 +289,15 @@ const EventsPage = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.name
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-md ${errors.name
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
                       placeholder="Enter your full name"
                     />
                     {errors.name && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaExclamationCircle className="mr-1" size={12} />
+                      <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-md">
+                        <FaExclamationCircle className="mr-1 text-red-500 font-calibri text-md" size={12} />
                         {errors.name}
                       </p>
                     )}
@@ -307,10 +307,10 @@ const EventsPage = () => {
                   <div>
                     <label
                       htmlFor="email"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-md font-bold text-gray-700 mb-2 font-calibri"
                     >
                       <FaEnvelope className="inline mr-2" size={14} />
-                      Email Address <span className="text-red-500">*</span>
+                      Email Address <span className="text-red-500 font-calibri text-md">*</span>
                     </label>
                     <input
                       type="email"
@@ -318,15 +318,15 @@ const EventsPage = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.email
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-md ${errors.email
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
                       placeholder="Enter your email address"
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaExclamationCircle className="mr-1" size={12} />
+                      <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-md">
+                        <FaExclamationCircle className="mr-1 text-red-500 font-calibri text-md" size={12} />
                         {errors.email}
                       </p>
                     )}
@@ -336,11 +336,11 @@ const EventsPage = () => {
                   <div>
                     <label
                       htmlFor="phone"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-md font-bold text-gray-700 mb-2 font-calibri"
                     >
                       <FaPhone className="inline mr-2" size={14} />
                       Phone Number{" "}
-                      <span className="text-gray-500 text-xs">(Optional)</span>
+                      <span className="text-gray-500 font-calibri text-md">(Optional)</span>
                     </label>
                     <input
                       type="tel"
@@ -348,15 +348,15 @@ const EventsPage = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.phone
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-md ${errors.phone
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
                       placeholder="Enter your phone number"
                     />
                     {errors.phone && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaExclamationCircle className="mr-1" size={12} />
+                      <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-md">
+                        <FaExclamationCircle className="mr-1 text-red-500 font-calibri text-md" size={12} />
                         {errors.phone}
                       </p>
                     )}
@@ -366,9 +366,9 @@ const EventsPage = () => {
                   <div>
                     <label
                       htmlFor="subject"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-md font-bold text-gray-700 mb-2 font-calibri"
                     >
-                      Subject <span className="text-red-500">*</span>
+                      Subject <span className="text-red-500 font-calibri text-md">*</span>
                     </label>
                     <input
                       type="text"
@@ -376,15 +376,15 @@ const EventsPage = () => {
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${errors.subject
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-md   ${errors.subject
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
                       placeholder="Subject"
                     />
                     {errors.subject && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaExclamationCircle className="mr-1" size={12} />
+                      <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-md">
+                        <FaExclamationCircle className="mr-1 text-red-500 font-calibri text-md" size={12} />
                         {errors.subject}
                       </p>
                     )}
@@ -394,9 +394,9 @@ const EventsPage = () => {
                   <div>
                     <label
                       htmlFor="message"
-                      className="block text-sm font-semibold text-gray-700 mb-2"
+                      className="block text-md font-bold text-gray-700 mb-2 font-calibri"
                     >
-                      Additional Message <span className="text-red-500">*</span>
+                      Additional Message <span className="text-red-500 font-calibri text-md">*</span>
                     </label>
                     <textarea
                       id="message"
@@ -404,15 +404,15 @@ const EventsPage = () => {
                       value={formData.message}
                       onChange={handleChange}
                       rows={6}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 resize-none ${errors.message
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 resize-none font-calibri text-md ${errors.message
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
                       placeholder="Enter your message or any additional information"
                     />
                     {errors.message && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center">
-                        <FaExclamationCircle className="mr-1" size={12} />
+                      <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-md">
+                        <FaExclamationCircle className="mr-1 text-red-500 font-calibri text-md" size={12} />
                         {errors.message}
                       </p>
                     )}
@@ -422,16 +422,16 @@ const EventsPage = () => {
                   {submitStatus.message && (
                     <div
                       className={`p-4 rounded-lg flex items-center ${submitStatus.type === "success"
-                        ? "bg-green-50 text-green-800 border border-green-200"
-                        : "bg-red-50 text-red-800 border border-red-200"
+                        ? "bg-green-50 text-green-800 border border-green-200 font-calibri text-md"
+                        : "bg-red-50 text-red-800 border border-red-200 font-calibri text-md"
                         }`}
                     >
                       {submitStatus.type === "success" ? (
-                        <FaCheckCircle className="mr-2" size={20} />
+                        <FaCheckCircle className="mr-2 text-green-500 font-calibri text-md" size={20} />
                       ) : (
-                        <FaExclamationCircle className="mr-2" size={20} />
+                        <FaExclamationCircle className="mr-2 text-red-500 font-calibri text-md" size={20} />
                       )}
-                      <span className="text-sm font-medium">
+                      <span className="text-sm font-medium font-calibri text-md">
                         {submitStatus.message}
                       </span>
                     </div>
@@ -442,27 +442,30 @@ const EventsPage = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className={`flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                      className={`flex-1 flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 font-calibri text-md ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""
                         }`}
                     >
                       {isSubmitting ? (
                         <>
                           <span className="animate-spin">⏳</span>
-                          <span>Submitting...</span>
+                          <span className="font-calibri text-md">Submitting...</span>
                         </>
                       ) : (
                         <>
                           <FaPaperPlane size={16} />
-                          <span>Submit Registration</span>
+                          <span className="font-calibri text-md">Submit Registration</span>
                         </>
                       )}
                     </button>
                     <button
                       type="button"
                       onClick={closeRegistrationModal}
-                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-300"
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-300 font-calibri text-md"
                     >
-                      Cancel
+                      <div className="flex items-center justify-center gap-2">
+                        <FaTimes size={16} />
+                        <span className="font-calibri text-md">Cancel</span>
+                      </div>
                     </button>
                   </div>
                 </form>

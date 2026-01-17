@@ -1,6 +1,7 @@
 import React from "react";
-import { FaCalendarAlt, FaClock, FaMapMarkerAlt } from "react-icons/fa";
+import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaInfoCircle } from "react-icons/fa";
 import type { Event } from "../data/eventData";
+import { FaPaperPlane } from "react-icons/fa";
 
 interface UpcomingEventsProps {
   upcomingEvents: Event[];
@@ -32,7 +33,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                 {upcomingEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-green-500/50 w-full"
+                    className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 w-full"
                   >
                     <div className="flex flex-col md:flex-row w-full">
                       <div className="relative w-full md:w-1/2 h-64 md:h-auto md:min-h-[400px] overflow-hidden bg-white">
@@ -45,7 +46,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                           Upcoming
                         </div>
                       </div>
-                      <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-between bg-white/95">
+                      <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-between bg-stone-50">
                         <div>
                           <h3 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 font-calibri">
                             {event.title}
@@ -53,34 +54,34 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                           <div className="space-y-3 mb-6">
                             <div className="flex items-center text-gray-700">
                               <FaCalendarAlt
-                                className="mr-3 text-green-600"
+                                className="mr-3 text-rose-500"
                                 size={20}
                               />
-                              <span className="text-base font-medium font-calibri">
+                              <span className="text-md font-medium font-calibri">
                                 {event.date}
                               </span>
                             </div>
                             <div className="flex items-center text-gray-700">
                               <FaClock
-                                className="mr-3 text-green-600"
+                                className="mr-3 text-rose-500"
                                 size={20}
                               />
-                              <span className="text-base font-medium font-calibri">
+                              <span className="text-md font-medium font-calibri">
                                 {event.time}
                               </span>
                             </div>
                             <div className="flex items-start text-gray-700">
                               <FaMapMarkerAlt
-                                className="mr-3 mt-1 text-green-600 flex-shrink-0"
+                                className="mr-3 mt-1 text-rose-500 flex-shrink-0"
                                 size={20}
                               />
-                              <span className="text-base font-medium font-calibri">
+                              <span className="text-md font-medium font-calibri">
                                 {event.location}
                               </span>
                             </div>
                           </div>
                           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                            <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line font-calibri">
+                            <p className="text-gray-700 text-md leading-relaxed whitespace-pre-line font-calibri text-justify">
                               {event.description}
                             </p>
                           </div>
@@ -88,12 +89,18 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                         <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
                           <button
                             onClick={() => openRegistrationModal(event)}
-                            className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl transform hover:scale-105 font-calibri"
+                            className="flex-1 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl transform hover:scale-105 font-calibri"
                           >
-                            Register Now
+                            <div className="flex items-center justify-center gap-4">
+                              <FaPaperPlane size={18} />
+                              <span className="font-calibri text-md font-bold">Register Now</span>
+                            </div>
                           </button>
-                          <button className="flex-1 bg-white hover:bg-gray-50 text-green-600 border-2 border-green-600 font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg hover:shadow-lg font-calibri">
-                            Learn More
+                          <button className="flex-1 bg-white hover:bg-gray-50 text-rose-500 border-2 border-rose-500 font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg hover:shadow-lg font-calibri">
+                            <div className="flex items-center justify-center gap-4">
+                              <FaInfoCircle size={18} />
+                              <span className="font-calibri text-md font-bold">Learn More</span>
+                            </div>
                           </button>
                         </div>
                       </div>
