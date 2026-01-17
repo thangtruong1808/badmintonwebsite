@@ -46,11 +46,11 @@ const GalleryPage = () => {
       <div className="w-full overflow-x-hidden min-h-screen">
         <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full">
           {/* Header Message */}
-          <div className="text-center mb-10 p-6 bg-white/90 rounded-lg shadow-xl">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-green-700 mb-4">
+          <div className="text-center mb-10 p-6 rounded-lg shadow-xl bg-gradient-to-t from-pink-100 to-pink-200">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-black mb-4">
               Welcome to Our Badminton Gallery!
             </h1>
-            <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto font-calibri">
               Explore our vibrant collection of photos and videos, capturing the excitement of tournaments, the joy of social events, and memorable moments with our Chibi Badminton community.
             </p>
           </div>
@@ -59,16 +59,16 @@ const GalleryPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 md:gap-8">
             {/* Photos Column - 70% width (7/10 columns) */}
             <div className="lg:col-span-7">
-              <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-6">
+              <div className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 md:p-8 mb-6">
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mr-4">
+                  <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
                     <FaImages className="text-white" size={24} />
                   </div>
                   <h2 className="text-2xl md:text-3xl font-bold text-black">
                     Photo Gallery
                   </h2>
                 </div>
-                <p className="text-gray-600 mb-6 text-sm md:text-base">
+                <p className="text-gray-600 mb-6 text-sm md:text-base font-calibri">
                   Capturing the best moments from our tournaments, events, and
                   community gatherings
                 </p>
@@ -84,8 +84,8 @@ const GalleryPage = () => {
                         )
                       }
                       className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${selectedPhotoFilter === option.value
-                        ? "bg-green-600 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        ? "bg-rose-500 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
                         }`}
                     >
                       {option.label}
@@ -103,12 +103,12 @@ const GalleryPage = () => {
                       <img
                         src={photo.src}
                         alt={photo.alt}
-                        className="w-full h-48 md:h-56 object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-48 md:h-56 object-cover group-hover:scale-110 transition-transform duration-300 font-calibri"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <div className="bg-white/90 rounded-full p-3">
-                            <FaImages className="text-green-600" size={24} />
+                            <FaImages className="text-rose-500" size={24} />
                           </div>
                         </div>
                       </div>
@@ -120,17 +120,17 @@ const GalleryPage = () => {
 
             {/* Videos Column - 30% width (3/10 columns) */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 sticky top-24">
+              <div className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 md:p-8 sticky top-24">
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center mr-4">
+                  <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
                     <FaVideo className="text-white" size={24} />
                   </div>
                   <h2 className="text-2xl md:text-3xl font-bold text-black">
                     Videos
                   </h2>
                 </div>
-                <p className="text-gray-600 mb-6 text-sm md:text-base">
-                  Watch highlights and recaps from our events
+                <p className="text-gray-600 mb-6 text-sm md:text-base font-calibri">
+                  Watch highlights and recaps from our events and playlists
                 </p>
 
                 {/* Video Category Buttons */}
@@ -148,9 +148,9 @@ const GalleryPage = () => {
                           | "playlists"
                         )
                       }
-                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${selectedVideoCategory === option.value
-                        ? "bg-red-600 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 font-calibri ${selectedVideoCategory === option.value
+                        ? "bg-rose-500 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
                         }`}
                     >
                       {option.label}
@@ -169,7 +169,7 @@ const GalleryPage = () => {
                           <img
                             src={video.thumbnail}
                             alt={video.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover font-calibri"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.src = `https://img.youtube.com/vi/${video.embedId}/0.jpg`;
@@ -184,14 +184,14 @@ const GalleryPage = () => {
                               }
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center hover:bg-red-700 transition-colors duration-300 transform hover:scale-110"
+                              className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center hover:bg-rose-600 transition-colors duration-300 transform hover:scale-110 font-calibri"
                             >
                               <FaPlay className="text-white ml-1" size={20} />
                             </a>
                           </div>
                         </div>
                         <div className="p-3 bg-white">
-                          <h3 className="font-semibold text-sm md:text-base text-black line-clamp-2">
+                          <h3 className="font-semibold text-sm md:text-base text-black line-clamp-2 font-calibri">
                             {video.title}
                           </h3>
                         </div>
@@ -199,7 +199,7 @@ const GalleryPage = () => {
                     ))}
                   </div>
                 </div>
-                <p className="text-xs md:text-sm text-gray-500 text-center mt-6 italic">
+                <p className="text-xs md:text-sm text-gray-500 text-center mt-6 italic font-calibri">
                   Stay tuned for more exciting video highlights!
                 </p>
               </div>
@@ -210,7 +210,7 @@ const GalleryPage = () => {
         {/* Image Modal */}
         {selectedImage && (
           <div
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 font-calibri"
             onClick={() => setSelectedImage(null)}
           >
             <div className="relative max-w-5xl max-h-[90vh]">
@@ -221,7 +221,7 @@ const GalleryPage = () => {
               />
               <button
                 onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 bg-white/90 hover:bg-white text-black rounded-full p-2 transition-colors duration-300"
+                className="absolute top-4 right-4 bg-white/90 hover:bg-white text-black rounded-full p-2 transition-colors duration-300 font-calibri"
                 aria-label="Close"
               >
                 ✕

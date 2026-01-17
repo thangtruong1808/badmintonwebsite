@@ -193,14 +193,13 @@ const ContactUsPage = () => {
 
   return (
     <div
-      className="w-full overflow-x-hidden min-h-screen bg-gradient-to-b from-pink-100 to-pink-200"
+      className="absolute inset-0 w-full overflow-x-hidden bg-gradient-to-b from-pink-100 to-pink-200"
     >
-      <div className="w-full overflow-x-hidden min-h-screen pt-20">
-
-        <div className="px-4 md:px-8 max-w-7xl mx-auto min-h-full">
+      <div className="w-full overflow-x-hidden pt-20 pb-8">
+        <div className="px-4 md:px-8 max-w-7xl mx-auto">
           {/* Subtitle Section */}
-          <div className="text-center mb-12">
-            <p className="text-xl lg:text-3xl text-black max-w-7xl mx-auto">
+          <div className="text-center m-12">
+            <p className="text-xl lg:text-3xl text-black max-w-7xl mx-auto ">
               Send us a message and we'll respond as soon as possible.
             </p>
           </div>
@@ -215,7 +214,7 @@ const ContactUsPage = () => {
 
                 <div className="space-y-6">
                   <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                    <div className="flex-shrink-0 w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center">
                       <FaEnvelope className="text-white" size={20} />
                     </div>
                     <div>
@@ -230,7 +229,7 @@ const ContactUsPage = () => {
                   </div>
 
                   <div className="pt-6 border-t border-gray-200">
-                    <p className="text-sm text-gray-600 leading-relaxed font-calibri">
+                    <p className="text-md text-gray-600 leading-relaxed font-calibri">
                       Our team typically responds within 24-48 hours. For urgent
                       matters, please reach out directly via email.
                     </p>
@@ -271,10 +270,10 @@ const ContactUsPage = () => {
                   <div>
                     <label
                       htmlFor="name"
-                      className="block text-sm font-semibold text-gray-700 mb-2 font-calibri"
+                      className="block text-md font-semibold text-gray-700 mb-2 font-calibri"
                     >
                       <FaUser className="inline mr-2" size={14} />
-                      Full Name <span className="text-red-500 font-calibri">*</span>
+                      Full Name <span className="text-red-500 font-calibri text-md">*</span>
                     </label>
                     <input
                       type="text"
@@ -282,7 +281,7 @@ const ContactUsPage = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri ${errors.name
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri text-md ${errors.name
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
@@ -299,10 +298,10 @@ const ContactUsPage = () => {
                     <div>
                       <label
                         htmlFor="email"
-                        className="block text-sm font-semibold text-gray-700 mb-2 font-calibri"
+                        className="block text-md font-semibold text-gray-700 mb-2 font-calibri"
                       >
-                        <FaEnvelope className="inline mr-2" size={14} />
-                        Email Address <span className="text-red-500 font-calibri">*</span>
+                        <FaEnvelope className="inline mr-2 text-md" size={14} />
+                        <span className="text-md">Email Address</span> <span className="text-red-500 font-calibri text-md">*</span>
                       </label>
                       <input
                         type="email"
@@ -310,14 +309,14 @@ const ContactUsPage = () => {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri ${errors.email
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri text-md ${errors.email
                           ? "border-red-500 focus:ring-red-500"
                           : "border-gray-300 focus:ring-green-500"
                           }`}
                         placeholder="Your email address"
                       />
                       {errors.email && (
-                        <p className="mt-1 text-sm text-red-500 font-calibri">
+                        <p className="mt-1 text-sm text-red-500 font-calibri text-md">
                           {errors.email}
                         </p>
                       )}
@@ -327,11 +326,11 @@ const ContactUsPage = () => {
                     <div>
                       <label
                         htmlFor="phone"
-                        className="block text-sm font-semibold text-gray-700 mb-2 font-calibri"
+                        className="block text-md font-semibold text-gray-700 mb-2 font-calibri"
                       >
-                        <FaPhone className="inline mr-2" size={14} />
-                        Phone Number{" "}
-                        <span className="text-gray-400 font-calibri">(Optional)</span>
+                        <FaPhone className="inline mr-2 text-md" size={14} />
+                        <span className="text-md">Phone Number</span>{" "}
+                        <span className="text-gray-400 font-calibri text-md">(Optional)</span>
                       </label>
                       <input
                         type="tel"
@@ -339,14 +338,14 @@ const ContactUsPage = () => {
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri ${errors.phone
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri text-md ${errors.phone
                           ? "border-red-500 focus:ring-red-500"
                           : "border-gray-300 focus:ring-green-500"
                           }`}
                         placeholder="+61 400 000 000"
                       />
                       {errors.phone && (
-                        <p className="mt-1 text-sm text-red-500 font-calibri  ">
+                        <p className="mt-1 text-sm text-red-500 font-calibri text-md">
                           {errors.phone}
                         </p>
                       )}
@@ -357,9 +356,9 @@ const ContactUsPage = () => {
                   <div>
                     <label
                       htmlFor="subject"
-                      className="block text-sm font-semibold text-gray-700 mb-2 font-calibri"
+                      className="block text-md font-semibold text-gray-700 mb-2 font-calibri"
                     >
-                      Subject <span className="text-red-500 font-calibri">*</span>
+                      <span className="text-md">Subject</span> <span className="text-red-500 font-calibri text-md">*</span>
                     </label>
                     <input
                       type="text"
@@ -367,14 +366,14 @@ const ContactUsPage = () => {
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri ${errors.subject
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all font-calibri text-md ${errors.subject
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-green-500"
                         }`}
                       placeholder="What is this regarding?"
                     />
                     {errors.subject && (
-                      <p className="mt-1 text-sm text-red-500 font-calibri">
+                      <p className="mt-1 text-sm text-red-500 font-calibri text-md">
                         {errors.subject}
                       </p>
                     )}
@@ -384,9 +383,9 @@ const ContactUsPage = () => {
                   <div>
                     <label
                       htmlFor="message"
-                      className="block text-sm font-semibold text-gray-700 mb-2 font-calibri"
+                      className="block text-md font-semibold text-gray-700 mb-2 font-calibri"
                     >
-                      Message <span className="text-red-500 font-calibri">*</span>
+                      <span className="text-md">Message</span> <span className="text-red-500 font-calibri text-md">*</span>
                     </label>
                     <textarea
                       id="message"
@@ -394,14 +393,14 @@ const ContactUsPage = () => {
                       value={formData.message}
                       onChange={handleChange}
                       rows={6}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all resize-none font-calibri ${errors.message
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all resize-none font-calibri text-md ${errors.message
                         ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-green-500"
+                        : "border-gray-300 focus:ring-rose-500"
                         }`}
                       placeholder="Tell us more about your inquiry..."
                     />
                     {errors.message && (
-                      <p className="mt-1 text-sm text-red-500 font-calibri">
+                      <p className="mt-1 text-sm text-red-500 font-calibri text-md">
                         {errors.message}
                       </p>
                     )}
@@ -411,7 +410,7 @@ const ContactUsPage = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold p-3 px-8 rounded-lg text-lg transition duration-300 font-calibri ${isSubmitting
+                    className={`w-full md:w-auto flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-bold p-3 px-8 rounded-lg text-lg transition duration-300 font-calibri ${isSubmitting
                       ? "opacity-70 cursor-not-allowed"
                       : "hover:shadow-lg transform hover:-translate-y-0.5"
                       }`}
@@ -419,12 +418,12 @@ const ContactUsPage = () => {
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Sending...
+                        <span className="font-calibri text-md">Sending...</span>
                       </>
                     ) : (
                       <>
                         <FaPaperPlane size={18} />
-                        Send Message
+                        <span className="font-calibri text-md">Send Message</span>
                       </>
                     )}
                   </button>

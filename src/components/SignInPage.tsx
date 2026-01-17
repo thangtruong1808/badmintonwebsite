@@ -76,7 +76,7 @@ const SignInPage = () => {
 
     // Mock login
     const user = mockLogin(signInData.email, signInData.password);
-    
+
     if (user) {
       // Get unclaimed events
       const history = getUserEventHistory(user.id);
@@ -129,17 +129,17 @@ const SignInPage = () => {
         </div>
 
         {/* Form Card */}
-        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-white">
+        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-l from-pink-100 to-pink-200">
           <div className="p-8 md:p-10">
             <form onSubmit={handleSignInSubmit} className="space-y-6">
               {/* Email Field */}
               <div>
                 <label
                   htmlFor="signin-email"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-lg font-semibold text-gray-700 mb-2 font-calibri"
                 >
                   <FaEnvelope className="inline mr-2" size={14} />
-                  Email Address <span className="text-red-500">*</span>
+                  Email Address <span className="text-red-500 font-calibri">*</span>
                 </label>
                 <input
                   type="email"
@@ -147,14 +147,14 @@ const SignInPage = () => {
                   name="email"
                   value={signInData.email}
                   onChange={handleSignInChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${signInErrors.email
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${signInErrors.email
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-300 focus:ring-green-500"
                     }`}
                   placeholder="Enter your email"
                 />
                 {signInErrors.email && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                  <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-lg">
                     <FaExclamationCircle className="mr-1" size={12} />
                     {signInErrors.email}
                   </p>
@@ -165,10 +165,10 @@ const SignInPage = () => {
               <div>
                 <label
                   htmlFor="signin-password"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-lg font-semibold text-gray-700 mb-2 font-calibri"
                 >
                   <FaLock className="inline mr-2" size={14} />
-                  Password <span className="text-red-500">*</span>
+                  Password <span className="text-red-500 font-calibri">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -177,7 +177,7 @@ const SignInPage = () => {
                     name="password"
                     value={signInData.password}
                     onChange={handleSignInChange}
-                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${signInErrors.password
+                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${signInErrors.password
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-green-500"
                       }`}
@@ -193,7 +193,7 @@ const SignInPage = () => {
                   </button>
                 </div>
                 {signInErrors.password && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                  <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-lg">
                     <FaExclamationCircle className="mr-1" size={12} />
                     {signInErrors.password}
                   </p>
@@ -204,7 +204,7 @@ const SignInPage = () => {
               <div className="flex justify-end">
                 <Link
                   to="/reset-password"
-                  className="text-green-600 hover:text-green-700 text-sm font-medium"
+                  className="text-rose-500 hover:text-rose-600 text-sm font-medium font-calibri"
                 >
                   Forgot your password?
                 </Link>
@@ -214,19 +214,20 @@ const SignInPage = () => {
               <button
                 type="submit"
                 disabled={isSigningIn}
-                className={`w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ${isSigningIn ? "opacity-50 cursor-not-allowed" : ""
+                className={`w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-lg ${isSigningIn ? "opacity-50 cursor-not-allowed" : ""
                   }`}
               >
-                {isSigningIn ? "Signing In..." : "Sign In"}
+                {isSigningIn ? <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span className="font-calibri text-lg">Signing In...</span></> : "Sign In"}
               </button>
 
               {/* Submit Status */}
               {submitStatus.message && (
                 <div
                   className={`p-4 rounded-lg flex items-center ${submitStatus.type === "success"
-                    ? "bg-green-50 text-green-800 border border-green-200"
-                    : "bg-red-50 text-red-800 border border-red-200"
-                    }`}
+                    ? "bg-rose-500 text-white border border-green-200 font-calibri text-lg"
+                    : "bg-red-50 text-red-800 border border-red-200 font-calibri text-lg"
+                    } font-calibri text-lg`}
                 >
                   {submitStatus.type === "success" ? (
                     <FaCheckCircle className="mr-2" size={20} />
@@ -240,17 +241,17 @@ const SignInPage = () => {
 
             {/* Register Link */}
             <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 text-md font-calibri">
                 Don't have an account?{" "}
                 <Link
                   to="/register"
-                  className="text-green-600 hover:text-green-700 font-semibold"
+                  className="text-rose-500 hover:text-rose-600 font-semibold font-calibri"
                 >
                   Create an account
                 </Link>
               </p>
               <div className="mt-4 flex items-center justify-center text-gray-500 text-xs">
-                <FaLock className="mr-2 text-green-600" size={14} />
+                <FaLock className="mr-2 text-rose-500" size={14} />
                 <span>Secure authentication powered by encrypted connections</span>
               </div>
             </div>

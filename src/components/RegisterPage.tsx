@@ -117,17 +117,17 @@ const RegisterPage = () => {
         </div>
 
         {/* Form Card */}
-        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-white">
+        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-r from-pink-100 to-pink-200">
           <div className="p-8 md:p-10">
             <form onSubmit={handleRegisterSubmit} className="space-y-6">
               {/* Name Field */}
               <div>
                 <label
                   htmlFor="register-name"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-lg font-semibold text-gray-700 mb-2 font-calibri"
                 >
                   <FaUser className="inline mr-2" size={14} />
-                  Full Name <span className="text-red-500">*</span>
+                  Full Name <span className="text-red-500 font-calibri">*</span>
                 </label>
                 <input
                   type="text"
@@ -135,14 +135,14 @@ const RegisterPage = () => {
                   name="name"
                   value={registerData.name}
                   onChange={handleRegisterChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${registerErrors.name
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.name
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-300 focus:ring-green-500"
                     }`}
                   placeholder="Enter your full name"
                 />
                 {registerErrors.name && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                  <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-lg">
                     <FaExclamationCircle className="mr-1" size={12} />
                     {registerErrors.name}
                   </p>
@@ -153,10 +153,10 @@ const RegisterPage = () => {
               <div>
                 <label
                   htmlFor="register-email"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-lg font-semibold text-gray-700 mb-2 font-calibri"
                 >
                   <FaEnvelope className="inline mr-2" size={14} />
-                  Email Address <span className="text-red-500">*</span>
+                  Email Address <span className="text-red-500 font-calibri">*</span>
                 </label>
                 <input
                   type="email"
@@ -164,14 +164,14 @@ const RegisterPage = () => {
                   name="email"
                   value={registerData.email}
                   onChange={handleRegisterChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${registerErrors.email
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.email
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-300 focus:ring-green-500"
                     }`}
                   placeholder="Enter your email"
                 />
                 {registerErrors.email && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                  <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-lg">
                     <FaExclamationCircle className="mr-1" size={12} />
                     {registerErrors.email}
                   </p>
@@ -182,11 +182,11 @@ const RegisterPage = () => {
               <div>
                 <label
                   htmlFor="register-phone"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-lg font-semibold text-gray-700 mb-2 font-calibri"
                 >
                   <FaPhone className="inline mr-2" size={14} />
                   Phone Number{" "}
-                  <span className="text-gray-500 text-xs">(Optional)</span>
+                  <span className="text-gray-500 text-xs font-calibri">(Optional)</span>
                 </label>
                 <input
                   type="tel"
@@ -194,14 +194,14 @@ const RegisterPage = () => {
                   name="phone"
                   value={registerData.phone}
                   onChange={handleRegisterChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${registerErrors.phone
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg   ${registerErrors.phone
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-300 focus:ring-green-500"
                     }`}
                   placeholder="Enter your phone number"
                 />
                 {registerErrors.phone && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                  <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-lg">
                     <FaExclamationCircle className="mr-1" size={12} />
                     {registerErrors.phone}
                   </p>
@@ -212,10 +212,10 @@ const RegisterPage = () => {
               <div>
                 <label
                   htmlFor="register-password"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-lg font-semibold text-gray-700 mb-2 font-calibri"
                 >
                   <FaLock className="inline mr-2" size={14} />
-                  Password <span className="text-red-500">*</span>
+                  Password <span className="text-red-500 font-calibri">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -224,7 +224,7 @@ const RegisterPage = () => {
                     name="password"
                     value={registerData.password}
                     onChange={handleRegisterChange}
-                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${registerErrors.password
+                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.password
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-green-500"
                       }`}
@@ -240,7 +240,7 @@ const RegisterPage = () => {
                   </button>
                 </div>
                 {registerErrors.password && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                  <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-lg">
                     <FaExclamationCircle className="mr-1" size={12} />
                     {registerErrors.password}
                   </p>
@@ -251,10 +251,10 @@ const RegisterPage = () => {
               <div>
                 <label
                   htmlFor="register-confirm-password"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-lg font-semibold text-gray-700 mb-2 font-calibri"
                 >
                   <FaLock className="inline mr-2" size={14} />
-                  Confirm Password <span className="text-red-500">*</span>
+                  Confirm Password <span className="text-red-500 font-calibri">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -263,7 +263,7 @@ const RegisterPage = () => {
                     name="confirmPassword"
                     value={registerData.confirmPassword}
                     onChange={handleRegisterChange}
-                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${registerErrors.confirmPassword
+                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.confirmPassword
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-green-500"
                       }`}
@@ -283,7 +283,7 @@ const RegisterPage = () => {
                   </button>
                 </div>
                 {registerErrors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                  <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-lg">
                     <FaExclamationCircle className="mr-1" size={12} />
                     {registerErrors.confirmPassword}
                   </p>
@@ -294,18 +294,19 @@ const RegisterPage = () => {
               <button
                 type="submit"
                 disabled={isRegistering}
-                className={`w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ${isRegistering ? "opacity-50 cursor-not-allowed" : ""
+                className={`w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-lg ${isRegistering ? "opacity-50 cursor-not-allowed" : ""
                   }`}
               >
-                {isRegistering ? "Creating Account..." : "Create Account"}
+                {isRegistering ? <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span className="font-calibri text-lg">Creating Account...</span></> : "Create Account"}
               </button>
 
               {/* Submit Status */}
               {submitStatus.message && (
                 <div
                   className={`p-4 rounded-lg flex items-center ${submitStatus.type === "success"
-                    ? "bg-green-50 text-green-800 border border-green-200"
-                    : "bg-red-50 text-red-800 border border-red-200"
+                    ? "bg-rose-500 text-white border border-green-200 font-calibri text-lg"
+                    : "bg-red-50 text-red-800 border border-red-200 font-calibri text-lg"
                     }`}
                 >
                   {submitStatus.type === "success" ? (
@@ -313,24 +314,24 @@ const RegisterPage = () => {
                   ) : (
                     <FaExclamationCircle className="mr-2" size={20} />
                   )}
-                  <span className="text-sm font-medium">{submitStatus.message}</span>
+                  <span className="text-sm font-medium font-calibri text-lg">{submitStatus.message}</span>
                 </div>
               )}
             </form>
 
             {/* Sign In Link */}
             <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-              <p className="text-gray-600 text-sm">
+              <p className="text-gray-600 text-sm font-calibri">
                 Already have an account?{" "}
                 <Link
                   to="/signin"
-                  className="text-green-600 hover:text-green-700 font-semibold"
+                  className="text-rose-500 hover:text-rose-600 font-semibold font-calibri"
                 >
                   Sign in
                 </Link>
               </p>
               <div className="mt-4 flex items-center justify-center text-gray-500 text-xs">
-                <FaLock className="mr-2 text-green-600" size={14} />
+                <FaLock className="mr-2 text-rose-500" size={14} />
                 <span>Secure authentication powered by encrypted connections</span>
               </div>
             </div>

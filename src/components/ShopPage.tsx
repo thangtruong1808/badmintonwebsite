@@ -407,24 +407,24 @@ const ShopPage = () => {
         {/* Additional Info Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 mt-12 bg-gradient-to-b from-pink-100 to-pink-200 shadow-xl">
           <h3 className="text-2xl font-bold mb-4 text-black text-center">
-            Why Shop with ChibiBadminton?
+            Why Shop with ChibiBadminton !
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div>
-              <h4 className="font-semibold text-black mb-2">Quality Guaranteed</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-semibold text-black mb-2 font-calibri text-lg">Quality Guaranteed</h4>
+              <p className="text-sm text-gray-800 font-calibri text-lg">
                 All products are carefully selected for quality and performance
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-black mb-2">Fast Shipping</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-semibold text-black mb-2 font-calibri text-lg">Fast Shipping</h4>
+              <p className="text-sm text-gray-800 font-calibri text-lg">
                 Quick and reliable delivery to get your gear fast
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-black mb-2">Expert Service</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="font-semibold text-black mb-2 font-calibri text-lg">Expert Service</h4>
+              <p className="text-sm text-gray-800 font-calibri text-lg">
                 Professional stringing and equipment services available
               </p>
             </div>

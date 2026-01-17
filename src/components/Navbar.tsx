@@ -162,26 +162,34 @@ const Navbar: React.FC = () => {
                   <span className="hidden md:inline">{user.name.split(" ")[0]}</span>
                 </button>
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                    <Link
-                      to="/profile"
-                      onClick={() => {
-                        setShowUserMenu(false);
-                        setIsOpen(false);
-                      }}
-                      className="block px-4 py-2 text-gray-700 hover:bg-rose-50 transition-colors font-calibri"
-                    >
-                      <FaUser className="inline mr-2" size={14} />
-                      My Profile
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-rose-50 transition-colors font-calibri"
-                    >
-                      <FaSignOutAlt className="inline mr-2" size={14} />
-                      Sign Out
-                    </button>
-                  </div>
+                  <>
+                    {/* Backdrop to close menu when clicking outside */}
+                    <div
+                      className="fixed inset-0 z-[45]"
+                      onClick={() => setShowUserMenu(false)}
+                    />
+                    {/* Dropdown menu - positioned below the button */}
+                    <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[60]">
+                      <Link
+                        to="/profile"
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          setIsOpen(false);
+                        }}
+                        className="block px-4 py-2 text-gray-700 hover:bg-rose-50 transition-colors font-calibri"
+                      >
+                        <FaUser className="inline mr-2" size={14} />
+                        My Profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-rose-50 transition-colors font-calibri"
+                      >
+                        <FaSignOutAlt className="inline mr-2" size={14} />
+                        Sign Out
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             ) : (

@@ -15,12 +15,12 @@ const Pagination: React.FC<PaginationProps> = ({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-8 font-calibri">
+    <div className="flex items-center justify-center gap-2 mt-8 font-calibri text-lg">
       {/* First Button */}
       <button
         onClick={() => onPageChange(1)}
         disabled={currentPage === 1}
-        className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-calibri"
+        className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-calibri text-lg"
         aria-label="First page"
       >
         <FaAngleDoubleLeft />
@@ -30,7 +30,7 @@ const Pagination: React.FC<PaginationProps> = ({
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-calibri"
+        className="px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-calibri text-lg"
         aria-label="Previous page"
       >
         <FaAngleLeft />
@@ -51,7 +51,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 onClick={() => onPageChange(page)}
                 className={`px-4 py-2 rounded-lg border transition-colors font-calibri ${currentPage === page
                   ? "bg-rose-500 text-white border-rose-500 font-calibri"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 font-calibri"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 font-calibri text-lg"
                   }`}
               >
                 {page}
@@ -62,7 +62,7 @@ const Pagination: React.FC<PaginationProps> = ({
             page === currentPage + 2
           ) {
             return (
-              <span key={page} className="px-2 text-gray-500 font-calibri">
+              <span key={page} className="px-2 text-gray-500 font-calibri text-lg">
                 ...
               </span>
             );

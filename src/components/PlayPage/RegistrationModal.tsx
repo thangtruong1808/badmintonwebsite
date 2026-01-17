@@ -263,7 +263,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900">
@@ -281,7 +281,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
         </div>
 
         {/* Event Summary */}
-        <div className="p-6 bg-gray-50 border-b border-gray-200 font-calibri">
+        <div className="p-6 bg-gradient-to-t from-pink-100 to-pink-200 border-b border-gray-200 font-calibri">
           <h3 className="font-semibold text-gray-900 mb-3">Selected Events:</h3>
           <div className="space-y-2">
             {events.map((event) => (
@@ -310,10 +310,10 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-semibold text-gray-700 mb-2"
+                className="block text-md font-semibold text-gray-700 mb-2 font-calibri"
               >
                 <FaUser className="inline mr-2" />
-                Full Name *
+                <span className="text-md">Full Name</span> <span className="text-red-500 font-calibri text-md">*</span>
               </label>
               <input
                 type="text"
@@ -321,14 +321,14 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.name
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-md ${errors.name
                   ? "border-red-500 focus:ring-red-500"
                   : "border-gray-300 focus:ring-rose-500"
                   }`}
                 placeholder="Enter your full name"
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                <p className="mt-1 text-sm text-red-600 font-calibri text-md">{errors.name}</p>
               )}
             </div>
 
@@ -336,10 +336,10 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-semibold text-gray-700 mb-2"
+                className="block text-md font-semibold text-gray-700 mb-2 font-calibri"
               >
                 <FaEnvelope className="inline mr-2" />
-                Email Address *
+                <span className="text-md">Email Address</span> <span className="text-red-500 font-calibri text-md">*</span>
               </label>
               <input
                 type="email"
@@ -347,14 +347,14 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.email
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-md ${errors.email
                   ? "border-red-500 focus:ring-red-500"
                   : "border-gray-300 focus:ring-rose-500"
                   }`}
                 placeholder="Enter your email address"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                <p className="mt-1 text-sm text-red-600 font-calibri text-md">{errors.email}</p>
               )}
             </div>
 
@@ -362,10 +362,10 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
             <div>
               <label
                 htmlFor="phone"
-                className="block text-sm font-semibold text-gray-700 mb-2"
+                className="block text-md font-semibold text-gray-700 mb-2 font-calibri"
               >
                 <FaPhone className="inline mr-2" />
-                Phone Number
+                <span className="text-md">Phone Number</span> <span className="text-gray-500 font-calibri text-md">(Required)</span>
               </label>
               <input
                 type="tel"
@@ -373,22 +373,22 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.phone
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-md ${errors.phone
                   ? "border-red-500 focus:ring-red-500"
                   : "border-gray-300 focus:ring-rose-500"
                   }`}
-                placeholder="Enter your phone number (optional)"
+                placeholder="+61 400 000 000"
               />
               {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                <p className="mt-1 text-sm text-red-600 font-calibri text-md">{errors.phone}</p>
               )}
             </div>
 
             {/* Payment Method Selection */}
             {user && totalPrice > 0 && (
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Payment Method
+                <label className="block text-md font-semibold text-gray-700 mb-3 font-calibri">
+                  <span className="text-md">Payment Method</span>
                 </label>
                 <div className="space-y-2">
                   <button
@@ -397,16 +397,16 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       setPaymentMethod("cash");
                       setPointsToUse(0);
                     }}
-                    className={`w-full flex items-center justify-between p-3 border-2 rounded-lg transition-colors ${paymentMethod === "cash"
+                    className={`w-full flex items-center justify-between p-3 border-2 rounded-lg transition-colors font-calibri text-md ${paymentMethod === "cash"
                       ? "border-rose-500 bg-rose-50"
                       : "border-gray-300 hover:border-gray-400"
                       }`}
                   >
                     <div className="flex items-center gap-3">
-                      <FaMoneyBillWave className="text-green-600" size={20} />
+                      <FaMoneyBillWave className="text-rose-500" size={20} />
                       <div className="text-left">
                         <div className="font-semibold text-gray-900">Pay with Cash</div>
-                        <div className="text-sm text-gray-600">${totalPrice.toFixed(2)}</div>
+                        <div className="text-sm text-gray-600 font-calibri text-md">${totalPrice.toFixed(2)}</div>
                       </div>
                     </div>
                     {paymentMethod === "cash" && (
@@ -427,10 +427,10 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                         }`}
                     >
                       <div className="flex items-center gap-3">
-                        <FaCoins className="text-yellow-600" size={20} />
+                        <FaCoins className="text-rose-500" size={20} />
                         <div className="text-left">
-                          <div className="font-semibold text-gray-900">Pay with Points</div>
-                          <div className="text-sm text-gray-600">
+                          <div className="font-semibold text-gray-900 font-calibri text-md">Pay with Points</div>
+                          <div className="text-sm text-gray-600 font-calibri text-md">
                             {formatPoints(totalPrice)} points (You have {formatPoints(userPoints)})
                           </div>
                         </div>
@@ -449,15 +449,15 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                         setPointsToUse(userPoints);
                       }}
                       className={`w-full flex items-center justify-between p-3 border-2 rounded-lg transition-colors ${paymentMethod === "mixed"
-                        ? "border-rose-500 bg-rose-50"
+                        ? "border-rose-500 bg-rose-50 font-calibri text-md"
                         : "border-gray-300 hover:border-gray-400"
                         }`}
                     >
                       <div className="flex items-center gap-3">
-                        <FaExchangeAlt className="text-blue-600" size={20} />
+                        <FaExchangeAlt className="text-rose-500" size={20} />
                         <div className="text-left">
-                          <div className="font-semibold text-gray-900">Mixed Payment</div>
-                          <div className="text-sm text-gray-600">
+                          <div className="font-semibold text-gray-900 font-calibri text-md">Mixed Payment</div>
+                          <div className="text-sm text-gray-600 font-calibri text-md text-left">
                             {formatPoints(userPoints)} points + ${(totalPrice - userPoints).toFixed(2)} cash
                           </div>
                         </div>
@@ -469,15 +469,15 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   )}
                 </div>
                 {paymentMethod === "points" && (
-                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-800 font-calibri">
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg font-calibri text-md text-left">
+                    <p className="text-sm text-green-800 font-calibri text-left">
                       ✓ You have enough points! This booking will be free.
                     </p>
                   </div>
                 )}
                 {paymentMethod === "mixed" && (
-                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800 font-calibri">
+                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg font-calibri text-md text-left">
+                    <p className="text-sm text-blue-800 font-calibri text-left">
                       Using {formatPoints(pointsToUse)} points, remaining ${(totalPrice - pointsToUse).toFixed(2)} will be paid in cash.
                     </p>
                   </div>
@@ -489,8 +489,8 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
           {/* Status Message */}
           {submitStatus.type && (
             <div
-              className={`mt-4 p-4 rounded-lg flex items-start gap-3 ${submitStatus.type === "success"
-                ? "bg-green-50 border border-green-200"
+              className={`mt-4 p-4 rounded-lg flex items-start gap-3 font-calibri text-md text-left ${submitStatus.type === "success"
+                ? "bg-green-50 border border-green-200 text-left"
                 : "bg-red-50 border border-red-200"
                 }`}
             >
@@ -515,24 +515,24 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold font-calibri text-md"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-calibri text-md"
             >
               {isSubmitting ? (
                 <>
                   <span className="animate-spin">⏳</span>
-                  Submitting...
+                  <span className="font-calibri text-md">Submitting...</span>
                 </>
               ) : (
                 <>
                   <FaPaperPlane />
-                  Submit Registration
+                  <span className="font-calibri text-md">Submit Registration</span>
                 </>
               )}
             </button>

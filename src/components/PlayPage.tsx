@@ -193,8 +193,8 @@ const PlayPage: React.FC = () => {
   };
 
   return (
-    <div className="pt-6 min-h-screen bg-gradient-to-b from-pink-100 to-pink-200">
-      <div className="container mx-auto px-4 py-8 ">
+    <div className="absolute inset-0 w-full overflow-x-hidden bg-gradient-to-b from-pink-100 to-pink-200">
+      <div className="container mx-auto px-4 pt-28 pb-8">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-huglove">
@@ -300,7 +300,7 @@ const PlayPage: React.FC = () => {
                   className="w-full h-full object-contain rounded-lg mb-4"
                 />
               )}
-              <div className="space-y-3 mb-4">
+              <div className="space-y-3 mb-4 font-calibri text-lg">
                 <p className="text-gray-700">
                   <strong>Date:</strong> {new Date(selectedEvent.date).toLocaleDateString("en-US", {
                     weekday: "long",
@@ -339,7 +339,7 @@ const PlayPage: React.FC = () => {
                   </span>
                 </p>
               </div>
-              <p className="text-gray-700 whitespace-pre-line">
+              <p className="text-gray-800 whitespace-pre-line font-calibri">
                 {selectedEvent.description}
               </p>
               {selectedEvent.status === "available" && (

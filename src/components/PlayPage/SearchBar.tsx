@@ -71,12 +71,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
       <div className="flex flex-wrap items-end gap-4">
         {/* My Registrations Filter */}
         <div className="flex-1 min-w-[120px]">
-          <label className="block text-sm font-semibold text-gray-700 mb-2 font-calibri">
+          <label className="block text-md font-semibold text-gray-700 mb-2 font-calibri">
             My Events
           </label>
           <button
             onClick={() => onMyRegistrationsFilterChange(!myRegistrationsFilter)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors w-full ${myRegistrationsFilter
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors w-full ${myRegistrationsFilter
               ? "bg-purple-600 text-white font-calibri"
               : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
               } flex items-center justify-center gap-2`}
@@ -87,7 +87,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         </div>
         {/* Status Filter */}
         <div className="flex-1 min-w-[120px]">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-md font-semibold text-gray-700 mb-2">
             Status
           </label>
           <div className="flex flex-wrap gap-2">
@@ -95,7 +95,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
               <button
                 key={status}
                 onClick={() => onStatusFilterChange(status)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${statusFilter === status
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${statusFilter === status
                   ? "bg-rose-500 text-white font-calibri"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
                   }`}
@@ -108,7 +108,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
         {/* Category Filter */}
         <div className="flex-1 min-w-[120px]">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-md font-semibold text-gray-700 mb-2">
             Category
           </label>
           <div className="flex flex-wrap gap-2">
@@ -116,7 +116,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
               <button
                 key={category}
                 onClick={() => onCategoryFilterChange(category)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === category
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${categoryFilter === category
                   ? "bg-rose-500 text-white font-calibri"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
                   }`}
@@ -129,7 +129,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
         {/* Day of Week Filter */}
         <div className="flex-1 min-w-[200px]">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label className="block text-md font-semibold text-gray-700 mb-2">
             Day of Week
           </label>
           <div className="flex flex-wrap gap-1.5">
@@ -139,7 +139,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 <button
                   key={day}
                   onClick={() => onDayFilterChange(day)}
-                  className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${isSelected
+                  className={`px-2 py-1 rounded-lg text-sm font-medium transition-colors ${isSelected
                     ? "bg-rose-500 text-white font-calibri"
                     : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
                     }`}

@@ -1,3 +1,13 @@
+/* Huglove font - Currently using system cursive fallback */
+/* TODO: Replace src/assets/fonts/Huglove.ttf placeholder with actual font file */
+/* @font-face {
+  font-family: 'Huglove';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/Huglove.ttf') format('truetype');
+} */
+
 @font-face {
   font-family: 'Roboto';
   font-style: normal;

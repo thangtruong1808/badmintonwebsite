@@ -81,10 +81,10 @@ const ResetPasswordPage = () => {
         </div>
 
         {/* Form Card */}
-        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-white">
+        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-r from-pink-100 to-pink-200">
           <div className="p-8 md:p-10">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 font-calibri text-lg">
+              <p className="text-sm text-blue-800 font-calibri text-lg">
                 Enter your email address and we'll send you a link to reset your
                 password.
               </p>
@@ -95,10 +95,10 @@ const ResetPasswordPage = () => {
               <div>
                 <label
                   htmlFor="reset-email"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
+                  className="block text-sm font-semibold text-gray-700 mb-2 font-calibri text-lg"
                 >
                   <FaEnvelope className="inline mr-2" size={14} />
-                  Email Address <span className="text-red-500">*</span>
+                  <span className="text-lg">Email Address</span> <span className="text-red-500 font-calibri text-lg">*</span>
                 </label>
                 <input
                   type="email"
@@ -106,14 +106,14 @@ const ResetPasswordPage = () => {
                   name="email"
                   value={resetData.email}
                   onChange={handleResetChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 ${resetErrors.email
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${resetErrors.email
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-300 focus:ring-green-500"
                     }`}
                   placeholder="Enter your email"
                 />
                 {resetErrors.email && (
-                  <p className="mt-1 text-sm text-red-500 flex items-center">
+                  <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-lg">
                     <FaExclamationCircle className="mr-1" size={12} />
                     {resetErrors.email}
                   </p>
@@ -124,26 +124,27 @@ const ResetPasswordPage = () => {
               <button
                 type="submit"
                 disabled={isResetting}
-                className={`w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ${isResetting ? "opacity-50 cursor-not-allowed" : ""
+                className={`w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-lg ${isResetting ? "opacity-50 cursor-not-allowed" : ""
                   }`}
               >
-                {isResetting ? "Sending..." : "Send Reset Link"}
+                {isResetting ? <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span className="font-calibri text-lg">Sending...</span></> : "Send Reset Link"}
               </button>
 
               {/* Submit Status */}
               {submitStatus.message && (
                 <div
                   className={`p-4 rounded-lg flex items-center ${submitStatus.type === "success"
-                    ? "bg-green-50 text-green-800 border border-green-200"
-                    : "bg-red-50 text-red-800 border border-red-200"
-                    }`}
+                    ? "bg-rose-500 text-white border border-green-200 font-calibri text-lg"
+                    : "bg-red-50 text-red-800 border border-red-200 font-calibri text-lg"
+                    } font-calibri text-lg`}
                 >
                   {submitStatus.type === "success" ? (
                     <FaCheckCircle className="mr-2" size={20} />
                   ) : (
                     <FaExclamationCircle className="mr-2" size={20} />
                   )}
-                  <span className="text-sm font-medium">{submitStatus.message}</span>
+                  <span className="text-sm font-medium font-calibri text-lg">{submitStatus.message}</span>
                 </div>
               )}
             </form>
@@ -152,7 +153,7 @@ const ResetPasswordPage = () => {
             <div className="mt-6 pt-6 border-t border-gray-200 text-center">
               <Link
                 to="/signin"
-                className="text-green-600 hover:text-green-700 text-sm font-medium"
+                className="text-rose-500 hover:text-rose-600 text-sm font-medium font-calibri text-lg"
               >
                 ← Back to Sign In
               </Link>
@@ -160,8 +161,8 @@ const ResetPasswordPage = () => {
 
             {/* Authenticated / Secure Message */}
             <div className="mt-4 w-full bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col items-center text-gray-500 text-xs">
-              <FaShieldAlt className="text-green-600 mb-2" size={20} />
-              <p className="text-center leading-relaxed">
+              <FaShieldAlt className="text-rose-500 mb-2" size={20} />
+              <p className="text-center leading-relaxed font-calibri text-md font-semibold">
                 Your information is securely encrypted. We never share your data with third parties.
               </p>
             </div>

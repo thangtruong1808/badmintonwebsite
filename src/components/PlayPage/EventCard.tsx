@@ -78,7 +78,7 @@ const EventCard: React.FC<EventCardProps> = ({
       <div className="p-4 flex-grow flex flex-col relative">
         {/* Status Badge and Checkbox */}
         <div className="flex items-start justify-between mb-2">
-          <h3 className="font-bold text-lg text-gray-900 line-clamp-2 flex-1 pr-2 font-calibri">
+          <h3 className="font-bold text-lg text-gray-800 line-clamp-2 flex-1 pr-2 font-calibri">
             {event.title}
           </h3>
           <div className="flex items-center gap-2 flex-shrink-0 font-calibri">
@@ -98,39 +98,39 @@ const EventCard: React.FC<EventCardProps> = ({
         <div className="space-y-2 mb-3 flex-grow">
           <div className="flex items-center text-gray-700 text-sm font-calibri">
             <FaCalendarAlt className="mr-2 text-green-600 flex-shrink-0" size={14} />
-            <span className="font-medium">{formatDate(event.date)}</span>
+            <span className="font-medium text-gray-800">{formatDate(event.date)}</span>
             <span className="ml-2 text-gray-500">({event.dayOfWeek})</span>
           </div>
           <div className="flex items-center text-gray-700 text-sm font-calibri">
             <FaClock className="mr-2 text-green-600 flex-shrink-0" size={14} />
-            <span className="font-medium">{event.time}</span>
+            <span className="font-medium text-gray-800">{event.time}</span>
           </div>
           <div className="flex items-start text-gray-700 text-sm font-calibri">
             <FaMapMarkerAlt
               className="mr-2 mt-0.5 text-green-600 flex-shrink-0"
               size={14}
             />
-            <span className="font-medium line-clamp-2">{event.location}</span>
+            <span className="font-medium line-clamp-2 text-gray-800">{event.location}</span>
           </div>
           <div className="flex items-center text-gray-700 text-sm font-calibri">
             <FaUsers className="mr-2 text-green-600 flex-shrink-0" size={14} />
-            <span className="font-medium">
+            <span className="font-medium text-gray-800">
               {spotsAvailable} of {event.maxCapacity} spots available
             </span>
           </div>
           {event.price && (
             <div className="flex items-center text-gray-700 text-sm font-calibri">
               <FaDollarSign className="mr-2 text-green-600 flex-shrink-0" size={14} />
-              <span className="font-medium">${event.price}</span>
+              <span className="font-medium text-gray-800">${event.price}</span>
             </div>
           )}
           <div className="flex items-center text-gray-700 text-sm font-calibri">
             <FaCheckCircle className="mr-2 text-green-600 flex-shrink-0" size={14} />
-            <span className="font-medium">Available</span>
+            <span className="font-medium text-gray-800 font-calibri">Available</span>
           </div>
         </div>
 
-        <p className="text-gray-600 text-xs mb-4 line-clamp-2 font-calibri">
+        <p className="text-gray-800 text-sm mb-4 line-clamp-2 font-calibri">
           {event.description}
         </p>
 

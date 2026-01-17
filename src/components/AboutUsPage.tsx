@@ -82,17 +82,17 @@ const AboutUsPage = () => {
               return (
                 <div
                   key={index}
-                  className="bg-white rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
                   <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
-                      <IconComponent className="text-gray-800" size={32} />
+                    <div className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center">
+                      <IconComponent className="text-white" size={32} />
                     </div>
                   </div>
                   <div className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 font-calibri">
                     {stat.value}
                   </div>
-                  <div className="text-sm md:text-base text-gray-600 font-medium font-calibri">
+                  <div className="text-sm md:text-base text-gray-800 font-bold font-calibri">
                     {stat.label}
                   </div>
                 </div>
@@ -105,16 +105,16 @@ const AboutUsPage = () => {
         <section className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {/* Mission */}
-            <div className="bg-white rounded-lg shadow-lg p-8 md:p-10">
+            <div className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-lg p-8 md:p-10">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mr-4">
-                  <FaBullseye className="text-gray-800" size={24} />
+                <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
+                  <FaBullseye className="text-white" size={24} />
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-800 font-calibri">
                   Our Mission
                 </h3>
               </div>
-              <p className="text-gray-700 text-base md:text-lg leading-relaxed text-justify font-calibri">
+              <p className="text-gray-800 text-base md:text-lg leading-relaxed text-justify font-calibri">
                 To create an inclusive badminton community that promotes
                 physical fitness, skill development, and social connection. We
                 aim to make badminton accessible to players of all levels while
@@ -123,16 +123,16 @@ const AboutUsPage = () => {
             </div>
 
             {/* Vision */}
-            <div className="bg-white rounded-lg shadow-lg p-8 md:p-10">
+            <div className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-lg p-8 md:p-10">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mr-4">
-                  <FaTrophy className="text-gray-800" size={24} />
+                <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
+                  <FaTrophy className="text-white" size={24} />
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-800 font-calibri">
                   Our Vision
                 </h3>
               </div>
-              <p className="text-gray-700 text-base md:text-lg leading-relaxed text-justify font-calibri">
+              <p className="text-gray-800 text-base md:text-lg leading-relaxed text-justify font-calibri">
                 To become the premier badminton community in the region, known
                 for excellence, inclusivity, and the positive impact we make on
                 our members' lives. We envision a future where badminton brings
@@ -148,7 +148,7 @@ const AboutUsPage = () => {
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-700">
               Our Core Values
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto font-calibri">
+            <p className="text-lg text-gray-800 max-w-2xl mx-auto font-calibri">
               The principles that guide everything we do at ChibiBadminton
             </p>
           </div>
@@ -158,15 +158,15 @@ const AboutUsPage = () => {
               return (
                 <div
                   key={index}
-                  className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
-                  <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                    <IconComponent className="text-gray-800" size={28} />
+                  <div className="w-14 h-14 bg-rose-500 rounded-full flex items-center justify-center mb-4">
+                    <IconComponent className="text-white" size={28} />
                   </div>
                   <h3 className="text-xl font-bold mb-3 text-gray-800 font-calibri">
                     {value.title}
                   </h3>
-                  <p className="text-gray-700 text-sm md:text-base leading-relaxed text-justify font-calibri">
+                  <p className="text-gray-800 text-sm md:text-base leading-relaxed text-justify font-calibri">
                     {value.description}
                   </p>
                 </div>
@@ -177,43 +177,43 @@ const AboutUsPage = () => {
 
         {/* What We Offer Section */}
         <section className="mb-16">
-          <div className="bg-white rounded-lg shadow-lg p-8 md:p-12">
+          <div className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-lg p-8 md:p-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-gray-800">
               What We Offer
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               <div className="text-center">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaCalendarAlt className="text-gray-800" size={32} />
+                <div className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaCalendarAlt className="text-white" size={32} />
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-gray-800 font-calibri">
                   Regular Sessions
                 </h3>
-                <p className="text-gray-700 font-calibri">
+                <p className="text-gray-800 font-calibri">
                   Weekly badminton sessions every Wednesday and Friday from 7:00
                   PM to 10:00 PM. Perfect for players of all skill levels.
                 </p>
               </div>
               <div className="text-center">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaTrophy className="text-gray-800" size={32} />
+                <div className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaTrophy className="text-white" size={32} />
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-gray-800 font-calibri">
                   Tournaments
                 </h3>
-                <p className="text-gray-700 font-calibri">
+                <p className="text-gray-800 font-calibri">
                   Exciting tournaments and championships throughout the year.
                   Compete, improve, and have fun with fellow members.
                 </p>
               </div>
               <div className="text-center">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaUsers className="text-gray-800" size={32} />
+                <div className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaUsers className="text-white" size={32} />
                 </div>
                 <h3 className="text-xl font-bold mb-3 text-gray-800 font-calibri">
                   Community Events
                 </h3>
-                <p className="text-gray-700 font-calibri  ">
+                <p className="text-gray-800 font-calibri  ">
                   Social mixers, workshops, and special events that bring our
                   community together beyond the court.
                 </p>

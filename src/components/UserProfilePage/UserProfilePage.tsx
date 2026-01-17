@@ -45,7 +45,7 @@ const UserProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-pink-100 to-pink-200 flex items-center justify-center">
+      <div className="absolute inset-0 w-full bg-gradient-to-b from-pink-100 to-pink-200 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto mb-4"></div>
           <p className="text-gray-600 font-calibri">Loading profile...</p>
@@ -59,15 +59,15 @@ const UserProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-100 to-pink-200 py-8">
-      <div className="container mx-auto px-4">
+    <div className="absolute inset-0 w-full overflow-x-hidden bg-gradient-to-b from-pink-100 to-pink-200">
+      <div className="container mx-auto px-4 pt-28 pb-6">
         {/* Profile Header */}
         <div className="mb-8">
           <ProfileHeader user={user} />
         </div>
 
         {/* Transaction History and Event History Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
           {/* Transaction History */}
           <div>
             <TransactionHistory transactions={transactions} />
