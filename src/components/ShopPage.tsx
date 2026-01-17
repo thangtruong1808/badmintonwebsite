@@ -37,19 +37,19 @@ interface FormErrors {
 }
 
 export const products: Product[] = [
-  // {
-  //   id: 1,
-  //   name: "VICTOR NCS PRO (Synthetic/Carbon)",
-  //   price: 42,
-  //   image: VICTORYBADMINTONPRO,
-  //   images: [
-  //     VICTORYBADMINTONPRO,
-  //     VICTORYBADMINTONPRO2,
-  //     VICTORYBADMINTONPRO3,
-  //   ],
-  //   category: "Shuttlecocks",
-  //   inStock: true,
-  // },
+  {
+    id: 1,
+    name: "VICTOR NCS PRO (Synthetic/Carbon)",
+    price: 42,
+    image: VICTORYBADMINTONPRO,
+    images: [
+      VICTORYBADMINTONPRO,
+      VICTORYBADMINTONPRO2,
+      VICTORYBADMINTONPRO3,
+    ],
+    category: "Shuttlecocks",
+    inStock: true,
+  },
   {
     id: 2,
     name: "LINGMEI 90 (Goose feather)",
