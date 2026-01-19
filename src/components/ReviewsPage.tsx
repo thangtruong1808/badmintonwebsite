@@ -1,5 +1,5 @@
 import { FaStar, FaUserCircle, FaStarHalfAlt } from "react-icons/fa";
-import Banner from "../assets/BannerMain.png";
+import Banner from "../assets/BattleMain.png";
 import { useEffect } from "react";
 
 interface Review {

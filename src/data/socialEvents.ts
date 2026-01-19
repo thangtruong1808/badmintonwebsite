@@ -1,7 +1,7 @@
 import DemonSlayerWednesday from "../assets/DemonSlayerW.png";
 import MapleStoryFriday from "../assets/MapleStoryF.png";
-import ChibiBattleRoyal from "../assets/ChibiBattleRoyal.png";
-import BannerMain from "../assets/BannerMain.png";
+import ChibiBattleRoyal from "../assets/BattleMain.png";
+import BannerMain from "../assets/BattleMain.png";
 
 import type { SocialEvent } from "../types/socialEvent";
 
