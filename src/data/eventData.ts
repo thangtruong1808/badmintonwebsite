@@ -2,7 +2,6 @@ import ChibiBattleRoyal from "../assets/ChibiBattleRoyal.png";
 import ChibiBattleRoyale2 from "../assets/ChibiBattle Royale2.png";
 import BannerMain from "../assets/BannerMain.png";
 import Banner from "../assets/banner.png";
-import BattleRoyale1thumbnail from "../assets/BattleRoyale1thumbnail.png";
 
 export interface Event {
   id: number;
