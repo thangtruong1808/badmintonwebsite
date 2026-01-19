@@ -56,7 +56,7 @@ const AboutUsPage = () => {
         <section className="mb-16">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-700">
-              Welcome to ChibiBadminton
+              Welcome to the Chibi Badminton Club
             </h2>
             <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-6 font-calibri">
               Founded in 2020, Chibi Badminton Club has grown into a vibrant community
@@ -145,7 +145,7 @@ const AboutUsPage = () => {
               Our Core Values
             </h2>
             <p className="text-lg text-gray-800 max-w-2xl mx-auto font-calibri">
-              The principles that guide everything we do at ChibiBadminton
+              The principles that we stand by within the club
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
@@ -209,7 +209,7 @@ const AboutUsPage = () => {
                   Community Events
                 </h3>
                 <p className="text-gray-800 font-calibri  ">
-                  Social gatherings, late night food runs and plenty of snacks to continue bringing our community together :D
+                  Social gatherings, late night food runs and plenty of snacks to continue bringing our community together!
                 </p>
               </div>
             </div>
