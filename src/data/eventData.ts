@@ -2,6 +2,7 @@ import ChibiBattleRoyal from "../assets/ChibiBattleRoyal.png";
 import ChibiBattleRoyale2 from "../assets/ChibiBattle Royale2.png";
 import BannerMain from "../assets/BannerMain.png";
 import Banner from "../assets/banner.png";
+import BattleRoyale1thumbnail from "../assets/BattleRoyale1thumbnail.png";
 
 export interface Event {
   id: number;
@@ -25,7 +26,7 @@ export const events: Event[] = [
     description:
       "The first ever ChibiBadminton Battle Royale. 56 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
     attendees: 56,
-    imageUrl: ChibiBattleRoyal as string,
+    imageUrl: BattleRoyale1thumbnail as string,
     status: "completed",
   },
   {
