@@ -55,12 +55,12 @@ export const events: Event[] = [
   {
     id: 4,
     title: "Chibi Battle Royale #4",
-    date: "Expected date: December 2026",
-    time: "Expected time: 9:00 AM - 5:00 PM",
+    date: "Expected date: March 2026",
+    time: "Expected time: 9:30 AM - 5:00 PM",
     location:
-      "Expected location: Krisna Badminton Club and Stomers Badminton Club",
+      "Expected location: TBC,
     description:
-      "Expected description: The fourth ever ChibiBadminton Battle Royale is officially in the works!\n\nThe event is planned to open in December 2026, bringing together many players to compete for the title of ChibiBadminton Champion. We're excited to build on the success of previous tournaments and deliver the biggest Battle Royale yet. More information will be released soon.",
+      "This is a team-based event consisting of 4 players. Tap "Register Now" to find all information about the event",
     attendees: 0,
     imageUrl: Banner as string,
     status: "upcoming",
