@@ -131,8 +131,8 @@ const AboutUsPage = () => {
                 </h3>
               </div>
               <p className="text-gray-800 text-base md:text-lg leading-relaxed text-justify font-calibri">
-                To be recognised as a club that players would love to be part of. To bring forth new and intuitive ideas within the badminton community. 
-                And to provide you with professional services that exceed your expectations.
+                To be recognised as a club that players would want to be a part of. Bringing forth new and intuitive ideas within the badminton community. 
+                And to provide you with convenient services at your disposal.
               </p>
             </div>
           </div>
