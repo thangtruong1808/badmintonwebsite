@@ -59,13 +59,13 @@ const AboutUsPage = () => {
               Welcome to ChibiBadminton
             </h2>
             <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-6 font-calibri">
-              Founded in 2020, ChibiBadminton has grown into a vibrant community
+              Founded in 2020, Chibi Badminton Club has grown into a vibrant community
               of badminton enthusiasts. Our mission is to make badminton
               accessible to everyone, from casual players to competitive
               athletes.
             </p>
             <p className="text-base md:text-lg text-gray-700 leading-relaxed font-calibri">
-              We organize regular tournaments, training sessions, and social
+              We organise regular tournaments, training sessions, and social
               events to foster skill development and camaraderie among our
               members. Whether you're looking to improve your game, meet new
               people, or simply have fun, you'll find a welcoming home at
@@ -111,14 +111,12 @@ const AboutUsPage = () => {
                   <FaBullseye className="text-white" size={24} />
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-800 font-calibri">
-                  Our Mission
+                  Our Goal
                 </h3>
               </div>
               <p className="text-gray-800 text-base md:text-lg leading-relaxed text-justify font-calibri">
-                To create an inclusive badminton community that promotes
-                physical fitness, skill development, and social connection. We
-                aim to make badminton accessible to players of all levels while
-                fostering a supportive and competitive environment.
+                To create an inclusive badminton community with lots of social interaction and positive vibes. We
+                aim to make badminton accessible to everyone while fostering a supportive and competitive environment.
               </p>
             </div>
 
@@ -133,10 +131,8 @@ const AboutUsPage = () => {
                 </h3>
               </div>
               <p className="text-gray-800 text-base md:text-lg leading-relaxed text-justify font-calibri">
-                To become the premier badminton community in the region, known
-                for excellence, inclusivity, and the positive impact we make on
-                our members' lives. We envision a future where badminton brings
-                people together and creates lasting friendships.
+                To be recognised as a club that players would love to be part of. To bring forth new and intuitive ideas within the badminton community. 
+                And to provide you with professional services that exceed your expectations.
               </p>
             </div>
           </div>
@@ -191,7 +187,7 @@ const AboutUsPage = () => {
                 </h3>
                 <p className="text-gray-800 font-calibri">
                   Weekly badminton sessions every Wednesday and Friday from 7:00
-                  PM to 10:00 PM. Perfect for players of all skill levels.
+                  PM to 10:00 PM. Primarily consisting of Intermediate players.
                 </p>
               </div>
               <div className="text-center">
@@ -202,8 +198,7 @@ const AboutUsPage = () => {
                   Tournaments
                 </h3>
                 <p className="text-gray-800 font-calibri">
-                  Exciting tournaments and championships throughout the year.
-                  Compete, improve, and have fun with fellow members.
+                  We host a small number of tournaments each annual year. We refer to them as "Battle Royale" - A fun way to describe our competitions :)
                 </p>
               </div>
               <div className="text-center">
@@ -214,8 +209,7 @@ const AboutUsPage = () => {
                   Community Events
                 </h3>
                 <p className="text-gray-800 font-calibri  ">
-                  Social mixers, workshops, and special events that bring our
-                  community together beyond the court.
+                  Social gatherings, late night food runs and plenty of snacks to continue bringing our community together :D
                 </p>
               </div>
             </div>
