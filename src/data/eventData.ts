@@ -1,7 +1,9 @@
 import ChibiBattleRoyal from "../assets/ChibiBattleRoyal.png";
-import ChibiBattleRoyale2 from "../assets/ChibiBattle Royale2.png";
 import BannerMain from "../assets/BattleMain.png";
 import Banner from "../assets/BattleMain.png";
+import ChibiBattleRoyale2 from "../assets/ChibiBattleRoyale2.jpg";
+import ChibiBattleRoyale3 from "../assets/ChibiBattleRoyale3.jpg";
+import ChibiBattleRoyale4 from "../assets/ChibiBattleRoyale4.jpg";
 
 export interface Event {
   id: number;
@@ -49,7 +51,7 @@ export const events: Event[] = [
     description:
       "The third ever ChibiBadminton Battle Royale. 104 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
     attendees: 68,
-    imageUrl: BannerMain as string,
+    imageUrl: ChibiBattleRoyale3 as string,
     status: "completed",
   },
   {
@@ -62,7 +64,7 @@ export const events: Event[] = [
     description:
       "This is a team-based event consisting of 4 players. Tap Register Now to find all information about the event",
     attendees: 0,
-    imageUrl: Banner as string,
+    imageUrl: ChibiBattleRoyale4 as string,
     status: "upcoming",
   },
 ];
