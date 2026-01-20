@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
+import { FaPaperPlane } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import ChibiBattleRoyale4 from "../assets/ChibiBattleRoyale4.jpg";
 
 
-import MapleStory2 from "../assets/MapleStory2.png";
+import WednesdaySocialPlaytime from "../assets/WednesdaySocialPlaytime.png";
 import MapleStory3 from "../assets/MapleStory3.png";
-import MapleStory4 from "../assets/MapleStory4.png";
-import MapleStory5 from "../assets/MapleStory5.png";
+import RegistrationModal from "./PlayPage/RegistrationModal";
+import { socialEvents } from "../data/socialEvents";
+import type { SocialEvent } from "../types/socialEvent";
 
 const newsData = [
   {
@@ -19,47 +21,52 @@ const newsData = [
     description:
       "This is a team-based event consisting of 4 players. Tap Register Now to find all information about the event",
     badge: "UPCOMING",
+    link: "https://docs.google.com/forms/d/e/1FAIpQLSc-JLX4pyrKoz8-G0CUKdFDrorKanOHJ_d1XmRB7TZoYS1ozQ/viewform",
   },
   {
     id: 2,
-    image: MapleStory2,
-    title: "Chibi Battle Royale #3",
-    date: "November 12, 2025",
-    time: "9:00 AM - 5:00 PM",
-    location: "Altona Meadows Badminton Club",
+    image: WednesdaySocialPlaytime,
+    title: "Wednesday Social Playtime",
+    date: "Every Wednesday",
+    time: "7:00 PM - 10:00 PM",
+    location: "Altona SportsPoint Badminton Club",
     description:
-      "The third ever ChibiBadminton Battle Royale. 104 players competed for the title of ChibiBadminton Champion. The event was a success and we are looking forward to the next one!",
-    badge: "COMPLETED",
+      "Weekly Wednesday social play session. All skill levels welcome! Perfect way to start your week with some badminton action.",
+    badge: "REGULAR",
+    link: "https://docs.google.com/forms/d/e/1FAIpQLSc-JLX4pyrKoz8-G0CUKdFDrorKanOHJ_d1XmRB7TZoYS1ozQ/viewform",
   },
   {
     id: 3,
     image: MapleStory3,
-    title: "Youth Training Camp",
-    description: "Enroll your kids in our professional training camp.",
-    badge: "COMPLETED",
+    title: "Registration new players",
+    description: "Register for yourself or your friends. Tap Register Now to find all information about the event",
+    badge: "OPEN",
+    link: "https://badmintonwebsite.vercel.app/signin",
   },
-  {
-    id: 4,
-    image: MapleStory4,
-    title: "New Arrivals: Yonex Gear",
-    description: "Latest collection from Yonex is now available in our store.",
-    badge: "GENERAL",
-  },
-  {
-    id: 5,
-    image: MapleStory5,
-    title: "Club Membership Open",
-    description: "Become a member and enjoy exclusive benefits.",
-    badge: "GENERAL",
-  },
+  // {
+  //   id: 4,
+  //   image: MapleStory4,
+  //   title: "New Arrivals: Yonex Gear",
+  //   description: "Latest collection from Yonex is now available in our store.",
+  //   badge: "GENERAL",
+  // },
+  // {
+  //   id: 5,
+  //   image: MapleStory5,
+  //   title: "Club Membership Open",
+  //   description: "Become a member and enjoy exclusive benefits.",
+  //   badge: "GENERAL",
+  // },
 ];
 
 const badgeColor = (badge: string) => {
   switch (badge) {
-    case "SALE":
+    case "UPCOMING":
+      return "bg-green-500";
+    case "REGULAR":
+      return "bg-yellow-500";
+    case "OPEN":
       return "bg-red-500";
-    case "EVENTS":
-      return "bg-blue-500";
     default:
       return "bg-rose-500";
   }
@@ -69,13 +76,36 @@ const badgeColor = (badge: string) => {
 const FeaturedNews: React.FC = () => {
   const featured = newsData.slice(0, 3);
 
+  const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
+  const [registrationEvents, setRegistrationEvents] = useState<SocialEvent[]>([]);
+
+  const handleRegisterClick = (news: (typeof newsData)[number]) => {
+    // For Wednesday Social Playtime, open the registration modal (like PlayPage)
+    if (news.title === "Wednesday Social Playtime") {
+      const wednesdayEvent = socialEvents.find(
+        (event) => event.title === "Wednesday Playtime"
+      );
+
+      if (wednesdayEvent) {
+        setRegistrationEvents([wednesdayEvent]);
+        setIsRegistrationModalOpen(true);
+        return;
+      }
+    }
+
+    // Fallback: open external link (existing behaviour)
+    if (news.link) {
+      window.open(news.link, "_blank");
+    }
+  };
+
   return (
-    <div className="p-8 bg-gradient-to-b from-pink-100 to-pink-300">
+    <div className="p-16 bg-gradient-to-b from-pink-100 to-pink-200">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-8 font-huglove">
           Featured News
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {featured.map((news) => (
             <div
               key={news.id}
@@ -102,6 +132,18 @@ const FeaturedNews: React.FC = () => {
                 <p className="text-gray-800 text-lg font-calibri">Time: {news.time}</p>
                 <p className="text-gray-800 text-lg font-calibri">Location: {news.location}</p>
               </div>
+              <div className="p-4 flex-shrink-0">
+                <button
+                  onClick={() => handleRegisterClick(news)}
+
+                  className="w-full bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl transform hover:scale-105 font-calibri"
+                >
+                  <div className="flex items-center justify-center gap-4">
+                    <FaPaperPlane size={18} />
+                    <span className="font-calibri text-md font-bold">Register Now</span>
+                  </div>
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -114,6 +156,16 @@ const FeaturedNews: React.FC = () => {
           </Link>
         </div>
       </div>
+      {/* Registration Modal for Wednesday Playtime */}
+      <RegistrationModal
+        isOpen={isRegistrationModalOpen}
+        onClose={() => setIsRegistrationModalOpen(false)}
+        events={registrationEvents}
+        isMultiEvent={registrationEvents.length > 1}
+        onSuccess={(_updatedEvents) => {
+          // No-op for now on the homepage; PlayPage handles updates in detail
+        }}
+      />
     </div>
   );
 };

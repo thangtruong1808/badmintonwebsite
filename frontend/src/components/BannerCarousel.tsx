@@ -39,7 +39,7 @@ const BannerCarousel: React.FC = () => {
   };
 
   return (
-    <div className="p-8 bg-gradient-to-b from-pink-100 to-pink-300">
+    <div className="pb-16 bg-gradient-to-t from-pink-100 to-pink-200">
       <div className="container mx-auto px-4">
         <div
           className="relative w-full overflow-hidden"
