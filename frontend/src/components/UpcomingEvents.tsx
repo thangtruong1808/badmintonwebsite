@@ -5,12 +5,12 @@ import { FaPaperPlane } from "react-icons/fa";
 
 interface UpcomingEventsProps {
   upcomingEvents: Event[];
-  openRegistrationModal: (event: Event) => void;
+  // openRegistrationModal: (event: Event) => void;
 }
 
 const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
   upcomingEvents,
-  openRegistrationModal,
+  // openRegistrationModal,
 }) => {
   return (
     <>
@@ -19,13 +19,13 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
           <section className="pt-8 pb-0">
             <div className="container mx-auto px-4">
               <div className="text-center mb-12">
-                <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4">
+                <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full text-md font-semibold mb-4 font-calibri">
                   UPCOMING
                 </div>
                 <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-black drop-shadow-lg">
                   Upcoming Events
                 </h2>
-                <p className="text-black text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md">
+                <p className="text-black text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md font-calibri">
                   Don't miss out on these exciting upcoming events!
                 </p>
               </div>
@@ -35,18 +35,19 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                     key={event.id}
                     className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-2 w-full"
                   >
-                    <div className="flex flex-col md:flex-row w-full">
-                      <div className="relative w-full md:w-1/2 h-64 md:h-auto md:min-h-[400px] overflow-hidden bg-white">
+                    <div className="flex flex-col lg:flex-row w-full">
+                      <div className="relative w-full lg:w-1/2 h-64 lg:h-auto lg:min-h-[400px] overflow-hidden bg-white">
                         <img
                           src={event.imageUrl}
                           alt={event.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
                         <div className="absolute top-4 left-4 bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-lg">
                           Upcoming
                         </div>
                       </div>
-                      <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-between bg-stone-50">
+                      {/* Event Details */}
+                      <div className="w-full lg:w-1/2 p-8 lg:p-10 flex flex-col justify-between bg-stone-50">
                         <div>
                           <h3 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 font-calibri">
                             {event.title}
@@ -88,7 +89,14 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                         </div>
                         <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
                           <button
-                            onClick={() => openRegistrationModal(event)}
+                            // onClick={() => openRegistrationModal(event)}
+                            onClick={() =>
+                              window.open(
+                                "https://docs.google.com/forms/d/e/1FAIpQLSc-JLX4pyrKoz8-G0CUKdFDrorKanOHJ_d1XmRB7TZoYS1ozQ/viewform",
+                                "_blank"
+                              )
+                            }
+
                             className="flex-1 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl transform hover:scale-105 font-calibri"
                           >
                             <div className="flex items-center justify-center gap-4">

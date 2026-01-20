@@ -69,19 +69,19 @@ const EventsPage = () => {
     }
   }, []);
 
-  const openRegistrationModal = (event: Event) => {
-    setSelectedEvent(event);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      subject: `Registration for ${event.title}`,
-      message: `I would like to register for ${event.title}.\n\nEvent Details:\n- Date: ${event.date}\n- Time: ${event.time}\n- Location: ${event.location}\n\nPlease confirm my registration.`,
-    });
-    setIsModalOpen(true);
-    setErrors({});
-    setSubmitStatus({ type: null, message: "" });
-  };
+  // const openRegistrationModal = (event: Event) => {
+  //   setSelectedEvent(event);
+  //   setFormData({
+  //     name: "",
+  //     email: "",
+  //     phone: "",
+  //     subject: `Registration for ${event.title}`,
+  //     message: `I would like to register for ${event.title}.\n\nEvent Details:\n- Date: ${event.date}\n- Time: ${event.time}\n- Location: ${event.location}\n\nPlease confirm my registration.`,
+  //   });
+  //   setIsModalOpen(true);
+  //   setErrors({});
+  //   setSubmitStatus({ type: null, message: "" });
+  // };
 
   const closeRegistrationModal = () => {
     setIsModalOpen(false);
@@ -207,7 +207,8 @@ const EventsPage = () => {
     <div className="w-full min-h-screen overflow-x-hidden relative ">
       <div className="relative z-10">
         {/* Upcoming Events Section - Full Width */}
-        <UpcomingEvents upcomingEvents={upcomingEvents} openRegistrationModal={openRegistrationModal} />
+        {/* <UpcomingEvents upcomingEvents={upcomingEvents} openRegistrationModal={openRegistrationModal} /> */}
+        <UpcomingEvents upcomingEvents={upcomingEvents} />
 
         {/* Events History Section */}
         <EventsHistory completedEvents={completedEvents} />

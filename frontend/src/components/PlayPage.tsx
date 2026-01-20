@@ -201,7 +201,7 @@ const PlayPage: React.FC = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-huglove">
             Play Sessions
           </h1>
-          <p className="text-gray-600 text-xl max-w-7xl mx-auto">
+          <p className="text-gray-600 text-2xl max-w-7xl mx-auto font-calibri">
             Register for our social badminton sessions. Select multiple events
             and book them all at once!
           </p>

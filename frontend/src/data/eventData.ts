@@ -55,10 +55,10 @@ export const events: Event[] = [
   {
     id: 4,
     title: "Chibi Battle Royale #4",
-    date: "Expected date: March 2026",
+    date: "Expected date: February 2026",
     time: "Expected time: 9:30 AM - 5:00 PM",
     location:
-      "Expected location: TBC",
+      "Expected location: ACM Truganina - 48, Saintly Drive, Truganina VIC 3029",
     description:
       "This is a team-based event consisting of 4 players. Tap Register Now to find all information about the event",
     attendees: 0,
