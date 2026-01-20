@@ -39,9 +39,13 @@ const newsData = [
     id: 3,
     image: MapleStory3,
     title: "Registration new players",
+    date: "Every Wednesday",
+    time: "7:00 PM - 10:00 PM",
+    location: "Altona SportsPoint Badminton Club",
     description: "Register for yourself or your friends. Tap Register Now to find all information about the event",
     badge: "OPEN",
     link: "https://badmintonwebsite.vercel.app/signin",
+
   },
   // {
   //   id: 4,
@@ -100,7 +104,7 @@ const FeaturedNews: React.FC = () => {
   };
 
   return (
-    <div className="p-16 bg-gradient-to-b from-pink-100 to-pink-200">
+    <div className="py-16 bg-gradient-to-b from-pink-100 to-pink-200">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-8 font-huglove">
           Featured News
@@ -109,13 +113,13 @@ const FeaturedNews: React.FC = () => {
           {featured.map((news) => (
             <div
               key={news.id}
-              className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col"
+              className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col h-full"
             >
-              <div className="relative flex-grow overflow-hidden">
+              <div className="relative h-64 overflow-hidden bg-white flex items-center justify-center">
                 <img
                   src={news.image}
                   alt={news.title}
-                  className="w-full h-auto object-contain"
+                  className="w-full h-full object-contain"
                 />
                 <span
                   className={`absolute top-2 right-2 text-white text-md font-bold px-2 py-1 rounded font-calibri ${badgeColor(
@@ -125,17 +129,18 @@ const FeaturedNews: React.FC = () => {
                   {news.badge}
                 </span>
               </div>
-              <div className="p-4 flex-shrink-0">
-                <h3 className="font-bold text-3xl mb-2 font-calibri">{news.title}</h3>
-                <p className="text-gray-800 text-lg font-calibri text-justify">{news.description}</p>
-                <p className="text-gray-800 text-lg font-calibri">Date: {news.date}</p>
-                <p className="text-gray-800 text-lg font-calibri">Time: {news.time}</p>
-                <p className="text-gray-800 text-lg font-calibri">Location: {news.location}</p>
+              <div className="p-4 flex-grow flex flex-col">
+                <h3 className="font-bold text-3xl mb-2 font-calibri min-h-[3.5rem]">{news.title}</h3>
+                <p className="text-gray-800 text-lg font-calibri text-justify mb-2">{news.description}</p>
+                <div className="space-y-1 mb-4">
+                  {news.date && <p className="text-gray-800 text-lg font-calibri">Date: {news.date}</p>}
+                  {news.time && <p className="text-gray-800 text-lg font-calibri">Time: {news.time}</p>}
+                  {news.location && <p className="text-gray-800 text-lg font-calibri">Location: {news.location}</p>}
+                </div>
               </div>
-              <div className="p-4 flex-shrink-0">
+              <div className="p-4 pt-0 mt-auto">
                 <button
                   onClick={() => handleRegisterClick(news)}
-
                   className="w-full bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl transform hover:scale-105 font-calibri"
                 >
                   <div className="flex items-center justify-center gap-4">
