@@ -60,7 +60,7 @@ export const events: Event[] = [
     location:
       "Expected location: TBC",
     description:
-      "This is a team-based event consisting of 4 players. Tap Register Now to find all information about the event",
+      "This is a team-based event consisting of 4 players per team. Tap Register Now to find all information about the event",
     attendees: 0,
     imageUrl: ChibiBattleRoyale4 as string,
     status: "upcoming",
