@@ -2,10 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import ChibiBattleRoyale4 from "../assets/ChibiBattleRoyale4.jpg";
 
-import { finalDate } from "../utils/formateDate";
 
-// import MapleStory from "../assets/MapleStory.png";
-import Kaisen1 from "../assets/Kaisen1.png";
 import MapleStory2 from "../assets/MapleStory2.png";
 import MapleStory3 from "../assets/MapleStory3.png";
 import MapleStory4 from "../assets/MapleStory4.png";
@@ -69,9 +66,7 @@ const badgeColor = (badge: string) => {
 };
 
 
-const FeaturedNews: React.FC = ({
-
-}) => {
+const FeaturedNews: React.FC = () => {
   const featured = newsData.slice(0, 3);
 
   return (
@@ -101,7 +96,7 @@ const FeaturedNews: React.FC = ({
                 </span>
               </div>
               <div className="p-4 flex-shrink-0">
-                {/* <h3 className="font-bold text-2xl mb-2 font-calibri">{news.title}</h3> */}
+                <h3 className="font-bold text-3xl mb-2 font-calibri">{news.title}</h3>
                 <p className="text-gray-800 text-lg font-calibri text-justify">{news.description}</p>
                 <p className="text-gray-800 text-lg font-calibri">Date: {news.date}</p>
                 <p className="text-gray-800 text-lg font-calibri">Time: {news.time}</p>

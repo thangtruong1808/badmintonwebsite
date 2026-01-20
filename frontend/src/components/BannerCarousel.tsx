@@ -39,63 +39,65 @@ const BannerCarousel: React.FC = () => {
   };
 
   return (
-    <div
-      className="relative w-full overflow-hidden"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      {/* Banner Images */}
-      <div className="relative w-full">
-        {banners.map((banner, index) => (
-          <div
-            key={index}
-            className={`transition-opacity duration-700 ease-in-out ${
-              index === currentIndex
-                ? "opacity-100 block"
-                : "opacity-0 absolute top-0 left-0 w-full pointer-events-none"
-            }`}
-          >
-            <img
-              src={banner}
-              alt={`ChibiBadminton Banner ${index + 1}`}
-              className="w-full h-auto object-fill"
-            />
+    <div className="p-8 bg-gradient-to-b from-pink-100 to-pink-300">
+      <div className="container mx-auto px-4">
+        <div
+          className="relative w-full overflow-hidden"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* Banner Images */}
+          <div className="relative w-full">
+            {banners.map((banner, index) => (
+              <div
+                key={index}
+                className={`transition-opacity duration-700 ease-in-out ${index === currentIndex
+                  ? "opacity-100 block"
+                  : "opacity-0 absolute top-0 left-0 w-full pointer-events-none"
+                  }`}
+              >
+                <img
+                  src={banner}
+                  alt={`ChibiBadminton Banner ${index + 1}`}
+                  className="w-full h-auto object-fill"
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {/* Previous Button */}
-      <button
-        onClick={goToPrevious}
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300 z-10"
-        aria-label="Previous banner"
-      >
-        <FaChevronLeft size={24} />
-      </button>
-
-      {/* Next Button */}
-      <button
-        onClick={goToNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300 z-10"
-        aria-label="Next banner"
-      >
-        <FaChevronRight size={24} />
-      </button>
-
-      {/* Dots Indicator */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {banners.map((_, index) => (
+          {/* Previous Button */}
           <button
-            key={index}
-            onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              index === currentIndex
-                ? "bg-white w-8"
-                : "bg-white/50 hover:bg-white/75"
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+            onClick={goToPrevious}
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300 z-10"
+            aria-label="Previous banner"
+          >
+            <FaChevronLeft size={24} />
+          </button>
+
+          {/* Next Button */}
+          <button
+            onClick={goToNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300 z-10"
+            aria-label="Next banner"
+          >
+            <FaChevronRight size={24} />
+          </button>
+
+          {/* Dots Indicator */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentIndex
+                  ? "bg-white w-8"
+                  : "bg-white/50 hover:bg-white/75"
+                  }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

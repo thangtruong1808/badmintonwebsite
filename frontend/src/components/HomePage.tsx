@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import BannerCarousel from "./BannerCarousel";
 import FeaturedNews from "./FeaturedNews";
-import FeaturedImages from "./FeaturedImages";
+// import FeaturedImages from "./FeaturedImages";
 
 const HomePage = () => {
   useEffect(() => {
@@ -16,7 +16,7 @@ const HomePage = () => {
       <BannerCarousel />
 
 
-      <FeaturedImages />
+      {/* <FeaturedImages /> */}
       {/* Description Section */}
       {/* <div className="text-center mb-8">
           <p className="text-md md:text-xl mb-6 max-w-7xl mx-auto px-4 text-gray-700">
