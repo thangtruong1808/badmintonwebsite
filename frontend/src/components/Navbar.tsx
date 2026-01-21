@@ -141,6 +141,7 @@ const Navbar: React.FC = () => {
               setIsOpen={setIsOpen}
               pageName={<span>shop</span>}
             />
+            <NavItem to="/services" pageName="services" setIsOpen={setIsOpen} />
             <NavItem to="/gallery" pageName="gallery" setIsOpen={setIsOpen} />
             <NavItem
               to="/contact-us"
@@ -252,6 +253,7 @@ const Navbar: React.FC = () => {
               setIsOpen={setIsOpen}
               pageName={<span>shop</span>}
             />
+            <NavItem to="/services" pageName="services" setIsOpen={setIsOpen} />
             <NavItem to="/gallery" pageName="gallery" setIsOpen={setIsOpen} />
             <NavItem
               to="/contact-us"

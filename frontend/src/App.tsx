@@ -7,6 +7,7 @@ import EventsPage from "./components/EventsPage";
 import GalleryPage from "./components/GalleryPage";
 import ShopPage from "./components/ShopPage";
 import ProductDetailPage from "./components/ProductDetailPage";
+import ServicesPage from "./components/ServicesPage";
 import ContactUsPage from "./components/ContactUsPage";
 import ReviewsPage from "./components/ReviewsPage";
 import AboutUsPage from "./components/AboutUsPage";
@@ -30,6 +31,7 @@ function App() {
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/shop/product/:id" element={<ProductDetailPage />} />
+          <Route path="/services" element={<ServicesPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/about-us" element={<AboutUsPage />} />

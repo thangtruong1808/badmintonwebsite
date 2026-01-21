@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 import BannerCarousel from "./BannerCarousel";
 import FeaturedNews from "./FeaturedNews";
+import NewsletterPopup from "./NewsletterPopup";
 // import FeaturedImages from "./FeaturedImages";
 
 const HomePage = () => {
@@ -17,6 +18,10 @@ const HomePage = () => {
 
 
       {/* <FeaturedImages /> */}
+      
+      {/* Newsletter Popup */}
+      <NewsletterPopup />
+      
       {/* Description Section */}
       {/* <div className="text-center mb-8">
           <p className="text-md md:text-xl mb-6 max-w-7xl mx-auto px-4 text-gray-700">

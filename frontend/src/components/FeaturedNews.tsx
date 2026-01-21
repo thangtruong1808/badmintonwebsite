@@ -47,20 +47,6 @@ const newsData = [
     link: "https://badmintonwebsite.vercel.app/signin",
 
   },
-  // {
-  //   id: 4,
-  //   image: MapleStory4,
-  //   title: "New Arrivals: Yonex Gear",
-  //   description: "Latest collection from Yonex is now available in our store.",
-  //   badge: "GENERAL",
-  // },
-  // {
-  //   id: 5,
-  //   image: MapleStory5,
-  //   title: "Club Membership Open",
-  //   description: "Become a member and enjoy exclusive benefits.",
-  //   badge: "GENERAL",
-  // },
 ];
 
 const badgeColor = (badge: string) => {
@@ -119,7 +105,7 @@ const FeaturedNews: React.FC = () => {
                 <img
                   src={news.image}
                   alt={news.title}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain pt-4"
                 />
                 <span
                   className={`absolute top-2 right-2 text-white text-md font-bold px-2 py-1 rounded font-calibri ${badgeColor(
