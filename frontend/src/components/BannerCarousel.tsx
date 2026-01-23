@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-import Banner from "../assets/banner.png";
+import Banner from "../assets/banner.jpg";
 import Banner2 from "../assets/banner2.png";
 import Banner3 from "../assets/banner3.png";
 import Banner4 from "../assets/banner4.png";
