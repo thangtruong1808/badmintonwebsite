@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaPaperPlane } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import ChibiBattleRoyale4 from "../assets/ChibiBattleRoyale4.jpg";
+import ChibiBattleRoyale4 from "../assets/ChibiBattleRoyale4.png";
 
 
 import WednesdaySocialPlaytime from "../assets/WednesdaySocialPlaytime.png";
