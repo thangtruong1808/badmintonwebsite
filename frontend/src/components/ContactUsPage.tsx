@@ -28,7 +28,7 @@ interface FormErrors {
 
 const ContactUsPage = () => {
   useEffect(() => {
-    document.title = "ChibiBadminton - Contact Us";
+    document.title = "Chibi Badminton Club - Contact Us";
   }, []);
 
   const [formData, setFormData] = useState<FormData>({
@@ -139,7 +139,7 @@ const ContactUsPage = () => {
         setSubmitStatus({
           type: "success",
           message:
-            "Opening your email client. If it doesn't open, please send an email to support@ChibiBadminton.com.au",
+            "Opening your email client. If it doesn't open, please send an email to support@chibibadminton.com.au",
         });
         setFormData({
           name: "",
@@ -162,7 +162,7 @@ const ContactUsPage = () => {
           phone: formData.phone || "Not provided",
           subject: formData.subject,
           message: formData.message,
-          to_email: "support@ChibiBadminton.com.au",
+          to_email: "support@chibibadminton.com.au",
         },
         publicKey
       );
@@ -184,7 +184,7 @@ const ContactUsPage = () => {
       setSubmitStatus({
         type: "error",
         message:
-          "Oops! Something went wrong. Please try again or contact us directly at support@ChibiBadminton.com.au",
+          "Oops! Something went wrong. Please try again or contact us directly at support@chibibadminton.com.au",
       });
     } finally {
       setIsSubmitting(false);
@@ -220,10 +220,10 @@ const ContactUsPage = () => {
                     <div>
                       <h3 className="font-semibold text-gray-600 mb-1 font-calibri">Email</h3>
                       <a
-                        href="mailto:support@ChibiBadminton.com.au"
+                        href="mailto:support@chibibadminton.com.au"
                         className="text-gray-600 hover:text-green-600 transition-colors break-all font-calibri"
                       >
-                        support@ChibiBadminton.com.au
+                        support@chibibadminton.com.au
                       </a>
                     </div>
                   </div>
