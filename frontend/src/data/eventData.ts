@@ -1,7 +1,7 @@
 import ChibiBattleRoyal from "../assets/ChibiBattleRoyal.png";
 import ChibiBattleRoyale2 from "../assets/ChibiBattleRoyale2.jpg";
 import ChibiBattleRoyale3 from "../assets/ChibiBattleRoyale3.jpg";
-import ChibiBattleRoyale4 from "../assets/ChibiBattleRoyale4.jpg";
+import ChibiBattleRoyale4 from "../assets/ChibiBattleRoyale4.png";
 
 export interface Event {
   id: number;
