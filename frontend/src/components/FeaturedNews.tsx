@@ -15,7 +15,7 @@ const newsData = [
     id: 1,
     image: ChibiBattleRoyale4,
     title: "Chibi Battle Royale #4",
-    date: "February 2026",
+    date:  "February 2026",
     time: " 9:30 AM - 5:00 PM",
     location: "ACM Truganina - 48, Saintly Drive, Truganina VIC 3029",
     description:
