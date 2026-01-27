@@ -167,19 +167,6 @@ const allNewsData = [
   },
 ];
 
-const badgeColor = (badge: string) => {
-  switch (badge) {
-    case "UPCOMING":
-      return "bg-green-500";
-    case "REGULAR":
-      return "bg-yellow-500";
-    case "OPEN":
-      return "bg-red-500";
-    default:
-      return "bg-rose-500";
-  }
-};
-
 type FilterType = "All" | "Latest" | "Info" | "Updates" | "Events";
 
 const FeaturedNewsPage: React.FC = () => {
