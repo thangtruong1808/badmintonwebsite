@@ -345,39 +345,39 @@ const ProductDetailPage = () => {
           </div>
 
           {/* Product Information */}
-          <div className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 md:p-8">
+          <div className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 md:p-8 font-calibri text-lg">
             <div className="mb-4">
               <span className="text-sm text-gray-500 uppercase tracking-wide">
                 {product.category}
               </span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-black">
+            <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black font-calibri text-xl">
               {product.name}
             </h2>
 
             {/* Quantity Selector (Only for products 1 and 2) */}
             {(product.id === 1 || product.id === 2) && (
               <div className="mb-6 pb-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold mb-4 text-black">Select Quantity</h3>
+                <h3 className="font-semibold mb-4 text-black font-calibri text-lg">Select Quantity</h3>
                 <div className="space-y-3">
                   {quantityOptions.map((option) => (
                     <button
                       key={option.quantity}
                       onClick={() => setSelectedQuantity(option.quantity)}
-                      className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-300 ${selectedQuantity === option.quantity
+                      className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-300 font-calibri text-lg ${selectedQuantity === option.quantity
                         ? "border-rose-500 bg-rose-50 ring-2 ring-rose-200"
                         : "border-gray-200 hover:border-gray-400 bg-white/50"
                         }`}
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-bold text-black">{option.label}</div>
-                          <div className="text-sm text-gray-600">
+                          <div className="font-bold text-black font-calibri text-lg">{option.label}</div>
+                          <div className="text-sm text-gray-600 font-calibri text-lg">
                             ${option.unitPrice.toFixed(2)} per dozen
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-xl font-bold text-green-600">
+                          <div className="text-xl font-bold text-green-600 font-calibri text-lg">
                             ${option.total ? option.total.toFixed(2) : (option.unitPrice * option.quantity).toFixed(2)}
                           </div>
                           {option.quantity > 1 && (

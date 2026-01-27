@@ -9,7 +9,7 @@ const GalleryPage = () => {
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedPhotoFilter, setSelectedPhotoFilter] = useState<
-    "all" | "social" | "chibi-tournament" | "veteran-tournament"
+    "all" | "chibi-tournament" | "veteran-tournament"
   >("all");
   const [selectedVideoCategory, setSelectedVideoCategory] = useState<
     "all" | "Wednesday" | "Friday" | "tournament" | "playlists"
@@ -20,15 +20,50 @@ const GalleryPage = () => {
     return photo.type === selectedPhotoFilter;
   });
 
-  const filteredVideos = allVideos.filter((video) => {
-    if (selectedVideoCategory === "all") return true;
-    const lowerCaseCategory = selectedVideoCategory.toLowerCase();
-    return video.category.toLowerCase() === lowerCaseCategory;
-  });
+  const filteredVideos = (() => {
+    if (selectedVideoCategory === "all") return allVideos;
+    
+    if (selectedVideoCategory === "Wednesday") {
+      // Show latest 3 Wednesday videos
+      const wedVideos = allVideos
+        .filter((video) => video.category === "Wednesday")
+        .slice(-3);
+      return wedVideos;
+    }
+    
+    if (selectedVideoCategory === "Friday") {
+      // Show latest 3 Friday videos
+      const friVideos = allVideos
+        .filter((video) => video.category === "Friday")
+        .slice(-3);
+      return friVideos;
+    }
+    
+    if (selectedVideoCategory === "tournament") {
+      // Show tournament videos (includes Badminton Veterans Collection videos)
+      return allVideos.filter((video) => video.category === "tournament");
+    }
+    
+    if (selectedVideoCategory === "playlists") {
+      // Show only Wed, Fri, and Badminton Veterans playlists (3 total)
+      return allVideos.filter((video) => {
+        if (video.category !== "playlists") return false;
+        return (
+          video.title === "Chibi Wednesday Playlists" ||
+          video.title === "Chibi Friday Playlists" ||
+          video.title === "Badminton Veterans Collection"
+        );
+      });
+    }
+    
+    return [];
+  })();
 
-  const photoFilterOptions = [
+  const photoFilterOptions: Array<{
+    label: string;
+    value: "all" | "chibi-tournament" | "veteran-tournament";
+  }> = [
     { label: "All", value: "all" },
-    { label: "Social", value: "social" },
     { label: "Chibi Tournament", value: "chibi-tournament" },
     { label: "Veteran Tournament", value: "veteran-tournament" },
   ];
@@ -80,12 +115,12 @@ const GalleryPage = () => {
                       key={option.value}
                       onClick={() =>
                         setSelectedPhotoFilter(
-                          option.value as "all" | "social" | "chibi-tournament" | "veteran-tournament"
+                          option.value as "all" | "chibi-tournament" | "veteran-tournament"
                         )
                       }
-                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${selectedPhotoFilter === option.value
+                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 font-calibri ${selectedPhotoFilter === option.value
                         ? "bg-rose-500 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                         }`}
                     >
                       {option.label}

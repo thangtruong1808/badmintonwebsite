@@ -37,35 +37,6 @@ interface FormErrors {
   tension?: string;
 }
 
-// Racket brands and models
-const racketBrands = ["Yonex", "Victor", "Li-Ning", "Babolat", "FZ Forza", "Other"];
-
-const racketModels: Record<string, string[]> = {
-  Yonex: [
-    "Astrox Series",
-    "Nanoflare Series",
-    "Arcsaber Series",
-    "Voltric Series",
-    "Duora Series",
-    "Other",
-  ],
-  Victor: [
-    "Auraspeed Series",
-    "Thruster Series",
-    "Jetspeed Series",
-    "DriveX Series",
-    "Other",
-  ],
-  "Li-Ning": [
-    "Turbo Charging Series",
-    "Windstorm Series",
-    "N9 Series",
-    "Other",
-  ],
-  Babolat: ["Satelite Series", "Other"],
-  "FZ Forza": ["Various Models", "Other"],
-  Other: ["Please specify in message"],
-};
 
 // String options with their available colors
 const stringOptions: Record<string, string[]> = {
@@ -132,19 +103,6 @@ const ServicesPage = () => {
     document.title = "ChibiBadminton - Stringing Services";
   }, []);
 
-  // Reset colour when string changes
-  useEffect(() => {
-    if (formData.string) {
-      setFormData((prev) => ({ ...prev, colour: "" }));
-    }
-  }, [formData.string]);
-
-  // Reset racket model when brand changes
-  useEffect(() => {
-    if (formData.racketBrand) {
-      setFormData((prev) => ({ ...prev, racketModel: "" }));
-    }
-  }, [formData.racketBrand]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -345,12 +303,6 @@ const ServicesPage = () => {
     }
   };
 
-  const availableModels = formData.racketBrand
-    ? racketModels[formData.racketBrand] || []
-    : [];
-  const availableColours = formData.string
-    ? stringOptions[formData.string] || []
-    : [];
 
   return (
     <div className="w-full overflow-x-hidden min-h-screen font-calibri text-lg bg-gradient-to-r from-pink-100 to-pink-200">
@@ -485,7 +437,8 @@ const ServicesPage = () => {
                     >
                       Racket Brand <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <input
+                      type="text"
                       id="racketBrand"
                       name="racketBrand"
                       value={formData.racketBrand}
@@ -494,14 +447,8 @@ const ServicesPage = () => {
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-rose-500"
                         }`}
-                    >
-                      <option value="">Select brand</option>
-                      {racketBrands.map((brand) => (
-                        <option key={brand} value={brand}>
-                          {brand}
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="Enter racket brand (e.g., Yonex, Victor)"
+                    />
                     {errors.racketBrand && (
                       <p className="mt-1 text-xs md:text-sm text-red-600 font-calibri">
                         {errors.racketBrand}
@@ -517,28 +464,18 @@ const ServicesPage = () => {
                     >
                       Racket Model <span className="text-red-500">*</span>
                     </label>
-                    <select
+                    <input
+                      type="text"
                       id="racketModel"
                       name="racketModel"
                       value={formData.racketModel}
                       onChange={handleChange}
-                      disabled={!formData.racketBrand}
                       className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${errors.racketModel
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-rose-500"
-                        } ${!formData.racketBrand ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                    >
-                      <option value="">
-                        {formData.racketBrand
-                          ? "Select model"
-                          : "Select brand first"}
-                      </option>
-                      {availableModels.map((model) => (
-                        <option key={model} value={model}>
-                          {model}
-                        </option>
-                      ))}
-                    </select>
+                        }`}
+                      placeholder="Enter racket model"
+                    />
                     {errors.racketModel && (
                       <p className="mt-1 text-xs md:text-sm text-red-600 font-calibri">
                         {errors.racketModel}
@@ -578,7 +515,7 @@ const ServicesPage = () => {
                     )}
                   </div>
 
-                  {/* Colour (dependent on string) */}
+                  {/* Colour */}
                   <div>
                     <label
                       htmlFor="colour"
@@ -589,14 +526,13 @@ const ServicesPage = () => {
                         <span className="text-red-500">*</span>
                       )}
                     </label>
-                    <select
+                    <input
+                      type="text"
                       id="colour"
                       name="colour"
                       value={formData.colour}
                       onChange={handleChange}
-                      disabled={
-                        !formData.string || formData.string === "Other"
-                      }
+                      disabled={!formData.string || formData.string === "Other"}
                       className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${errors.colour
                         ? "border-red-500 focus:ring-red-500"
                         : "border-gray-300 focus:ring-rose-500"
@@ -604,20 +540,14 @@ const ServicesPage = () => {
                           ? "bg-gray-100 cursor-not-allowed"
                           : ""
                         }`}
-                    >
-                      <option value="">
-                        {!formData.string
+                      placeholder={
+                        !formData.string
                           ? "Select string first"
                           : formData.string === "Other"
                             ? "N/A for Other"
-                            : "Select colour"}
-                      </option>
-                      {availableColours.map((colour) => (
-                        <option key={colour} value={colour}>
-                          {colour}
-                        </option>
-                      ))}
-                    </select>
+                            : "Enter colour (e.g., White, Red, Yellow)"
+                      }
+                    />
                     {errors.colour && (
                       <p className="mt-1 text-xs md:text-sm text-red-600 font-calibri">
                         {errors.colour}
