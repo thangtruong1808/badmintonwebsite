@@ -7,6 +7,15 @@
 -- Drop tables in reverse order of dependencies
 -- (child tables first, then parent tables)
 
+DROP TABLE IF EXISTS service_requests;
+DROP TABLE IF EXISTS contact_messages;
+DROP TABLE IF EXISTS newsletter_subscriptions;
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS news_articles;
+DROP TABLE IF EXISTS gallery_videos;
+DROP TABLE IF EXISTS gallery_photos;
+DROP TABLE IF EXISTS product_images;
+DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS user_event_history;
 DROP TABLE IF EXISTS reward_point_transactions;
 DROP TABLE IF EXISTS registrations;

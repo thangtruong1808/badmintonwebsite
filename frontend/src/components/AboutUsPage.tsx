@@ -47,9 +47,9 @@ const AboutUsPage = () => {
         "Badminton should be accessible to everyone, regardless of skill level or background.",
     },
   ];
-
+  // bg-gradient-to-b from-gray-100 to-gray-200
   return (
-    <div className="w-full overflow-x-hidden min-h-screen pt-20 bg-gradient-to-b from-pink-100 to-pink-200">
+    <div className="w-full overflow-x-hidden min-h-screen pt-20 bg-stone-50">
 
       <div className="px-4 md:px-8  max-w-7xl mx-auto min-h-full">
         {/* Introduction Section */}
@@ -131,7 +131,7 @@ const AboutUsPage = () => {
                 </h3>
               </div>
               <p className="text-gray-800 text-base md:text-lg leading-relaxed text-justify font-calibri">
-                To be recognised as a club that players would want to be a part of. Bringing forth new and intuitive ideas within the badminton community. 
+                To be recognised as a club that players would want to be a part of. Bringing forth new and intuitive ideas within the badminton community.
                 And to provide you with services for your convenience.
               </p>
             </div>

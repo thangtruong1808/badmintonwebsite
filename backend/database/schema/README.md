@@ -13,12 +13,13 @@ This directory contains the MySQL database schema for the ChibiBadminton applica
 ### Tables
 
 #### 1. `users`
-Stores user account information including authentication and reward points.
+Stores user account information including authentication, roles, and reward points.
 
 **Key Fields:**
 - `id` (VARCHAR) - Primary key, unique user identifier
 - `email` (VARCHAR) - Unique email address (indexed)
 - `password` (VARCHAR) - Hashed password
+- `role` (ENUM) - User role: user (default), admin, super_admin (indexed)
 - `reward_points` (INT) - Current available reward points
 - `total_points_earned` (INT) - Lifetime points earned
 - `total_points_spent` (INT) - Lifetime points spent
@@ -26,8 +27,14 @@ Stores user account information including authentication and reward points.
 **Indexes:**
 - Primary key on `id`
 - Unique index on `email`
+- Index on `role` for role-based access control queries
 - Index on `member_since` for sorting/filtering
 - Index on `created_at` for chronological queries
+
+**Role Hierarchy:**
+- `user` - Normal user (default role for new registrations)
+- `admin` - Administrator with elevated permissions
+- `super_admin` - Super administrator with full system access
 
 #### 2. `events`
 Stores social events and tournaments.
@@ -123,6 +130,182 @@ Stores historical event participation data.
   - `(user_id, points_claimed)` - User's unclaimed points
   - `(user_id, attendance_status, event_date)` - Complex filtering
 
+#### 6. `products`
+Stores shop products and services.
+
+**Key Fields:**
+- `id` (INT) - Primary key, auto-increment
+- `name` (VARCHAR) - Product name (indexed for search)
+- `price` (DECIMAL) - Current price
+- `original_price` (DECIMAL) - Original price (for sales)
+- `image` (VARCHAR) - Main product image URL
+- `category` (VARCHAR) - Product category (indexed)
+- `in_stock` (BOOLEAN) - Stock availability (indexed)
+- `description` (TEXT) - Product description
+
+**Indexes:**
+- Primary key on `id`
+- Index on `category` for filtering by category
+- Index on `in_stock` for filtering available products
+- Index on `name` for search functionality
+- Composite index `(category, in_stock)` for category filtering with stock status
+
+#### 7. `product_images`
+Stores multiple images per product.
+
+**Key Fields:**
+- `id` (INT) - Primary key, auto-increment
+- `product_id` (INT) - Foreign key to `products.id`
+- `image_url` (VARCHAR) - Image URL
+- `display_order` (INT) - Display order for sorting
+
+**Indexes:**
+- Primary key on `id`
+- Foreign key index on `product_id`
+- Composite index `(product_id, display_order)` for ordered image retrieval
+
+#### 8. `gallery_photos`
+Stores gallery photos.
+
+**Key Fields:**
+- `id` (INT) - Primary key, auto-increment
+- `src` (VARCHAR) - Image source URL
+- `alt` (VARCHAR) - Alt text for accessibility
+- `type` (ENUM) - Photo type: chibi-tournament, veteran-tournament, social (indexed)
+- `display_order` (INT) - Display order for sorting
+
+**Indexes:**
+- Primary key on `id`
+- Index on `type` for filtering by photo type
+- Index on `display_order` for sorting
+- Composite index `(type, display_order)` for filtered and sorted queries
+
+#### 9. `gallery_videos`
+Stores gallery videos.
+
+**Key Fields:**
+- `id` (INT) - Primary key, auto-increment
+- `title` (VARCHAR) - Video title
+- `embed_id` (VARCHAR) - YouTube embed ID
+- `thumbnail` (VARCHAR) - Thumbnail image URL
+- `category` (ENUM) - Video category: Wednesday, Friday, tournament, playlists (indexed)
+- `display_order` (INT) - Display order for sorting
+
+**Indexes:**
+- Primary key on `id`
+- Index on `category` for filtering by category
+- Index on `display_order` for sorting
+- Composite index `(category, display_order)` for filtered and sorted queries
+
+#### 10. `news_articles`
+Stores featured news articles.
+
+**Key Fields:**
+- `id` (INT) - Primary key, auto-increment
+- `image` (VARCHAR) - Article image URL
+- `title` (VARCHAR) - Article title
+- `date` (VARCHAR) - Article date
+- `time` (VARCHAR) - Article time
+- `location` (VARCHAR) - Article location
+- `description` (TEXT) - Article description
+- `badge` (ENUM) - Badge type: UPCOMING, REGULAR, OPEN (indexed)
+- `category` (VARCHAR) - Article category (indexed)
+- `link` (VARCHAR) - External link URL
+- `display_order` (INT) - Display order for sorting
+
+**Indexes:**
+- Primary key on `id`
+- Index on `badge` for filtering by badge type
+- Index on `category` for filtering by category
+- Index on `display_order` for sorting
+- Index on `created_at` for chronological queries
+- Composite index `(badge, display_order)` for filtered and sorted queries
+
+#### 11. `reviews`
+Stores user reviews.
+
+**Key Fields:**
+- `id` (INT) - Primary key, auto-increment
+- `user_id` (VARCHAR) - Foreign key to `users.id` (nullable for guest reviews)
+- `name` (VARCHAR) - Reviewer name
+- `rating` (INT) - Rating from 1-5 (indexed)
+- `review_date` (VARCHAR) - Review date string
+- `review_text` (TEXT) - Review content
+- `is_verified` (BOOLEAN) - Whether review is verified (indexed)
+- `status` (ENUM) - Review status: active, hidden, deleted (indexed)
+
+**Indexes:**
+- Primary key on `id`
+- Foreign key index on `user_id`
+- Index on `rating` for filtering by rating
+- Index on `is_verified` for showing verified reviews
+- Index on `status` for filtering active reviews
+- Index on `created_at` for chronological queries
+- Composite index `(is_verified, rating)` for verified reviews by rating
+
+#### 12. `newsletter_subscriptions`
+Stores newsletter subscriptions.
+
+**Key Fields:**
+- `id` (INT) - Primary key, auto-increment
+- `email` (VARCHAR) - Subscriber email (unique, indexed)
+- `subscribed_at` (DATETIME) - Subscription date (indexed)
+- `status` (ENUM) - Subscription status: active, unsubscribed (indexed)
+
+**Indexes:**
+- Primary key on `id`
+- Unique index on `email` to prevent duplicate subscriptions
+- Index on `status` for filtering active subscriptions
+- Index on `subscribed_at` for chronological queries
+- Composite index `(status, email)` for status-based email lookups
+
+#### 13. `contact_messages`
+Stores contact form messages.
+
+**Key Fields:**
+- `id` (INT) - Primary key, auto-increment
+- `name` (VARCHAR) - Sender name
+- `email` (VARCHAR) - Sender email (indexed)
+- `phone` (VARCHAR) - Sender phone
+- `subject` (VARCHAR) - Message subject
+- `message` (TEXT) - Message content
+- `status` (ENUM) - Message status: new, read, replied, archived (indexed)
+
+**Indexes:**
+- Primary key on `id`
+- Index on `email` for filtering by sender
+- Index on `status` for filtering by status
+- Index on `created_at` for chronological queries
+- Composite index `(status, created_at)` for status-based date filtering
+
+#### 14. `service_requests`
+Stores stringing service requests.
+
+**Key Fields:**
+- `id` (INT) - Primary key, auto-increment
+- `user_id` (VARCHAR) - Foreign key to `users.id` (nullable for guest requests)
+- `name` (VARCHAR) - Customer name
+- `email` (VARCHAR) - Customer email (indexed)
+- `phone` (VARCHAR) - Customer phone
+- `racket_brand` (VARCHAR) - Racket brand
+- `racket_model` (VARCHAR) - Racket model
+- `string_type` (VARCHAR) - String type
+- `string_colour` (VARCHAR) - String color
+- `tension` (VARCHAR) - String tension
+- `stencil` (BOOLEAN) - Stencil service requested
+- `grip` (BOOLEAN) - Grip service requested
+- `grommet_replacement` (VARCHAR) - Grommet replacement count
+- `message` (TEXT) - Additional notes
+- `status` (ENUM) - Request status: pending, in_progress, completed, cancelled (indexed)
+
+**Indexes:**
+- Primary key on `id`
+- Foreign key index on `user_id`
+- Index on `email` for filtering by customer
+- Index on `status` for filtering by status
+- Index on `created_at` for chronological queries
+- Composite index `(status, created_at)` for status-based date filtering
+
 ## Relationships
 
 ```
@@ -132,6 +315,9 @@ users (1) ──< (many) reward_point_transactions
 events (1) ──< (many) reward_point_transactions
 users (1) ──< (many) user_event_history
 events (1) ──< (many) user_event_history
+users (1) ──< (many) reviews
+users (1) ──< (many) service_requests
+products (1) ──< (many) product_images
 ```
 
 ## Performance Optimizations

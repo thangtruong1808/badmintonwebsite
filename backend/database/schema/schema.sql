@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(50),
     password VARCHAR(255) NOT NULL,
+    role ENUM('user', 'admin', 'super_admin') NOT NULL DEFAULT 'user',
     reward_points INT NOT NULL DEFAULT 0,
     total_points_earned INT NOT NULL DEFAULT 0,
     total_points_spent INT NOT NULL DEFAULT 0,
@@ -33,6 +34,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Indexes for users table
 CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_member_since ON users(member_since);
 CREATE INDEX idx_users_created_at ON users(created_at);
 
@@ -191,6 +193,235 @@ CREATE INDEX idx_history_event_date ON user_event_history(event_date);
 CREATE INDEX idx_history_user_date ON user_event_history(user_id, event_date);
 CREATE INDEX idx_history_user_attendance ON user_event_history(user_id, attendance_status);
 CREATE INDEX idx_history_user_points_claimed ON user_event_history(user_id, points_claimed);
+
+-- =====================================================
+-- Table: products
+-- Stores shop products and services
+-- =====================================================
+CREATE TABLE IF NOT EXISTS products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    original_price DECIMAL(10, 2),
+    image VARCHAR(500) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    in_stock BOOLEAN NOT NULL DEFAULT TRUE,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Constraints
+    CHECK (price >= 0),
+    CHECK (original_price IS NULL OR original_price >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for products table
+CREATE INDEX idx_products_category ON products(category);
+CREATE INDEX idx_products_in_stock ON products(in_stock);
+CREATE INDEX idx_products_name ON products(name);
+CREATE INDEX idx_products_category_stock ON products(category, in_stock);
+CREATE INDEX idx_products_created_at ON products(created_at);
+
+-- =====================================================
+-- Table: product_images
+-- Stores multiple images per product
+-- =====================================================
+CREATE TABLE IF NOT EXISTS product_images (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    
+    -- Constraints
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for product_images table
+CREATE INDEX idx_product_images_product_id ON product_images(product_id);
+CREATE INDEX idx_product_images_display_order ON product_images(product_id, display_order);
+
+-- =====================================================
+-- Table: gallery_photos
+-- Stores gallery photos
+-- =====================================================
+CREATE TABLE IF NOT EXISTS gallery_photos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    src VARCHAR(500) NOT NULL,
+    alt VARCHAR(255) NOT NULL,
+    type ENUM('chibi-tournament', 'veteran-tournament', 'social') NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraints
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for gallery_photos table
+CREATE INDEX idx_gallery_photos_type ON gallery_photos(type);
+CREATE INDEX idx_gallery_photos_display_order ON gallery_photos(display_order);
+CREATE INDEX idx_gallery_photos_type_order ON gallery_photos(type, display_order);
+
+-- =====================================================
+-- Table: gallery_videos
+-- Stores gallery videos
+-- =====================================================
+CREATE TABLE IF NOT EXISTS gallery_videos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    embed_id VARCHAR(255) NOT NULL,
+    thumbnail VARCHAR(500),
+    category ENUM('Wednesday', 'Friday', 'tournament', 'playlists') NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraints
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for gallery_videos table
+CREATE INDEX idx_gallery_videos_category ON gallery_videos(category);
+CREATE INDEX idx_gallery_videos_display_order ON gallery_videos(display_order);
+CREATE INDEX idx_gallery_videos_category_order ON gallery_videos(category, display_order);
+
+-- =====================================================
+-- Table: news_articles
+-- Stores featured news articles
+-- =====================================================
+CREATE TABLE IF NOT EXISTS news_articles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    image VARCHAR(500),
+    title VARCHAR(255) NOT NULL,
+    date VARCHAR(100),
+    time VARCHAR(100),
+    location VARCHAR(255),
+    description TEXT,
+    badge ENUM('UPCOMING', 'REGULAR', 'OPEN') NOT NULL DEFAULT 'OPEN',
+    category VARCHAR(100),
+    link VARCHAR(500),
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Constraints
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for news_articles table
+CREATE INDEX idx_news_articles_badge ON news_articles(badge);
+CREATE INDEX idx_news_articles_category ON news_articles(category);
+CREATE INDEX idx_news_articles_display_order ON news_articles(display_order);
+CREATE INDEX idx_news_articles_created_at ON news_articles(created_at);
+CREATE INDEX idx_news_articles_badge_order ON news_articles(badge, display_order);
+
+-- =====================================================
+-- Table: reviews
+-- Stores user reviews
+-- =====================================================
+CREATE TABLE IF NOT EXISTS reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
+    rating INT NOT NULL,
+    review_date VARCHAR(50) NOT NULL,
+    review_text TEXT NOT NULL,
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    status ENUM('active', 'hidden', 'deleted') NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Constraints
+    CHECK (rating >= 1 AND rating <= 5)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for reviews table
+CREATE INDEX idx_reviews_user_id ON reviews(user_id);
+CREATE INDEX idx_reviews_rating ON reviews(rating);
+CREATE INDEX idx_reviews_is_verified ON reviews(is_verified);
+CREATE INDEX idx_reviews_status ON reviews(status);
+CREATE INDEX idx_reviews_created_at ON reviews(created_at);
+CREATE INDEX idx_reviews_verified_rating ON reviews(is_verified, rating);
+
+-- =====================================================
+-- Table: newsletter_subscriptions
+-- Stores newsletter subscriptions
+-- =====================================================
+CREATE TABLE IF NOT EXISTS newsletter_subscriptions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    subscribed_at DATETIME NOT NULL,
+    status ENUM('active', 'unsubscribed') NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for newsletter_subscriptions table
+CREATE INDEX idx_newsletter_email ON newsletter_subscriptions(email);
+CREATE INDEX idx_newsletter_status ON newsletter_subscriptions(status);
+CREATE INDEX idx_newsletter_subscribed_at ON newsletter_subscriptions(subscribed_at);
+CREATE INDEX idx_newsletter_status_email ON newsletter_subscriptions(status, email);
+
+-- =====================================================
+-- Table: contact_messages
+-- Stores contact form messages
+-- =====================================================
+CREATE TABLE IF NOT EXISTS contact_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(50),
+    subject VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    status ENUM('new', 'read', 'replied', 'archived') NOT NULL DEFAULT 'new',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for contact_messages table
+CREATE INDEX idx_contact_messages_email ON contact_messages(email);
+CREATE INDEX idx_contact_messages_status ON contact_messages(status);
+CREATE INDEX idx_contact_messages_created_at ON contact_messages(created_at);
+CREATE INDEX idx_contact_messages_status_date ON contact_messages(status, created_at);
+
+-- =====================================================
+-- Table: service_requests
+-- Stores stringing service requests
+-- =====================================================
+CREATE TABLE IF NOT EXISTS service_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    racket_brand VARCHAR(100) NOT NULL,
+    racket_model VARCHAR(100) NOT NULL,
+    string_type VARCHAR(100) NOT NULL,
+    string_colour VARCHAR(50),
+    tension VARCHAR(20) NOT NULL,
+    stencil BOOLEAN NOT NULL DEFAULT FALSE,
+    grip BOOLEAN NOT NULL DEFAULT FALSE,
+    grommet_replacement VARCHAR(50),
+    message TEXT,
+    status ENUM('pending', 'in_progress', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for service_requests table
+CREATE INDEX idx_service_requests_user_id ON service_requests(user_id);
+CREATE INDEX idx_service_requests_email ON service_requests(email);
+CREATE INDEX idx_service_requests_status ON service_requests(status);
+CREATE INDEX idx_service_requests_created_at ON service_requests(created_at);
+CREATE INDEX idx_service_requests_status_date ON service_requests(status, created_at);
 
 -- =====================================================
 -- Additional Performance Indexes
