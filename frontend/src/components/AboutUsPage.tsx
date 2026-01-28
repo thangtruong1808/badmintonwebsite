@@ -49,7 +49,7 @@ const AboutUsPage = () => {
   ];
   // bg-gradient-to-b from-gray-100 to-gray-200
   return (
-    <div className="w-full overflow-x-hidden min-h-screen pt-20 bg-stone-50">
+    <div className="w-full overflow-x-hidden min-h-screen pt-20 bg-stone-200">
 
       <div className="px-4 md:px-8  max-w-7xl mx-auto min-h-full">
         {/* Introduction Section */}
