@@ -5,7 +5,6 @@ import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import {
   TextInput,
-  NumberInput,
   Select,
   TextArea,
   Checkbox,

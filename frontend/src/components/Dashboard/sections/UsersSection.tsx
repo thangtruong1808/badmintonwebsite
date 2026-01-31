@@ -7,7 +7,6 @@ import {
   TextInput,
   NumberInput,
   Select,
-  Checkbox,
   FormActions,
 } from "../Shared/inputs";
 
