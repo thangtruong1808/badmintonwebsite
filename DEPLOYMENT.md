@@ -171,7 +171,6 @@ chibibadminton/
 │   ├── vercel.json
 │   └── package.json
 ├── backend/               ← Backend project root
-│   ├── index.js           ← Vercel zero-config Express entry (exports dist/server.js)
 │   ├── src/
 │   ├── dist/              ← Build output (from tsc)
 │   ├── vercel.json
@@ -190,10 +189,10 @@ chibibadminton/
   In the backend project, set `FRONTEND_URL` to your frontend URL (e.g. `https://badmintonwebsite.vercel.app`).
 
 - **Backend returns 404 on root or API routes**  
-  The backend uses Vercel’s **zero-config Express**: `backend/index.js` exports the built Express app, so Vercel routes all requests (/, /api/*, etc.) to it. No rewrites or `api/` folder. Confirm **Root Directory** is exactly `backend` (Settings → General) and **Build Command** is `npm run build`. Redeploy. Root URL should return `{ "status": "ok", "message": "ChibiBadminton API" }`.
+  The backend uses **builds + routes** in `backend/vercel.json`: `builds` points to `dist/server.js` (@vercel/node), and `routes` sends all paths `/(.*)` to it. Confirm **Root Directory** is `backend`, **Build Command** is `npm run build`, and the build succeeds (so `dist/server.js` exists). Redeploy. Root URL should return `{ "status": "ok", "message": "ChibiBadminton API" }`.
 
 - **Backend: “Cannot read properties of undefined (reading 'fsPath')”**  
-  In the backend project **Settings → General**, leave **Output Directory** empty. Ensure **Root Directory** is exactly `backend`. Redeploy. The API is served via `backend/index.js` (zero-config Express).
+  In the backend project **Settings → General**, leave **Output Directory** empty. Ensure **Root Directory** is exactly `backend`. Redeploy. The API is served via `dist/server.js` (builds + routes in vercel.json).
 
 - **Backend build fails**  
   Ensure **Root Directory** is `backend` and **Build Command** is `npm run build`. Check the build log for TypeScript or missing dependency errors.
