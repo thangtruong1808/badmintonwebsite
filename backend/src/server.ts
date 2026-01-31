@@ -17,8 +17,9 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+const origin = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: origin,
   credentials: true
 }));
 app.use(express.json());
@@ -34,6 +35,9 @@ app.head('/', (req, res) => res.status(200).end());
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'ChibiBadminton API is running' });
 });
+
+// Favicon handler
+app.get('/favicon.ico', (_req, res) => res.status(204).end());
 
 // API Routes
 app.use('/api/auth', authRoutes);
