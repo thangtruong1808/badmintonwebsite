@@ -1,8 +1,4 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "rewrites": [
-    { "source": "/", "destination": "/api?path=" },
-    { "source": "/:path*", "destination": "/api?path=:path*" }
-  ]
+  "buildCommand": "npm run build"
 }

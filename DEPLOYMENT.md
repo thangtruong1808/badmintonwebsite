@@ -171,8 +171,7 @@ chibibadminton/
 │   ├── vercel.json
 │   └── package.json
 ├── backend/               ← Backend project root
-│   ├── api/
-│   │   └── index.js       ← Vercel serverless entry
+│   ├── index.js           ← Vercel zero-config Express entry (exports dist/server.js)
 │   ├── src/
 │   ├── dist/              ← Build output (from tsc)
 │   ├── vercel.json
@@ -190,16 +189,11 @@ chibibadminton/
 - **Backend returns CORS errors**  
   In the backend project, set `FRONTEND_URL` to your frontend URL (e.g. `https://badmintonwebsite.vercel.app`).
 
-- **Backend returns 404 on root (e.g. `https://your-api.vercel.app/`) or API routes**  
-  1. Confirm **Root Directory** is exactly `backend` (Settings → General). If it’s wrong, fix it and redeploy.
-  2. Ensure `backend/vercel.json` has the rewrite: `"source": "/(.*)", "destination": "/api?path=$1"`. Redeploy after any change.
-  3. Visiting the root URL should return JSON like `{ "status": "ok", "message": "ChibiBadminton API" }`. If you still see 404, check the deployment’s **Functions** tab to confirm `api/index.js` is listed and invoked.
+- **Backend returns 404 on root or API routes**  
+  The backend uses Vercel’s **zero-config Express**: `backend/index.js` exports the built Express app, so Vercel routes all requests (/, /api/*, etc.) to it. No rewrites or `api/` folder. Confirm **Root Directory** is exactly `backend` (Settings → General) and **Build Command** is `npm run build`. Redeploy. Root URL should return `{ "status": "ok", "message": "ChibiBadminton API" }`.
 
 - **Backend: “Cannot read properties of undefined (reading 'fsPath')”**  
-  This often comes from Vercel’s config or path handling. Try:
-  1. In the backend project **Settings → General**, leave **Output Directory** completely **empty** (do not enter `.` or any value).
-  2. Ensure **Root Directory** is exactly `backend` (no leading/trailing spaces or slash).
-  3. Redeploy. The repo’s `backend/vercel.json` no longer sets `outputDirectory`; the API is served via `api/index.js` and rewrites only.
+  In the backend project **Settings → General**, leave **Output Directory** empty. Ensure **Root Directory** is exactly `backend`. Redeploy. The API is served via `backend/index.js` (zero-config Express).
 
 - **Backend build fails**  
   Ensure **Root Directory** is `backend` and **Build Command** is `npm run build`. Check the build log for TypeScript or missing dependency errors.
