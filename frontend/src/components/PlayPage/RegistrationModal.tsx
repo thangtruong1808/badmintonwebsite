@@ -45,7 +45,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "points" | "mixed">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "points" | "mixed">("stripe");
   const [pointsToUse, setPointsToUse] = useState<number>(0);
   const [user, setUser] = useState(() => getCurrentUser());
 
@@ -75,13 +75,13 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setFormData({ name: "", email: "", phone: "" });
       setErrors({});
       setSubmitStatus({ type: null, message: "" });
-      setPaymentMethod("cash");
+      setPaymentMethod("stripe");
       setPointsToUse(0);
       return;
     }
 
     // Auto-select points if user has enough (only when modal first opens)
-    if (user && canPayWithPoints && paymentMethod === "cash") {
+    if (user && canPayWithPoints && paymentMethod === "stripe") {
       setPaymentMethod("points");
       setPointsToUse(totalPrice);
     }
@@ -394,10 +394,10 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      setPaymentMethod("cash");
+                      setPaymentMethod("stripe");
                       setPointsToUse(0);
                     }}
-                    className={`w-full flex items-center justify-between p-3 border-2 rounded-lg transition-colors font-calibri text-md ${paymentMethod === "cash"
+                    className={`w-full flex items-center justify-between p-3 border-2 rounded-lg transition-colors font-calibri text-md ${paymentMethod === "stripe"
                       ? "border-rose-500 bg-rose-50"
                       : "border-gray-300 hover:border-gray-400"
                       }`}
@@ -405,11 +405,11 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     <div className="flex items-center gap-3">
                       <FaMoneyBillWave className="text-rose-500" size={20} />
                       <div className="text-left">
-                        <div className="font-bold text-gray-900">Pay via PayID</div>
+                        <div className="font-bold text-gray-900">Pay with Card (Stripe)</div>
                         <div className="text-sm text-gray-600 font-calibri text-md">${totalPrice.toFixed(2)}</div>
                       </div>
                     </div>
-                    {paymentMethod === "cash" && (
+                    {paymentMethod === "stripe" && (
                       <FaCheckCircle className="text-rose-500" size={20} />
                     )}
                   </button>
@@ -458,7 +458,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                         <div className="text-left">
                           <div className="font-bold text-gray-900 font-calibri text-md">Mixed Payment</div>
                           <div className="text-sm text-gray-600 font-calibri text-md text-left">
-                            {formatPoints(userPoints)} points + ${(totalPrice - userPoints).toFixed(2)} cash
+                            {formatPoints(userPoints)} points + ${(totalPrice - userPoints).toFixed(2)} via card (Stripe)
                           </div>
                         </div>
                       </div>
@@ -478,7 +478,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 {paymentMethod === "mixed" && (
                   <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg font-calibri text-md text-left">
                     <p className="text-md font-medium text-blue-800 font-calibri text-left">
-                      Using {formatPoints(pointsToUse)} points, remaining ${(totalPrice - pointsToUse).toFixed(2)} will be paid in cash.
+                      Using {formatPoints(pointsToUse)} points, remaining ${(totalPrice - pointsToUse).toFixed(2)} will be paid by card (Stripe).
                     </p>
                   </div>
                 )}

@@ -96,7 +96,7 @@ export const mockUserEventHistory: UserEventHistory[] = [
     pointsEarned: 20,
     pointsClaimed: true,
     pricePaid: 20,
-    paymentMethod: "cash",
+    paymentMethod: "stripe",
   },
   {
     eventId: 8,
@@ -110,7 +110,7 @@ export const mockUserEventHistory: UserEventHistory[] = [
     pointsEarned: 20,
     pointsClaimed: true,
     pricePaid: 20,
-    paymentMethod: "cash",
+    paymentMethod: "stripe",
   },
   {
     eventId: 15,
@@ -124,7 +124,7 @@ export const mockUserEventHistory: UserEventHistory[] = [
     pointsEarned: 50,
     pointsClaimed: true,
     pricePaid: 50,
-    paymentMethod: "cash",
+    paymentMethod: "stripe",
   },
   {
     eventId: 1,
@@ -153,7 +153,7 @@ export const mockUserEventHistory: UserEventHistory[] = [
     pointsEarned: 20,
     pointsClaimed: true,
     pricePaid: 20,
-    paymentMethod: "cash",
+    paymentMethod: "stripe",
   },
   {
     eventId: 16,
@@ -167,6 +167,6 @@ export const mockUserEventHistory: UserEventHistory[] = [
     pointsEarned: 50,
     pointsClaimed: true,
     pricePaid: 50,
-    paymentMethod: "cash",
+    paymentMethod: "stripe",
   },
 ];

@@ -34,6 +34,6 @@ export interface UserEventHistory {
   pointsEarned: number;
   pointsClaimed: boolean;
   pricePaid: number;
-  paymentMethod: "cash" | "points" | "mixed";
+  paymentMethod: "stripe" | "points" | "mixed";
   pointsUsed?: number;
 }

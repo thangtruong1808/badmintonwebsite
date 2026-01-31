@@ -26,7 +26,7 @@ export interface Registration {
   attendanceStatus?: "attended" | "no-show" | "cancelled" | "upcoming";
   pointsEarned?: number;
   pointsClaimed?: boolean;
-  paymentMethod?: "cash" | "points" | "mixed";
+  paymentMethod?: "stripe" | "points" | "mixed";
   pointsUsed?: number;
 }
 

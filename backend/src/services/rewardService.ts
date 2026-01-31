@@ -137,7 +137,7 @@ export const createEventHistoryFromRegistration = async (
     pointsEarned,
     pointsClaimed: false,
     pricePaid: event.price || 0,
-    paymentMethod: registration.paymentMethod || 'cash',
+    paymentMethod: registration.paymentMethod || 'stripe',
     pointsUsed: registration.pointsUsed,
   };
 

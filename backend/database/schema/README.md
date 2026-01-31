@@ -13,13 +13,14 @@ This directory contains the MySQL database schema for the ChibiBadminton applica
 ### Tables
 
 #### 1. `users`
-Stores user account information including authentication, roles, and reward points.
+Stores user account information including authentication, roles, payment preference, and reward points.
 
 **Key Fields:**
 - `id` (VARCHAR) - Primary key, unique user identifier
 - `email` (VARCHAR) - Unique email address (indexed)
 - `password` (VARCHAR) - Hashed password
 - `role` (ENUM) - User role: user (default), admin, super_admin (indexed)
+- `default_payment_method` (ENUM) - Optional preference for booking cart: stripe, points, mixed (indexed)
 - `reward_points` (INT) - Current available reward points
 - `total_points_earned` (INT) - Lifetime points earned
 - `total_points_spent` (INT) - Lifetime points spent
@@ -28,6 +29,7 @@ Stores user account information including authentication, roles, and reward poin
 - Primary key on `id`
 - Unique index on `email`
 - Index on `role` for role-based access control queries
+- Index on `default_payment_method` for payment-preference queries
 - Index on `member_since` for sorting/filtering
 - Index on `created_at` for chronological queries
 
@@ -35,6 +37,8 @@ Stores user account information including authentication, roles, and reward poin
 - `user` - Normal user (default role for new registrations)
 - `admin` - Administrator with elevated permissions
 - `super_admin` - Super administrator with full system access
+
+**Shopping cart / payment:** The booking cart (event selections) is stored client-side until checkout. Payment is via Stripe (mock payment at current stage; real Stripe integration in final state). Each registration stores `payment_method` (stripe, points, mixed) on the `registrations` table. User preference can be stored in `default_payment_method` to pre-fill the registration modal. Invoices are generated and stored in the `invoices` and `invoice_line_items` tables; payments are recorded in `payments`.
 
 #### 2. `events`
 Stores social events and tournaments.
@@ -59,13 +63,15 @@ Stores social events and tournaments.
   - `(date, status, category)` - Complex filtering
 
 #### 3. `registrations`
-Stores user registrations for events.
+Stores user registrations for events (booking cart checkout creates one row per event).
 
 **Key Fields:**
 - `id` (VARCHAR) - Primary key, unique registration identifier
 - `event_id` (INT) - Foreign key to `events.id`
 - `user_id` (VARCHAR) - Foreign key to `users.id` (nullable for guest registrations)
+- `name`, `email`, `phone` - Registrant details (denormalized for the registration)
 - `status` (ENUM) - Registration status: pending, confirmed, cancelled
+- `payment_method` (ENUM) - stripe, points, mixed (per registration)
 - `attendance_status` (ENUM) - Attendance tracking: attended, no-show, cancelled, upcoming
 - `points_earned` (INT) - Points earned from this registration
 - `points_claimed` (BOOLEAN) - Whether points have been claimed
@@ -78,10 +84,56 @@ Stores user registrations for events.
 - Index on `registration_date` for chronological queries
 - Composite indexes:
   - `(user_id, event_id)` - Check if user registered for event
-  - `(event_id, status)` - Get registrations for an event by status
+  - `(event_id, status)` - **Get all registered users for the same social/event** (see below)
   - `(user_id, status, registration_date)` - User's registration history
 
-#### 4. `reward_point_transactions`
+**See all registered users with the same social:** When a user is registered for one or more socials (events), they can see all other registered users for each of those events. Query: `SELECT * FROM registrations WHERE event_id = ? AND status = 'confirmed'` (optionally exclude the current user or restrict to attendees only). The composite index `idx_registrations_event_status (event_id, status)` makes this query efficient.
+
+#### 4. `payments`
+Stores payment records for checkout (mock or Stripe). Used for invoice generation and audit.
+
+**Key Fields:**
+- `id` (VARCHAR) - Primary key
+- `user_id` (VARCHAR) - Foreign key to `users.id`
+- `amount` (DECIMAL) - Payment amount
+- `currency` (VARCHAR) - e.g. AUD
+- `status` (ENUM) - pending, completed, failed, refunded
+- `payment_method` (ENUM) - stripe, points, mixed
+- `stripe_payment_intent_id` (VARCHAR) - Set when using real Stripe; NULL for mock
+
+**Indexes:** user_id, status, payment_method, created_at, stripe_payment_intent_id, (user_id, status, created_at).
+
+#### 5. `invoices`
+Stores invoices generated after checkout (mock or Stripe). One invoice per payment/checkout.
+
+**Key Fields:**
+- `id` (VARCHAR) - Primary key
+- `user_id` (VARCHAR) - Foreign key to `users.id`
+- `payment_id` (VARCHAR) - Foreign key to `payments.id` (nullable until paid)
+- `invoice_number` (VARCHAR) - Unique human-readable number
+- `status` (ENUM) - draft, issued, paid, cancelled
+- `subtotal`, `total`, `currency`
+- `due_date`, `paid_at`, `pdf_url`
+
+**Indexes:** user_id, payment_id, invoice_number, status, created_at, due_date, (user_id, status).
+
+#### 6. `invoice_line_items`
+Line items for each invoice (e.g. one per event registration).
+
+**Key Fields:**
+- `id` (INT) - Primary key
+- `invoice_id` (VARCHAR) - Foreign key to `invoices.id`
+- `description` (VARCHAR) - e.g. event title
+- `quantity`, `unit_price`, `amount`
+- `event_id` (INT) - Foreign key to `events.id` (nullable)
+- `registration_id` (VARCHAR) - Foreign key to `registrations.id` (nullable)
+- `sort_order` (INT) - Display order
+
+**Indexes:** invoice_id, event_id, registration_id, (invoice_id, sort_order).
+
+**Flow:** Checkout creates a payment (mock: status completed, no stripe_payment_intent_id). An invoice is created with status paid and linked to the payment. Invoice line items link to the event(s) and registration(s) so invoices can be generated and stored for records.
+
+#### 7. `reward_point_transactions`
 Stores reward point transaction history.
 
 **Key Fields:**
@@ -104,7 +156,7 @@ Stores reward point transaction history.
   - `(user_id, type)` - User's transactions by type
   - `(user_id, status, date)` - User's transactions with status filtering
 
-#### 5. `user_event_history`
+#### 8. `user_event_history`
 Stores historical event participation data.
 
 **Key Fields:**
@@ -130,7 +182,7 @@ Stores historical event participation data.
   - `(user_id, points_claimed)` - User's unclaimed points
   - `(user_id, attendance_status, event_date)` - Complex filtering
 
-#### 6. `products`
+#### 9. `products`
 Stores shop products and services.
 
 **Key Fields:**
@@ -150,7 +202,7 @@ Stores shop products and services.
 - Index on `name` for search functionality
 - Composite index `(category, in_stock)` for category filtering with stock status
 
-#### 7. `product_images`
+#### 10. `product_images`
 Stores multiple images per product.
 
 **Key Fields:**
@@ -164,7 +216,7 @@ Stores multiple images per product.
 - Foreign key index on `product_id`
 - Composite index `(product_id, display_order)` for ordered image retrieval
 
-#### 8. `gallery_photos`
+#### 11. `gallery_photos`
 Stores gallery photos.
 
 **Key Fields:**
@@ -180,7 +232,7 @@ Stores gallery photos.
 - Index on `display_order` for sorting
 - Composite index `(type, display_order)` for filtered and sorted queries
 
-#### 9. `gallery_videos`
+#### 12. `gallery_videos`
 Stores gallery videos.
 
 **Key Fields:**
@@ -197,7 +249,7 @@ Stores gallery videos.
 - Index on `display_order` for sorting
 - Composite index `(category, display_order)` for filtered and sorted queries
 
-#### 10. `news_articles`
+#### 13. `news_articles`
 Stores featured news articles.
 
 **Key Fields:**
@@ -221,7 +273,7 @@ Stores featured news articles.
 - Index on `created_at` for chronological queries
 - Composite index `(badge, display_order)` for filtered and sorted queries
 
-#### 11. `reviews`
+#### 14. `reviews`
 Stores user reviews.
 
 **Key Fields:**
@@ -243,7 +295,7 @@ Stores user reviews.
 - Index on `created_at` for chronological queries
 - Composite index `(is_verified, rating)` for verified reviews by rating
 
-#### 12. `newsletter_subscriptions`
+#### 15. `newsletter_subscriptions`
 Stores newsletter subscriptions.
 
 **Key Fields:**
@@ -259,7 +311,7 @@ Stores newsletter subscriptions.
 - Index on `subscribed_at` for chronological queries
 - Composite index `(status, email)` for status-based email lookups
 
-#### 13. `contact_messages`
+#### 16. `contact_messages`
 Stores contact form messages.
 
 **Key Fields:**
@@ -278,7 +330,7 @@ Stores contact form messages.
 - Index on `created_at` for chronological queries
 - Composite index `(status, created_at)` for status-based date filtering
 
-#### 14. `service_requests`
+#### 17. `service_requests`
 Stores stringing service requests.
 
 **Key Fields:**
@@ -311,6 +363,12 @@ Stores stringing service requests.
 ```
 users (1) ──< (many) registrations
 events (1) ──< (many) registrations
+users (1) ──< (many) payments
+payments (1) ──< (0..1) invoices
+users (1) ──< (many) invoices
+invoices (1) ──< (many) invoice_line_items
+events (1) ──< (many) invoice_line_items
+registrations (1) ──< (many) invoice_line_items
 users (1) ──< (many) reward_point_transactions
 events (1) ──< (many) reward_point_transactions
 users (1) ──< (many) user_event_history

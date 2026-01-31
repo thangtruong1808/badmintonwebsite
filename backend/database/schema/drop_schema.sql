@@ -7,6 +7,9 @@
 -- Drop tables in reverse order of dependencies
 -- (child tables first, then parent tables)
 
+DROP TABLE IF EXISTS invoice_line_items;
+DROP TABLE IF EXISTS invoices;
+DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS service_requests;
 DROP TABLE IF EXISTS contact_messages;
 DROP TABLE IF EXISTS newsletter_subscriptions;

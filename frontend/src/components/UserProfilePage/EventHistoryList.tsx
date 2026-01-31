@@ -96,7 +96,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
     switch (method) {
       case "points":
         return <FaCoins className="text-yellow-600" size={16} />;
-      case "cash":
+      case "stripe":
         return <FaMoneyBillWave className="text-green-600" size={16} />;
       case "mixed":
         return <FaExchangeAlt className="text-blue-600" size={16} />;

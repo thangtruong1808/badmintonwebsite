@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(50),
     password VARCHAR(255) NOT NULL,
     role ENUM('user', 'admin', 'super_admin') NOT NULL DEFAULT 'user',
+    default_payment_method ENUM('stripe', 'points', 'mixed') DEFAULT NULL,
     reward_points INT NOT NULL DEFAULT 0,
     total_points_earned INT NOT NULL DEFAULT 0,
     total_points_spent INT NOT NULL DEFAULT 0,
@@ -35,6 +36,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- Indexes for users table
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_default_payment_method ON users(default_payment_method);
 CREATE INDEX idx_users_member_since ON users(member_since);
 CREATE INDEX idx_users_created_at ON users(created_at);
 
@@ -92,7 +94,7 @@ CREATE TABLE IF NOT EXISTS registrations (
     attendance_status ENUM('attended', 'no-show', 'cancelled', 'upcoming') DEFAULT 'upcoming',
     points_earned INT DEFAULT 0,
     points_claimed BOOLEAN DEFAULT FALSE,
-    payment_method ENUM('cash', 'points', 'mixed') DEFAULT 'cash',
+    payment_method ENUM('stripe', 'points', 'mixed') DEFAULT 'stripe',
     points_used INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -166,7 +168,7 @@ CREATE TABLE IF NOT EXISTS user_event_history (
     points_earned INT NOT NULL DEFAULT 0,
     points_claimed BOOLEAN NOT NULL DEFAULT FALSE,
     price_paid DECIMAL(10, 2) NOT NULL DEFAULT 0,
-    payment_method ENUM('cash', 'points', 'mixed') NOT NULL DEFAULT 'cash',
+    payment_method ENUM('stripe', 'points', 'mixed') NOT NULL DEFAULT 'stripe',
     points_used INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -422,6 +424,108 @@ CREATE INDEX idx_service_requests_email ON service_requests(email);
 CREATE INDEX idx_service_requests_status ON service_requests(status);
 CREATE INDEX idx_service_requests_created_at ON service_requests(created_at);
 CREATE INDEX idx_service_requests_status_date ON service_requests(status, created_at);
+
+-- =====================================================
+-- Table: payments
+-- Stores payment records (mock or Stripe). Used for checkout and invoice generation.
+-- =====================================================
+CREATE TABLE IF NOT EXISTS payments (
+    id VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) NOT NULL DEFAULT 'AUD',
+    status ENUM('pending', 'completed', 'failed', 'refunded') NOT NULL DEFAULT 'pending',
+    payment_method ENUM('stripe', 'points', 'mixed') NOT NULL DEFAULT 'stripe',
+    stripe_payment_intent_id VARCHAR(255) DEFAULT NULL,
+    metadata JSON DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    
+    -- Constraints
+    CHECK (amount >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for payments table
+CREATE INDEX idx_payments_user_id ON payments(user_id);
+CREATE INDEX idx_payments_status ON payments(status);
+CREATE INDEX idx_payments_payment_method ON payments(payment_method);
+CREATE INDEX idx_payments_created_at ON payments(created_at);
+CREATE INDEX idx_payments_stripe_intent ON payments(stripe_payment_intent_id);
+CREATE INDEX idx_payments_user_status_date ON payments(user_id, status, created_at);
+
+-- =====================================================
+-- Table: invoices
+-- Stores invoices for payments. Generated after checkout (mock or Stripe).
+-- =====================================================
+CREATE TABLE IF NOT EXISTS invoices (
+    id VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    payment_id VARCHAR(255) DEFAULT NULL,
+    invoice_number VARCHAR(50) NOT NULL UNIQUE,
+    status ENUM('draft', 'issued', 'paid', 'cancelled') NOT NULL DEFAULT 'draft',
+    subtotal DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    total DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    currency VARCHAR(3) NOT NULL DEFAULT 'AUD',
+    due_date DATE DEFAULT NULL,
+    paid_at DATETIME DEFAULT NULL,
+    pdf_url VARCHAR(500) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL,
+    
+    -- Constraints
+    CHECK (subtotal >= 0),
+    CHECK (total >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for invoices table
+CREATE INDEX idx_invoices_user_id ON invoices(user_id);
+CREATE INDEX idx_invoices_payment_id ON invoices(payment_id);
+CREATE INDEX idx_invoices_invoice_number ON invoices(invoice_number);
+CREATE INDEX idx_invoices_status ON invoices(status);
+CREATE INDEX idx_invoices_created_at ON invoices(created_at);
+CREATE INDEX idx_invoices_due_date ON invoices(due_date);
+CREATE INDEX idx_invoices_user_status ON invoices(user_id, status);
+
+-- =====================================================
+-- Table: invoice_line_items
+-- Line items for each invoice (e.g. event registrations).
+-- =====================================================
+CREATE TABLE IF NOT EXISTS invoice_line_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    invoice_id VARCHAR(255) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    unit_price DECIMAL(10, 2) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    event_id INT DEFAULT NULL,
+    registration_id VARCHAR(255) DEFAULT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL,
+    FOREIGN KEY (registration_id) REFERENCES registrations(id) ON DELETE SET NULL,
+    
+    -- Constraints
+    CHECK (quantity > 0),
+    CHECK (unit_price >= 0),
+    CHECK (amount >= 0),
+    CHECK (sort_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for invoice_line_items table
+CREATE INDEX idx_invoice_line_items_invoice_id ON invoice_line_items(invoice_id);
+CREATE INDEX idx_invoice_line_items_event_id ON invoice_line_items(event_id);
+CREATE INDEX idx_invoice_line_items_registration_id ON invoice_line_items(registration_id);
+CREATE INDEX idx_invoice_line_items_invoice_sort ON invoice_line_items(invoice_id, sort_order);
 
 -- =====================================================
 -- Additional Performance Indexes

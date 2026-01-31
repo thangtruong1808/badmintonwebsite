@@ -88,9 +88,9 @@ const FeaturedNews: React.FC = () => {
       window.open(news.link, "_blank");
     }
   };
-
+  // bg-gradient-to-b from-slate-100 to-slate-200
   return (
-    <div className="py-16 bg-gradient-to-b from-slate-100 to-slate-200">
+    <div className="py-16 bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-8 font-huglove">
           Featured News
