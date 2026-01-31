@@ -190,6 +190,11 @@ chibibadminton/
 - **Backend returns CORS errors**  
   In the backend project, set `FRONTEND_URL` to your frontend URL (e.g. `https://badmintonwebsite.vercel.app`).
 
+- **Backend returns 404 on root (e.g. `https://your-api.vercel.app/`) or API routes**  
+  1. Confirm **Root Directory** is exactly `backend` (Settings → General). If it’s wrong, fix it and redeploy.
+  2. Ensure `backend/vercel.json` has the rewrite: `"source": "/(.*)", "destination": "/api?path=$1"`. Redeploy after any change.
+  3. Visiting the root URL should return JSON like `{ "status": "ok", "message": "ChibiBadminton API" }`. If you still see 404, check the deployment’s **Functions** tab to confirm `api/index.js` is listed and invoked.
+
 - **Backend: “Cannot read properties of undefined (reading 'fsPath')”**  
   This often comes from Vercel’s config or path handling. Try:
   1. In the backend project **Settings → General**, leave **Output Directory** completely **empty** (do not enter `.` or any value).

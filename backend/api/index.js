@@ -13,12 +13,32 @@ function getApp() {
 }
 
 export default async function handler(req, res) {
+  const rawUrl = req.url || '/';
   const base = 'http://localhost';
-  const url = new URL(req.url || '/', base);
-  const path = url.searchParams.get('path') || '';
-  url.searchParams.delete('path');
-  const qs = url.searchParams.toString() ? '?' + url.searchParams.toString() : '';
-  req.url = '/' + (path || '') + qs;
+
+  // Path can come from rewrite query (?path=...) or Vercel's req.query
+  let path = (req.query && req.query.path) ?? null;
+  if (path == null) {
+    try {
+      const url = new URL(rawUrl, base);
+      path = url.searchParams.get('path') ?? '';
+    } catch {
+      path = '';
+    }
+  }
+  path = String(path).replace(/^\/+/, '').trim();
+
+  // Rebuild req.url so Express sees the original path (e.g. "/" or "/api/health")
+  const pathPart = path ? `/${path}` : '/';
+  let qs = '';
+  try {
+    const url = new URL(rawUrl, base);
+    url.searchParams.delete('path');
+    qs = url.searchParams.toString() ? `?${url.searchParams.toString()}` : '';
+  } catch {
+    // keep qs empty
+  }
+  req.url = pathPart + qs;
 
   const app = await getApp();
   return app(req, res);
