@@ -22,7 +22,7 @@ const GalleryPage = () => {
 
   const filteredVideos = (() => {
     if (selectedVideoCategory === "all") return allVideos;
-    
+
     if (selectedVideoCategory === "Wednesday") {
       // Show latest 3 Wednesday videos
       const wedVideos = allVideos
@@ -30,7 +30,7 @@ const GalleryPage = () => {
         .slice(-3);
       return wedVideos;
     }
-    
+
     if (selectedVideoCategory === "Friday") {
       // Show latest 3 Friday videos
       const friVideos = allVideos
@@ -38,12 +38,12 @@ const GalleryPage = () => {
         .slice(-3);
       return friVideos;
     }
-    
+
     if (selectedVideoCategory === "tournament") {
       // Show tournament videos (includes Badminton Veterans Collection videos)
       return allVideos.filter((video) => video.category === "tournament");
     }
-    
+
     if (selectedVideoCategory === "playlists") {
       // Show only Wed, Fri, and Badminton Veterans playlists (3 total)
       return allVideos.filter((video) => {
@@ -55,7 +55,7 @@ const GalleryPage = () => {
         );
       });
     }
-    
+
     return [];
   })();
 
@@ -63,10 +63,10 @@ const GalleryPage = () => {
     label: string;
     value: "all" | "chibi-tournament" | "veteran-tournament";
   }> = [
-    { label: "All", value: "all" },
-    { label: "Chibi Tournament", value: "chibi-tournament" },
-    { label: "Veteran Tournament", value: "veteran-tournament" },
-  ];
+      { label: "All", value: "all" },
+      { label: "Chibi Tournament", value: "chibi-tournament" },
+      { label: "Veteran Tournament", value: "veteran-tournament" },
+    ];
 
   const videoCategoryOptions = [
     { label: "All", value: "all" },
@@ -77,11 +77,11 @@ const GalleryPage = () => {
   ];
 
   return (
-    <div className="w-full overflow-x-hidden min-h-screen relative bg-gradient-to-b from-pink-100 to-pink-300">
+    <div className="w-full overflow-x-hidden min-h-screen relative bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="w-full overflow-x-hidden min-h-screen">
         <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full">
           {/* Header Message */}
-          <div className="text-center mb-10 p-6 rounded-lg shadow-xl bg-gradient-to-t from-pink-100 to-pink-200">
+          <div className="text-center mb-10 p-6 rounded-lg shadow-xl bg-gradient-to-t from-rose-50 to-rose-100">
             <h1 className="text-4xl md:text-5xl font-extrabold text-black mb-4">
               Welcome to Our Badminton Gallery!
             </h1>
@@ -94,7 +94,7 @@ const GalleryPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 md:gap-8">
             {/* Photos Column - 70% width (7/10 columns) */}
             <div className="lg:col-span-7">
-              <div className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 md:p-8 mb-6">
+              <div className="bg-gradient-to-t from-rose-50 to-rose-100 rounded-lg shadow-lg p-6 md:p-8 mb-6">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
                     <FaImages className="text-white" size={24} />
@@ -155,7 +155,7 @@ const GalleryPage = () => {
 
             {/* Videos Column - 30% width (3/10 columns) */}
             <div className="lg:col-span-3">
-              <div className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 md:p-8 sticky top-24">
+              <div className="bg-gradient-to-t from-rose-50 to-rose-100 rounded-lg shadow-lg p-6 md:p-8 sticky top-24">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
                     <FaVideo className="text-white" size={24} />

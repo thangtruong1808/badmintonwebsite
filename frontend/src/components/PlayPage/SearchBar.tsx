@@ -46,7 +46,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     myRegistrationsFilter;
 
   return (
-    <div className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-md p-4 mb-6 shadow-xl font-calibri">
+    <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg shadow-md p-4 mb-6 shadow-xl font-calibri">
       {/* Search Input */}
       <div className="relative mb-4">
         <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -55,7 +55,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           placeholder="Search events by title, location, or description..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent font-calibri"
+          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent font-calibri"
         />
         {searchQuery && (
           <button

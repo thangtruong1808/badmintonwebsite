@@ -14,7 +14,7 @@ interface EventsHistoryProps {
 const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
   return (
     <>
-      <div className="bg-gradient-to-t from-pink-100 to-pink-300">
+      <div className="bg-gradient-to-r from-rose-50 to-rose-100">
         {/* Events History Section */}
         <section className="pt-16 pb-8">
           <div className="container mx-auto px-4">

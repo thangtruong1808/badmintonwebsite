@@ -2,10 +2,11 @@
 -- ChibiBadminton Database Schema
 -- MySQL Database Schema with Indexes for Performance
 -- =====================================================
+-- Prerequisite: Database chibibadminton_db must already exist.
+-- Run: mysql -u your_user -p chibibadminton_db < schema.sql
+-- =====================================================
 
--- Create database (uncomment if needed)
--- CREATE DATABASE IF NOT EXISTS chibibadminton CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
--- USE chibibadminton;
+USE chibibadminton_db;
 
 -- =====================================================
 -- Table: users
@@ -40,6 +41,43 @@ CREATE INDEX idx_users_default_payment_method ON users(default_payment_method);
 CREATE INDEX idx_users_member_since ON users(member_since);
 CREATE INDEX idx_users_created_at ON users(created_at);
 
+-- =====================================================
+-- Table: user_shipping_addresses
+-- Stores optional shipping addresses for users
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS user_shipping_addresses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    label VARCHAR(100) DEFAULT NULL, -- e.g. 'Home', 'Work'
+    recipient_name VARCHAR(255) NOT NULL,
+    phone VARCHAR(50) DEFAULT NULL,
+    address_line_1 VARCHAR(255) NOT NULL,
+    address_line_2 VARCHAR(255) DEFAULT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(100) DEFAULT NULL,
+    postal_code VARCHAR(20) NOT NULL,
+    country VARCHAR(100) NOT NULL DEFAULT 'Australia',
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    -- Foreign Key
+    CONSTRAINT fk_shipping_address_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for user_shipping_addresses table
+CREATE INDEX idx_shipping_address_user_id ON user_shipping_addresses(user_id);
+CREATE INDEX idx_shipping_address_is_default ON user_shipping_addresses(is_default);
+CREATE INDEX idx_shipping_address_created_at ON user_shipping_addresses(created_at);
+CREATE INDEX idx_shipping_address_updated_at ON user_shipping_addresses(updated_at);
+CREATE INDEX idx_shipping_addresses_city ON user_shipping_addresses(city);
+CREATE INDEX idx_shipping_addresses_country ON user_shipping_addresses(country);
 -- =====================================================
 -- Table: events
 -- Stores social events and tournaments

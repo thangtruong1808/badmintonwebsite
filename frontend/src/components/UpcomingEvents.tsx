@@ -14,7 +14,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
 }) => {
   return (
     <>
-      <div className="bg-gradient-to-b from-pink-100 to-pink-300">
+      <div className="bg-gradient-to-r from-rose-50 to-rose-100">
         {upcomingEvents.length > 0 && (
           <section className="pt-8 pb-0">
             <div className="container mx-auto px-4">

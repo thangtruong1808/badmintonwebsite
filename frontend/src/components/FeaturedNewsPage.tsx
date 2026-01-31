@@ -225,7 +225,7 @@ const FeaturedNewsPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full overflow-x-hidden min-h-screen bg-gradient-to-b from-pink-100 to-pink-200">
+    <div className="w-full overflow-x-hidden min-h-screen bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
         {/* Header */}
         <div className="mb-8 md:mb-12">

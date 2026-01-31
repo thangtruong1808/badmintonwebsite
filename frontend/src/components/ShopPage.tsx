@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaCheckCircle, FaExclamationCircle, FaTimes } from "react-icons/fa";
+import { FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaCheckCircle, FaExclamationCircle, FaTimes, FaShieldAlt, FaTruck, FaTools } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
 import VICTORYBADMINTONPRO from "../assets/VICTORNCSPRO.jpg";
 import VICTORYBADMINTONPRO2 from "../assets/VICTORNCSPRO2.jpg";
@@ -148,6 +148,8 @@ export const products: Product[] = [
 
 ];
 
+const CATEGORY_ALL = "All";
+
 const ShopPage = () => {
   useEffect(() => {
     document.title = "ChibiBadminton - Shop";
@@ -156,6 +158,8 @@ const ShopPage = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>(CATEGORY_ALL);
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -318,7 +322,7 @@ const ShopPage = () => {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedProduct(null);
     setFormData({
@@ -330,59 +334,125 @@ const ShopPage = () => {
     });
     setErrors({});
     setSubmitStatus({ type: null, message: "" });
-  };
+  }, []);
+
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(products.map((p) => p.category)));
+    return [CATEGORY_ALL, ...cats];
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    if (categoryFilter === CATEGORY_ALL) return products;
+    return products.filter((p) => p.category === categoryFilter);
+  }, [categoryFilter]);
+
+  const handleImageLoad = useCallback((productId: number) => {
+    setLoadedImages((prev) => new Set(prev).add(productId));
+  }, []);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeModal();
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isModalOpen, closeModal]);
 
   return (
-    <div className="w-full overflow-x-hidden min-h-screen bg-gradient-to-b from-pink-100 to-pink-200">
+    <div className="w-full overflow-x-hidden min-h-screen bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="px-4 md:px-8 py-8 md:py-16 max-w-7xl mx-auto min-h-full">
-        {/* Products Grid - 5 columns */}
+        {/* Page hero */}
+        <header className="text-center mb-8 md:mb-10">
+          <h1 className="text-3xl md:text-4xl font-bold text-black font-huglove mb-2">
+            Shop
+          </h1>
+          <p className="text-gray-700 font-calibri text-base md:text-lg max-w-2xl mx-auto">
+            Shuttlecocks and stringing services. Contact us for availability and orders.
+          </p>
+        </header>
+
+        {/* Category filter */}
+        <div className="flex flex-wrap justify-center gap-2 mb-6">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setCategoryFilter(cat)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold font-calibri transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 ${categoryFilter === cat
+                ? "bg-rose-500 text-white shadow-md"
+                : "bg-white text-gray-700 hover:bg-rose-100 border border-slate-200"
+                }`}
+              aria-pressed={categoryFilter === cat}
+              aria-label={`Filter by ${cat}`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Products Grid */}
         <div className="mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black text-left font-huglove lg:text-center">
-            Featured Services/Products
+          <h2 className="text-xl md:text-2xl font-bold mb-4 text-black text-left font-huglove lg:text-center">
+            {categoryFilter === CATEGORY_ALL ? "Featured Services / Products" : categoryFilter}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 font-calibri text-lg">
-            {products.map((product) => (
-              <div
+            {filteredProducts.map((product) => (
+              <article
                 key={product.id}
-                onClick={() => navigate(`/shop/product/${product.id}`)}
-                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group cursor-pointer flex flex-col border border-slate-100"
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col border border-slate-100 focus-within:ring-2 focus-within:ring-rose-500 focus-within:ring-offset-2"
               >
-                {/* Product Image */}
-                <div className="relative w-full h-60 md:h-60 overflow-hidden bg-white flex-shrink-0">
+                {/* Product Image - clickable to product page */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/shop/product/${product.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate(`/shop/product/${product.id}`);
+                    }
+                  }}
+                  className="relative w-full h-60 md:h-60 overflow-hidden bg-slate-50 flex-shrink-0 cursor-pointer group focus:outline-none"
+                  aria-label={`View details for ${product.name}`}
+                >
+                  {!loadedImages.has(product.id) && (
+                    <div className="absolute inset-0 animate-pulse bg-slate-200" aria-hidden="true" />
+                  )}
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-full object-contain  border-b border-slate-100"
+                    className={`w-full h-full object-contain border-b border-slate-100 transition-transform duration-300 group-hover:scale-105 ${!loadedImages.has(product.id) ? "opacity-0" : "opacity-100"}`}
+                    loading="lazy"
+                    onLoad={() => handleImageLoad(product.id)}
                   />
                   {product.originalPrice && (
-                    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
+                    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded shadow">
                       SALE
                     </div>
                   )}
                   {!product.inStock && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">Out of Stock</span>
+                      <span className="text-white font-bold text-sm">Out of Stock</span>
                     </div>
                   )}
                 </div>
 
-                {/* Product Info - Name and Price in same row */}
+                {/* Product Info */}
                 <div className="p-3 md:p-4 flex-1 flex flex-col">
-                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide font-calibri text-lg">
+                  <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide font-calibri">
                     {product.category}
                   </p>
-
-                  {/* Name and Price in same row */}
                   <div className="flex items-start justify-between gap-2 mb-3">
-                    <h3 className="text-sm md:text-base font-semibold text-black line-clamp-2 flex-1 font-calibri text-lg">
+                    <h3 className="text-sm md:text-base font-semibold text-black line-clamp-2 flex-1 font-calibri">
                       {product.name}
                     </h3>
                     <div className="flex flex-col items-end flex-shrink-0">
-                      <span className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap font-calibri text-lg">
+                      <span className="text-base md:text-lg font-bold text-green-600 whitespace-nowrap font-calibri">
                         ${product.price.toFixed(2)}
                       </span>
                       {product.originalPrice && (
-                        <span className="text-xs text-gray-400 line-through font-calibri text-lg">
+                        <span className="text-xs text-gray-400 line-through font-calibri">
                           ${product.originalPrice.toFixed(2)}
                         </span>
                       )}
@@ -391,70 +461,105 @@ const ShopPage = () => {
 
                   {/* Contact Us Button */}
                   <button
+                    type="button"
                     onClick={(e) => openContactModal(product, e)}
                     disabled={!product.inStock}
-                    className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-semibold text-xs md:text-sm transition duration-300 mt-auto font-calibri text-lg ${product.inStock
-                      ? "bg-rose-500 hover:bg-rose-600 text-white"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-semibold text-xs md:text-sm transition duration-200 mt-auto font-calibri focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:pointer-events-none ${product.inStock
+                      ? "bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white"
+                      : "bg-gray-200 text-gray-500"
                       }`}
+                    aria-label={product.inStock ? `Contact us about ${product.name}` : `${product.name} is out of stock`}
                   >
-                    <FaEnvelope size={14} />
+                    <FaEnvelope size={14} aria-hidden />
                     {product.inStock ? "Contact Us" : "Out of Stock"}
                   </button>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
+          {filteredProducts.length === 0 && (
+            <p className="text-center text-gray-600 font-calibri py-8">
+              No products in this category right now.
+            </p>
+          )}
         </div>
 
-        {/* Additional Info Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 mt-12 bg-gradient-to-b from-pink-100 to-pink-200 shadow-xl">
-          <h3 className="text-2xl font-bold mb-4 text-black text-center font-calibri text-lg">
-            Why Shop with ChibiBadminton !
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div>
-              <h4 className="font-semibold text-black mb-2 font-calibri text-md">Quality Guaranteed</h4>
-              <p className="text-sm text-gray-800 font-calibri text-lg">
+        {/* Why Shop Section */}
+        <section
+          className="bg-white rounded-xl shadow-lg p-6 md:p-8 mt-12 bg-gradient-to-r from-rose-50 to-rose-100 border border-rose-200"
+          aria-labelledby="why-shop-heading"
+        >
+          <h2 id="why-shop-heading" className="text-2xl font-bold mb-6 text-black text-center font-calibri">
+            Why Shop with ChibiBadminton
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center mb-3 text-white" aria-hidden>
+                <FaShieldAlt size={22} />
+              </div>
+              <h3 className="font-semibold text-black mb-2 font-calibri">Quality Guaranteed</h3>
+              <p className="text-sm text-gray-800 font-calibri max-w-xs mx-auto">
                 All products are carefully selected for quality and performance
               </p>
             </div>
-            <div>
-              <h4 className="font-semibold text-black mb-2 font-calibri text-md">Fast Shipping</h4>
-              <p className="text-sm text-gray-800 font-calibri text-lg">
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center mb-3 text-white" aria-hidden>
+                <FaTruck size={22} />
+              </div>
+              <h3 className="font-semibold text-black mb-2 font-calibri">Fast Shipping</h3>
+              <p className="text-sm text-gray-800 font-calibri max-w-xs mx-auto">
                 Quick and reliable delivery to get your gear fast
               </p>
             </div>
-            <div>
-              <h4 className="font-semibold text-black mb-2 font-calibri text-md">Expert Service</h4>
-              <p className="text-sm text-gray-800 font-calibri text-lg">
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center mb-3 text-white" aria-hidden>
+                <FaTools size={22} />
+              </div>
+              <h3 className="font-semibold text-black mb-2 font-calibri">Expert Service</h3>
+              <p className="text-sm text-gray-800 font-calibri max-w-xs mx-auto">
                 Professional stringing and equipment services available
               </p>
             </div>
           </div>
-        </div>
+        </section>
       </div>
 
       {/* Contact Form Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeModal}>
-          <div className="bg-gradient-to-r from-pink-100 to-pink-200 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between font-calibri">
-              <h2 className="text-2xl font-bold text-black font-huglove text-2xl">Contact Us</h2>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+          onClick={closeModal}
+          role="presentation"
+          aria-hidden="false"
+        >
+          <div
+            className="bg-gradient-to-r from-pink-100 to-pink-200 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="contact-modal-title"
+            aria-describedby={selectedProduct ? "contact-modal-product" : undefined}
+          >
+            <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-gray-200 px-6 py-4 flex items-center justify-between font-calibri z-10">
+              <h2 id="contact-modal-title" className="text-2xl font-bold text-black font-huglove">
+                Contact Us
+              </h2>
               <button
+                type="button"
                 onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                aria-label="Close contact form"
               >
-                <FaTimes size={24} className="text-gray-500 font-calibri text-md" />
+                <FaTimes size={24} className="font-calibri" />
               </button>
             </div>
 
             <div className="p-6">
               {selectedProduct && (
-                <div className="mb-6 p-4 bg-stone-50 rounded-lg font-calibri text-md">
-                  <p className="text-md text-gray-600 mb-1 font-calibri text-md">Product Inquiry:</p>
-                  <p className="font-semibold text-black font-calibri text-md">{selectedProduct.name}</p>
-                  <p className="text-rose-500 font-bold font-calibri text-md">${selectedProduct.price.toFixed(2)}</p>
+                <div id="contact-modal-product" className="mb-6 p-4 bg-white/80 rounded-lg border border-rose-100 font-calibri">
+                  <p className="text-sm text-gray-600 mb-1 font-calibri">Product Inquiry</p>
+                  <p className="font-semibold text-black font-calibri">{selectedProduct.name}</p>
+                  <p className="text-rose-600 font-bold font-calibri">${selectedProduct.price.toFixed(2)}</p>
                 </div>
               )}
 

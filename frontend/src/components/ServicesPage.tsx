@@ -305,7 +305,7 @@ const ServicesPage = () => {
 
 
   return (
-    <div className="w-full overflow-x-hidden min-h-screen font-calibri text-lg bg-gradient-to-r from-pink-100 to-pink-200">
+    <div className="w-full overflow-x-hidden min-h-screen font-calibri text-lg bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full">
         {/* Back Button */}
         <button
@@ -328,7 +328,7 @@ const ServicesPage = () => {
         </div>
 
         {/* Form Card */}
-        <div className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-xl shadow-2xl overflow-hidden max-w-7xl mx-auto">
+        <div className="bg-gradient-to-t from-rose-50 to-rose-100 rounded-xl shadow-2xl overflow-hidden max-w-7xl mx-auto">
           <div className="p-4 md:p-6 lg:p-8">
             <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
               {/* Personal Information Section */}
