@@ -1,8 +1,13 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { createError } from './errorHandler.js';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { createError } from "./errorHandler.js";
 
-export interface AuthRequest extends Request {
+export interface AuthRequest<
+  P = import("express-serve-static-core").ParamsDictionary,
+  ResBody = any,
+  ReqBody = any,
+  ReqQuery = any,
+> extends Request<P, ResBody, ReqBody, ReqQuery> {
   userId?: string;
   user?: {
     id: string;
@@ -10,22 +15,25 @@ export interface AuthRequest extends Request {
   };
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || "";
 
 export const authenticateToken = (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
   if (!token) {
-    throw createError('Access token required', 401);
+    throw createError("Access token required", 401);
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      userId: string;
+      email: string;
+    };
     req.userId = decoded.userId;
     req.user = {
       id: decoded.userId,
@@ -33,10 +41,10 @@ export const authenticateToken = (
     };
     next();
   } catch (error) {
-    throw createError('Invalid or expired token', 401);
+    throw createError("Invalid or expired token", 401);
   }
 };
 
 export const generateToken = (userId: string, email: string): string => {
-  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: "7d" });
 };
