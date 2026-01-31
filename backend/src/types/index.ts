@@ -1,10 +1,13 @@
 // User types
+export type UserRole = 'user' | 'admin' | 'super_admin';
+
 export interface User {
   id: string;
   name: string;
   email: string;
   phone?: string;
   password?: string; // Hashed password, should not be returned in responses
+  role: UserRole;
   rewardPoints: number;
   totalPointsEarned: number;
   totalPointsSpent: number;
@@ -17,6 +20,7 @@ export interface UserResponse {
   name: string;
   email: string;
   phone?: string;
+  role: UserRole;
   rewardPoints: number;
   totalPointsEarned: number;
   totalPointsSpent: number;

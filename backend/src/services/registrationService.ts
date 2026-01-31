@@ -122,3 +122,7 @@ export const getRegistrationByEventAndUser = async (
   );
   return registration || null;
 };
+
+export const getRegistrationsCount = async (): Promise<number> => {
+  return registrations.filter((reg) => reg.status !== 'cancelled').length;
+};

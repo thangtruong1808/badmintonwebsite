@@ -182,6 +182,18 @@ const Navbar: React.FC = () => {
                         <FaUser className="inline mr-2" size={14} />
                         My Profile
                       </Link>
+                      {(user.role === "admin" || user.role === "super_admin") && (
+                        <Link
+                          to="/dashboard"
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            setIsOpen(false);
+                          }}
+                          className="block px-4 py-2 text-gray-700 hover:bg-rose-50 transition-colors font-calibri"
+                        >
+                          Dashboard
+                        </Link>
+                      )}
                       <button
                         onClick={handleLogout}
                         className="w-full text-left px-4 py-2 text-gray-700 hover:bg-rose-50 transition-colors font-calibri"
@@ -266,16 +278,29 @@ const Navbar: React.FC = () => {
               pageName={<span>about-us</span>}
             />
             {user ? (
-              <Link
-                to="/profile"
-                onClick={() => {
-                  setIsOpen(false);
-                }}
-                className="font-huglove text-xl block py-3 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
-              >
-                <FaUser className="inline mr-2" size={14} />
-                Profile
-              </Link>
+              <>
+                <Link
+                  to="/profile"
+                  onClick={() => {
+                    setIsOpen(false);
+                  }}
+                  className="font-huglove text-xl block py-3 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
+                >
+                  <FaUser className="inline mr-2" size={14} />
+                  Profile
+                </Link>
+                {(user.role === "admin" || user.role === "super_admin") && (
+                  <Link
+                    to="/dashboard"
+                    onClick={() => {
+                      setIsOpen(false);
+                    }}
+                    className="font-huglove text-xl block py-3 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
+                  >
+                    Dashboard
+                  </Link>
+                )}
+              </>
             ) : (
               <NavItem to="/signin" pageName="sign-in" setIsOpen={setIsOpen} />
             )}

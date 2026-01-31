@@ -19,6 +19,10 @@ export const getUserTransactions = async (
   return transactions.filter((tx) => tx.userId === userId);
 };
 
+export const getRewardTransactionsCount = async (): Promise<number> => {
+  return transactions.length;
+};
+
 export const getUserEventHistory = async (userId: string): Promise<UserEventHistory[]> => {
   return eventHistory.filter((h) => {
     // Match by userId if available, or check through registrations

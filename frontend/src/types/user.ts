@@ -1,8 +1,11 @@
+export type UserRole = "user" | "admin" | "super_admin";
+
 export interface User {
   id: string;
   name: string;
   email: string;
   phone?: string;
+  role?: UserRole;
   rewardPoints: number;
   totalPointsEarned: number;
   totalPointsSpent: number;

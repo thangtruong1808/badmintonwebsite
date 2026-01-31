@@ -1,11 +1,12 @@
 import type { User, RewardPointTransaction, UserEventHistory } from "../types/user";
 
-// Sample logged-in user
+// Sample logged-in user (admin for dashboard access)
 export const mockCurrentUser: User = {
   id: "user-123",
   name: "Sample User",
   email: "john.doe@example.com",
   phone: "+61 400 123 456",
+  role: "admin",
   rewardPoints: 250, // Current available points
   totalPointsEarned: 500,
   totalPointsSpent: 250,

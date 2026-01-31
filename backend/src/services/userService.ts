@@ -9,6 +9,7 @@ let users: User[] = [
     email: 'john.doe@example.com',
     phone: '+61 400 123 456',
     password: '$2a$10$r5YkZLxK5Hh8JQyG8FqZ5OZ5KxKxKxKxKxKxKxKxKxKxKxKxKxK', // password: "password123"
+    role: 'admin',
     rewardPoints: 250,
     totalPointsEarned: 500,
     totalPointsSpent: 250,
@@ -29,10 +30,15 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
 export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
   const newUser: User = {
     ...userData,
+    role: userData.role ?? 'user',
     id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
   };
   users.push(newUser);
   return newUser;
+};
+
+export const getAllUsersCount = async (): Promise<number> => {
+  return users.length;
 };
 
 export const updateUser = async (

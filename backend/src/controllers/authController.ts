@@ -61,16 +61,17 @@ export const register = async (
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user (role defaults to 'user' in createUser)
     const user = await createUser({
       name,
       email,
       password: hashedPassword,
       phone,
+      role: 'user',
       rewardPoints: 0,
       totalPointsEarned: 0,
       totalPointsSpent: 0,
-      memberSince: new Date().toISOString(),
+      memberSince: new Date().toISOString().slice(0, 10),
     });
 
     // Generate token

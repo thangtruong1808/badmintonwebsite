@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -18,12 +18,16 @@ import FeaturedNewsPage from "./components/FeaturedNewsPage";
 import PlayPage from "./components/PlayPage";
 import NewsDetailPage from "./components/NewsDetailPage";
 import UserProfilePage from "./components/UserProfilePage/UserProfilePage";
+import DashboardPage from "./components/DashboardPage";
 
 function App() {
+  const location = useLocation();
+  const isDashboard = location.pathname === "/dashboard";
+
   return (
     <div className="min-h-screen flex flex-col transition-all duration-300 w-full overflow-x-hidden">
-      <Navbar />
-      <main className="flex-grow w-full pt-[56px] lg:pt-[72px] relative">
+      {!isDashboard && <Navbar />}
+      <main className={`flex-grow w-full relative ${isDashboard ? "" : "pt-[56px] lg:pt-[72px]"}`}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/play" element={<PlayPage />} />
@@ -39,11 +43,12 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/profile" element={<UserProfilePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/featured-news" element={<FeaturedNewsPage />} />
           <Route path="/featured-news/:id" element={<NewsDetailPage />} />
         </Routes>
       </main>
-      <Footer />
+      {!isDashboard && <Footer />}
     </div>
   );
 }
