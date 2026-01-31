@@ -188,8 +188,8 @@ chibibadminton/
 - **Backend returns CORS errors**  
   In the backend project, set `FRONTEND_URL` to your frontend URL (e.g. `https://badmintonwebsite.vercel.app`).
 
-- **Backend returns 404 on root or API routes**  
-  The backend uses **builds + routes** in `backend/vercel.json`: `builds` points to `dist/server.js` (@vercel/node), and `routes` sends all paths `/(.*)` to it. Confirm **Root Directory** is `backend`, **Build Command** is `npm run build`, and the build succeeds (so `dist/server.js` exists). Redeploy. Root URL should return `{ "status": "ok", "message": "ChibiBadminton API" }`.
+- **Backend returns 404 or build finishes in &lt;1s**  
+  Do **not** put `builds` or `routes` in `backend/vercel.json` — otherwise Vercel ignores the Project Build Command and `npm run build` never runs, so `dist/` is never created. Keep only `"buildCommand": "npm run build"` in vercel.json. Set **Build Command** to `npm run build` in Project Settings. Redeploy; the build should take several seconds (TypeScript compile). Root URL should then return `{ "status": "ok", "message": "ChibiBadminton API" }`.
 
 - **Backend: “Cannot read properties of undefined (reading 'fsPath')”**  
   In the backend project **Settings → General**, leave **Output Directory** empty. Ensure **Root Directory** is exactly `backend`. Redeploy. The API is served via `dist/server.js` (builds + routes in vercel.json).
