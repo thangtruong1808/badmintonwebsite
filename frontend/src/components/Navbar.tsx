@@ -128,7 +128,7 @@ const Navbar: React.FC = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center flex-1 justify-center min-w-0">
-          <div className="flex items-center space-x-1 xl:space-x-2 2xl:space-x-4 justify-center flex-nowrap whitespace-nowrap">
+          <div className="flex items-center space-x-1 2xl:space-x-1 justify-center flex-nowrap whitespace-nowrap">
             <NavItem
               to="/"
               setIsOpen={setIsOpen}

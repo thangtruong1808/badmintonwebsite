@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaUser,
   FaEnvelope,
@@ -10,6 +10,11 @@ import {
   FaExclamationCircle,
   FaPhone,
 } from "react-icons/fa";
+import { setCurrentUser } from "../utils/mockAuth";
+import type { User } from "../types/user";
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const AUTH_TOKEN_KEY = "chibibadminton_token";
 
 interface RegisterFormData {
   name: string;
@@ -24,6 +29,7 @@ interface FormErrors {
 }
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
   useEffect(() => {
     document.title = "ChibiBadminton - Register";
   }, []);
@@ -86,21 +92,51 @@ const RegisterPage = () => {
     setIsRegistering(true);
     setSubmitStatus({ type: null, message: "" });
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsRegistering(false);
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: registerData.name.trim(),
+          email: registerData.email.trim(),
+          phone: registerData.phone.trim() || undefined,
+          password: registerData.password,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        if (data.token) {
+          localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+        }
+        if (data.user) {
+          setCurrentUser(data.user as User);
+        }
+        setSubmitStatus({
+          type: "success",
+          message: "Account created successfully! You can now sign in.",
+        });
+        setRegisterData({
+          name: "",
+          email: "",
+          phone: "",
+          password: "",
+          confirmPassword: "",
+        });
+        setTimeout(() => navigate("/signin"), 1500);
+      } else {
+        setSubmitStatus({
+          type: "error",
+          message: data.message || "Registration failed. Please try again.",
+        });
+      }
+    } catch {
       setSubmitStatus({
-        type: "success",
-        message: "Account created successfully! You can now sign in.",
+        type: "error",
+        message: "Could not reach server. Please try again.",
       });
-      setRegisterData({
-        name: "",
-        email: "",
-        phone: "",
-        password: "",
-        confirmPassword: "",
-      });
-    }, 1500);
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
   return (
@@ -133,6 +169,7 @@ const RegisterPage = () => {
                   type="text"
                   id="register-name"
                   name="name"
+                  autoComplete="name"
                   value={registerData.name}
                   onChange={handleRegisterChange}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.name
@@ -162,6 +199,7 @@ const RegisterPage = () => {
                   type="email"
                   id="register-email"
                   name="email"
+                  autoComplete="email"
                   value={registerData.email}
                   onChange={handleRegisterChange}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.email
@@ -192,6 +230,7 @@ const RegisterPage = () => {
                   type="tel"
                   id="register-phone"
                   name="phone"
+                  autoComplete="tel"
                   value={registerData.phone}
                   onChange={handleRegisterChange}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg   ${registerErrors.phone
@@ -222,6 +261,7 @@ const RegisterPage = () => {
                     type={showPassword ? "text" : "password"}
                     id="register-password"
                     name="password"
+                    autoComplete="new-password"
                     value={registerData.password}
                     onChange={handleRegisterChange}
                     className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.password
@@ -261,6 +301,7 @@ const RegisterPage = () => {
                     type={showConfirmPassword ? "text" : "password"}
                     id="register-confirm-password"
                     name="confirmPassword"
+                    autoComplete="new-password"
                     value={registerData.confirmPassword}
                     onChange={handleRegisterChange}
                     className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.confirmPassword

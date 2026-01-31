@@ -10,9 +10,12 @@ import {
   FaCoins,
   FaTimes,
 } from "react-icons/fa";
-import { mockLogin } from "../utils/mockAuth";
+import { setCurrentUser } from "../utils/mockAuth";
 import { getUserEventHistory } from "../utils/rewardPointsService";
-import type { UserEventHistory } from "../types/user";
+import type { UserEventHistory, User } from "../types/user";
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const AUTH_TOKEN_KEY = "chibibadminton_token";
 
 interface SignInFormData {
   email: string;
@@ -74,39 +77,48 @@ const SignInPage = () => {
     setIsSigningIn(true);
     setSubmitStatus({ type: null, message: "" });
 
-    // Mock login
-    const user = mockLogin(signInData.email, signInData.password);
-
-    if (user) {
-      // Get unclaimed events
-      const history = getUserEventHistory(user.id);
-      const unclaimed = history.filter(
-        (h) => h.attendanceStatus === "attended" && !h.pointsClaimed
-      );
-      setUnclaimedEvents(unclaimed);
-
-      setIsSigningIn(false);
-      setSubmitStatus({
-        type: "success",
-        message: "Successfully signed in!",
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: signInData.email,
+          password: signInData.password,
+        }),
       });
-      setSignInData({ email: "", password: "" });
-
-      // Show reward modal if there are unclaimed points
-      if (unclaimed.length > 0) {
-        setShowRewardModal(true);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+        setCurrentUser(data.user as User);
+        const user = data.user as User;
+        const history = getUserEventHistory(user.id);
+        const unclaimed = history.filter(
+          (h) => h.attendanceStatus === "attended" && !h.pointsClaimed
+        );
+        setUnclaimedEvents(unclaimed);
+        setSubmitStatus({
+          type: "success",
+          message: "Successfully signed in!",
+        });
+        setSignInData({ email: "", password: "" });
+        if (unclaimed.length > 0) {
+          setShowRewardModal(true);
+        } else {
+          setTimeout(() => navigate("/profile"), 1500);
+        }
       } else {
-        // Redirect to profile after 1.5 seconds
-        setTimeout(() => {
-          navigate("/profile");
-        }, 1500);
+        setSubmitStatus({
+          type: "error",
+          message: data.message || "Invalid email or password. Please try again.",
+        });
       }
-    } else {
-      setIsSigningIn(false);
+    } catch {
       setSubmitStatus({
         type: "error",
-        message: "Invalid email or password. Please try again.",
+        message: "Could not reach server. Please try again.",
       });
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
@@ -145,6 +157,7 @@ const SignInPage = () => {
                   type="email"
                   id="signin-email"
                   name="email"
+                  autoComplete="email"
                   value={signInData.email}
                   onChange={handleSignInChange}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${signInErrors.email
@@ -175,6 +188,7 @@ const SignInPage = () => {
                     type={showPassword ? "text" : "password"}
                     id="signin-password"
                     name="password"
+                    autoComplete="current-password"
                     value={signInData.password}
                     onChange={handleSignInChange}
                     className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${signInErrors.password

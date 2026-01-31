@@ -1,0 +1,13 @@
+export { default as UsersSection } from "./sections/UsersSection";
+export { default as EventsSection } from "./sections/EventsSection";
+export { default as RegistrationsSection } from "./sections/RegistrationsSection";
+export { default as RewardTransactionsSection } from "./sections/RewardTransactionsSection";
+export { default as ProductsSection } from "./sections/ProductsSection";
+export { default as GallerySection } from "./sections/GallerySection";
+export { default as NewsSection } from "./sections/NewsSection";
+export { default as ReviewsSection } from "./sections/ReviewsSection";
+export { default as NewsletterSection } from "./sections/NewsletterSection";
+export { default as ContactMessagesSection } from "./sections/ContactMessagesSection";
+export { default as ServiceRequestsSection } from "./sections/ServiceRequestsSection";
+export { default as PaymentsSection } from "./sections/PaymentsSection";
+export { default as InvoicesSection } from "./sections/InvoicesSection";

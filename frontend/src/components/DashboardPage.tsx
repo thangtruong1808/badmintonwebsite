@@ -24,6 +24,21 @@ import {
 import ChibiLogo from "../assets/ChibiLogo.png";
 import { getCurrentUser, clearCurrentUser } from "../utils/mockAuth";
 import type { UserRole } from "../types/user";
+import {
+  UsersSection,
+  EventsSection,
+  RegistrationsSection,
+  RewardTransactionsSection,
+  ProductsSection,
+  GallerySection,
+  NewsSection,
+  ReviewsSection,
+  NewsletterSection,
+  ContactMessagesSection,
+  ServiceRequestsSection,
+  PaymentsSection,
+  InvoicesSection,
+} from "./Dashboard";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const AUTH_TOKEN_KEY = "chibibadminton_token";
@@ -88,6 +103,7 @@ const DashboardPage = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dbStatus, setDbStatus] = useState<{ connected: boolean; message?: string } | null>(null);
 
   useEffect(() => {
     document.title = "ChibiBadminton - Admin Dashboard";
@@ -124,6 +140,28 @@ const DashboardPage = () => {
 
     fetchStats().finally(() => setLoading(false));
   }, [navigate]);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (!user || !isAdmin(user.role)) return;
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (!token) {
+      setDbStatus({ connected: false, message: "Sign in via backend API to verify connection." });
+      return;
+    }
+    const checkDb = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/dashboard/db-test`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setDbStatus({ connected: data.connected === true, message: data.message });
+      } catch {
+        setDbStatus({ connected: false, message: "Could not reach API" });
+      }
+    };
+    checkDb();
+  }, []);
 
   const user = getCurrentUser();
   if (!user || !isAdmin(user.role)) {
@@ -281,20 +319,26 @@ const DashboardPage = () => {
               <p className="font-calibri text-gray-600 mb-6">
                 Admin overview for ChibiBadminton. Data aligns with database schema (users, events, registrations, reward_point_transactions, etc.).
               </p>
+              {dbStatus !== null && (
+                <div className={`mb-6 rounded-xl border p-4 font-calibri ${dbStatus.connected ? "border-green-200 bg-green-50 text-green-800" : "border-rose-200 bg-rose-50 text-rose-800"}`}>
+                  <span className="font-semibold">Database: </span>
+                  {dbStatus.connected ? "Connected" : dbStatus.message ?? "Connection failed"}
+                </div>
+              )}
               {loading && (
                 <p className="font-calibri text-gray-600">Loading stats…</p>
               )}
               {error && (
                 <p className="font-calibri text-rose-600 mb-4">{error}</p>
               )}
-              {!loading && stats && (
+              {!loading && (stats ?? MOCK_STATS) && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                   <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
                     <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
                       Total Users
                     </p>
                     <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {stats.usersCount}
+                      {(stats ?? MOCK_STATS).usersCount}
                     </p>
                   </div>
                   <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
@@ -302,7 +346,7 @@ const DashboardPage = () => {
                       Total Events
                     </p>
                     <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {stats.eventsCount}
+                      {(stats ?? MOCK_STATS).eventsCount}
                     </p>
                   </div>
                   <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
@@ -310,7 +354,7 @@ const DashboardPage = () => {
                       Registrations
                     </p>
                     <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {stats.registrationsCount}
+                      {(stats ?? MOCK_STATS).registrationsCount}
                     </p>
                   </div>
                   <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
@@ -318,7 +362,7 @@ const DashboardPage = () => {
                       Reward Transactions
                     </p>
                     <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {stats.rewardTransactionsCount}
+                      {(stats ?? MOCK_STATS).rewardTransactionsCount}
                     </p>
                   </div>
                 </div>
@@ -326,16 +370,19 @@ const DashboardPage = () => {
             </div>
           )}
 
-          {activeSection !== "overview" && (
-            <div className="bg-white rounded-xl shadow border border-gray-200 p-8">
-              <p className="font-calibri text-gray-600">
-                <strong className="capitalize text-gray-800">{activeSection.replace(/-/g, " ")}</strong> management will be available here. This section maps to the corresponding table(s) in the database schema (e.g. users, events, registrations, reward_point_transactions, products, gallery_photos, gallery_videos, news_articles, reviews, newsletter_subscriptions, contact_messages, service_requests, payments, invoices).
-              </p>
-              <p className="font-calibri text-gray-500 mt-4 text-sm">
-                Coming soon: list, create, edit, and delete actions.
-              </p>
-            </div>
-          )}
+          {activeSection === "users" && <UsersSection />}
+          {activeSection === "events" && <EventsSection />}
+          {activeSection === "registrations" && <RegistrationsSection />}
+          {activeSection === "reward-transactions" && <RewardTransactionsSection />}
+          {activeSection === "products" && <ProductsSection />}
+          {activeSection === "gallery" && <GallerySection />}
+          {activeSection === "news" && <NewsSection />}
+          {activeSection === "reviews" && <ReviewsSection />}
+          {activeSection === "newsletter" && <NewsletterSection />}
+          {activeSection === "contact-messages" && <ContactMessagesSection />}
+          {activeSection === "service-requests" && <ServiceRequestsSection />}
+          {activeSection === "payments" && <PaymentsSection />}
+          {activeSection === "invoices" && <InvoicesSection />}
         </main>
       </div>
     </div>

@@ -1,57 +1,143 @@
+import { v4 as uuidv4 } from 'uuid';
+import type { RowDataPacket } from 'mysql2';
 import type { User } from '../types/index.js';
 import { createError } from '../middleware/errorHandler.js';
+import pool from '../db/connection.js';
 
-// In-memory storage (replace with database later)
-let users: User[] = [
-  {
-    id: 'user-123',
-    name: 'Sample User',
-    email: 'john.doe@example.com',
-    phone: '+61 400 123 456',
-    password: '$2a$10$r5YkZLxK5Hh8JQyG8FqZ5OZ5KxKxKxKxKxKxKxKxKxKxKxKxKxK', // password: "password123"
-    role: 'admin',
-    rewardPoints: 250,
-    totalPointsEarned: 500,
-    totalPointsSpent: 250,
-    memberSince: '2024-01-15',
-  },
-];
+interface UserRow extends RowDataPacket {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  password: string;
+  role: string;
+  default_payment_method: string | null;
+  reward_points: number;
+  total_points_earned: number;
+  total_points_spent: number;
+  member_since: Date | string;
+  avatar: string | null;
+}
+
+function rowToUser(row: UserRow): User {
+  const memberSince = row.member_since instanceof Date
+    ? row.member_since.toISOString().slice(0, 10)
+    : String(row.member_since).slice(0, 10);
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone ?? undefined,
+    password: row.password,
+    role: row.role as User['role'],
+    rewardPoints: row.reward_points,
+    totalPointsEarned: row.total_points_earned,
+    totalPointsSpent: row.total_points_spent,
+    memberSince,
+    avatar: row.avatar ?? undefined,
+  };
+}
 
 export const getUserById = async (userId: string): Promise<User | null> => {
-  const user = users.find((u) => u.id === userId);
-  return user || null;
+  const [rows] = await pool.execute<UserRow[]>(
+    'SELECT * FROM users WHERE id = ?',
+    [userId]
+  );
+  if (!rows.length) return null;
+  return rowToUser(rows[0]);
 };
 
 export const getUserByEmail = async (email: string): Promise<User | null> => {
-  const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-  return user || null;
+  const [rows] = await pool.execute<UserRow[]>(
+    'SELECT * FROM users WHERE LOWER(email) = LOWER(?)',
+    [email]
+  );
+  if (!rows.length) return null;
+  return rowToUser(rows[0]);
 };
 
 export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
-  const newUser: User = {
-    ...userData,
-    role: userData.role ?? 'user',
-    id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-  };
-  users.push(newUser);
-  return newUser;
+  const id = uuidv4();
+  const role = userData.role ?? 'user';
+  const memberSince = userData.memberSince?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
+  await pool.execute(
+    `INSERT INTO users (
+      id, name, email, phone, password, role,
+      reward_points, total_points_earned, total_points_spent, member_since
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id,
+      userData.name,
+      userData.email,
+      userData.phone ?? null,
+      userData.password!,
+      role,
+      userData.rewardPoints ?? 0,
+      userData.totalPointsEarned ?? 0,
+      userData.totalPointsSpent ?? 0,
+      memberSince,
+    ]
+  );
+  const user = await getUserById(id);
+  if (!user) throw createError('Failed to create user', 500);
+  return user;
 };
 
 export const getAllUsersCount = async (): Promise<number> => {
-  return users.length;
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    'SELECT COUNT(*) AS count FROM users'
+  );
+  return Number(rows[0]?.count ?? 0);
 };
 
 export const updateUser = async (
   userId: string,
   updates: Partial<Omit<User, 'id' | 'email' | 'password'>>
 ): Promise<User | null> => {
-  const userIndex = users.findIndex((u) => u.id === userId);
-  if (userIndex === -1) {
-    return null;
-  }
+  const user = await getUserById(userId);
+  if (!user) return null;
 
-  users[userIndex] = { ...users[userIndex], ...updates };
-  return users[userIndex];
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  if (updates.name !== undefined) {
+    fields.push('name = ?');
+    values.push(updates.name);
+  }
+  if (updates.phone !== undefined) {
+    fields.push('phone = ?');
+    values.push(updates.phone);
+  }
+  if (updates.role !== undefined) {
+    fields.push('role = ?');
+    values.push(updates.role);
+  }
+  if (updates.rewardPoints !== undefined) {
+    fields.push('reward_points = ?');
+    values.push(updates.rewardPoints);
+  }
+  if (updates.totalPointsEarned !== undefined) {
+    fields.push('total_points_earned = ?');
+    values.push(updates.totalPointsEarned);
+  }
+  if (updates.totalPointsSpent !== undefined) {
+    fields.push('total_points_spent = ?');
+    values.push(updates.totalPointsSpent);
+  }
+  if (updates.memberSince !== undefined) {
+    fields.push('member_since = ?');
+    values.push(updates.memberSince.slice(0, 10));
+  }
+  if (updates.avatar !== undefined) {
+    fields.push('avatar = ?');
+    values.push(updates.avatar);
+  }
+  if (fields.length === 0) return user;
+  values.push(userId);
+  await pool.execute(
+    `UPDATE users SET ${fields.join(', ')} WHERE id = ?`,
+    values
+  );
+  return getUserById(userId);
 };
 
 export const updateUserPoints = async (
@@ -60,21 +146,21 @@ export const updateUserPoints = async (
   type: 'earned' | 'spent'
 ): Promise<User | null> => {
   const user = await getUserById(userId);
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
-  if (type === 'earned') {
-    user.rewardPoints += pointsChange;
-    user.totalPointsEarned += pointsChange;
-  } else {
-    user.rewardPoints -= pointsChange;
-    user.totalPointsSpent += pointsChange;
-  }
+  const rewardPoints = type === 'earned'
+    ? user.rewardPoints + pointsChange
+    : user.rewardPoints - pointsChange;
+  const totalPointsEarned = type === 'earned'
+    ? user.totalPointsEarned + pointsChange
+    : user.totalPointsEarned;
+  const totalPointsSpent = type === 'spent'
+    ? user.totalPointsSpent + pointsChange
+    : user.totalPointsSpent;
 
-  return await updateUser(userId, {
-    rewardPoints: user.rewardPoints,
-    totalPointsEarned: user.totalPointsEarned,
-    totalPointsSpent: user.totalPointsSpent,
+  return updateUser(userId, {
+    rewardPoints,
+    totalPointsEarned,
+    totalPointsSpent,
   });
 };
