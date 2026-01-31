@@ -79,8 +79,8 @@ The frontend calls the backend using the backend URL. You deploy frontend first,
    | **Project Name**  | e.g. `chibibadminton-api` |
    | **Root Directory** | Click **Edit**, then enter: `backend` |
    | **Framework Preset** | Other             |
-   | **Build Command**   | `npm run build`    |
-   | **Output Directory** | Leave **empty** or enter a single dot: `.` |
+   | **Build Command**   | `npm run vercel-build` (or `npm run build`) |
+   | **Output Directory** | Leave **empty** |
    | **Install Command**  | `npm install`     |
 
 4. **Environment variables** (required for API and DB):
@@ -189,7 +189,7 @@ chibibadminton/
   In the backend project, set `FRONTEND_URL` to your frontend URL (e.g. `https://badmintonwebsite.vercel.app`).
 
 - **Backend returns 404 or build finishes in &lt;1s**  
-  Do **not** put `builds` or `routes` in `backend/vercel.json` — otherwise Vercel ignores the Project Build Command and `npm run build` never runs, so `dist/` is never created. Keep only `"buildCommand": "npm run build"` in vercel.json. Set **Build Command** to `npm run build` in Project Settings. Redeploy; the build should take several seconds (TypeScript compile). Root URL should then return `{ "status": "ok", "message": "ChibiBadminton API" }`.
+  The backend must run `tsc` so `dist/server.js` exists. In **backend** Project Settings set **Build Command** to `npm run vercel-build` (backend/package.json has this script). Do **not** put `builds`/`routes` in backend/vercel.json. Redeploy; the build log should show install + build taking several seconds. Root URL should then return `{ "status": "ok", "message": "ChibiBadminton API" }`.
 
 - **Backend: “Cannot read properties of undefined (reading 'fsPath')”**  
   In the backend project **Settings → General**, leave **Output Directory** empty. Ensure **Root Directory** is exactly `backend`. Redeploy. The API is served via `dist/server.js` (builds + routes in vercel.json).
