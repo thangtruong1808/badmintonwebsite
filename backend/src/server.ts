@@ -24,6 +24,12 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root: so GET/HEAD https://your-api.vercel.app/ returns 200 (browsers and health checks)
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'ChibiBadminton API', health: '/health' });
+});
+app.head('/', (req, res) => res.status(200).end());
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'ChibiBadminton API is running' });
