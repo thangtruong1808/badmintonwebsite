@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { createError } from "./errorHandler.js";
+import { getAccessTokenCookieName } from "../utils/cookies.js";
 
 export interface AuthRequest<
   P = import("express-serve-static-core").ParamsDictionary,
@@ -26,7 +27,7 @@ const getJwtSecret = (): string => {
 
 /** Get access token expiry at runtime */
 const getAccessTokenExpiry = (): string => {
-  return process.env.ACCESS_TOKEN_EXPIRY || "2m";
+  return process.env.ACCESS_TOKEN_EXPIRY || "1m";
 };
 
 export const authenticateToken = (
@@ -34,8 +35,11 @@ export const authenticateToken = (
   res: Response,
   next: NextFunction,
 ): void => {
+  const cookieName = getAccessTokenCookieName();
+  const tokenFromCookie = req.cookies?.[cookieName];
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+  const tokenFromHeader = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+  const token = tokenFromCookie || tokenFromHeader;
 
   if (!token) {
     throw createError("Access token required", 401);
@@ -57,7 +61,7 @@ export const authenticateToken = (
   }
 };
 
-/** Short-lived access token (e.g. 15 min) for API auth */
+/** Short-lived access token (e.g. 1 min) for API auth */
 export const generateAccessToken = (userId: string, email: string): string => {
   return jwt.sign({ userId, email }, getJwtSecret(), { expiresIn: getAccessTokenExpiry() as any });
 };
@@ -70,11 +74,13 @@ export const generateToken = (userId: string, email: string): string => {
 export const getAccessTokenExpiresInSeconds = (): number => {
   const expiry = getAccessTokenExpiry();
   const match = expiry.match(/^(\d+)([smh])$/);
-  if (!match) return 15 * 60;
+  // Set to 1 minute for testing
+  if (!match) return 1 * 60;
   const [, num, unit] = match;
   const n = parseInt(num!, 10);
   if (unit === "s") return n;
   if (unit === "m") return n * 60;
   if (unit === "h") return n * 3600;
-  return 15 * 60;
+  // Set to 1 minute for testing
+  return 1 * 60;
 };

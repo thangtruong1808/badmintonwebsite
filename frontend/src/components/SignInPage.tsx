@@ -80,6 +80,7 @@ const SignInPage = () => {
     try {
       const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: signInData.email,
@@ -87,15 +88,8 @@ const SignInPage = () => {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok && data.user && data.accessToken && data.refreshToken && typeof data.expiresIn === "number") {
-        dispatch(
-          setCredentials({
-            user: data.user as User,
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken,
-            expiresIn: data.expiresIn,
-          })
-        );
+      if (res.ok && data.user) {
+        dispatch(setCredentials({ user: data.user as User }));
         const user = data.user as User;
         const history = getUserEventHistory(user.id);
         const unclaimed = history.filter(

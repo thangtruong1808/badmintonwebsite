@@ -25,7 +25,7 @@ import ChibiLogo from "../assets/ChibiLogo.png";
 import { getCurrentUser } from "../utils/mockAuth";
 import { useDispatch } from "react-redux";
 import { logout } from "../store/authSlice";
-import { apiFetch } from "../utils/api";
+import { apiFetch, API_BASE } from "../utils/api";
 import {
   UsersSection,
   EventsSection,
@@ -146,6 +146,18 @@ const DashboardPage = () => {
 
   const toggleSidebar = () => setSidebarOpen((o) => !o);
   const openMobileSidebar = () => setMobileSidebarOpen(true);
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+    } finally {
+      dispatch(logout());
+      navigate("/signin");
+    }
+  };
   const closeMobileSidebar = () => setMobileSidebarOpen(false);
   const selectSection = (id: DashboardSection) => {
     setActiveSection(id);
@@ -186,8 +198,7 @@ const DashboardPage = () => {
           <button
             type="button"
             onClick={() => {
-              dispatch(logout());
-              navigate("/signin");
+              handleLogout();
             }}
             className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-lg text-gray-700 hover:bg-rose-50 hover:text-rose-700 font-calibri text-base transition-colors ${sidebarOpen ? "justify-start" : "justify-center px-0"}`}
           >
@@ -244,8 +255,7 @@ const DashboardPage = () => {
           <button
             type="button"
             onClick={() => {
-              dispatch(logout());
-              navigate("/signin");
+              handleLogout();
               closeMobileSidebar();
             }}
             className="w-full flex items-center gap-3 px-4 py-3.5 rounded-lg text-gray-700 hover:bg-rose-50 hover:text-rose-700 font-calibri text-base transition-colors"

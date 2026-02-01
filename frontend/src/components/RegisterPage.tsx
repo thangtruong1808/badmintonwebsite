@@ -95,6 +95,7 @@ const RegisterPage = () => {
     try {
       const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: registerData.name.trim(),
@@ -104,15 +105,8 @@ const RegisterPage = () => {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok && data.user && data.accessToken && data.refreshToken && typeof data.expiresIn === "number") {
-        dispatch(
-          setCredentials({
-            user: data.user as User,
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken,
-            expiresIn: data.expiresIn,
-          })
-        );
+      if (res.ok && data.user) {
+        dispatch(setCredentials({ user: data.user as User }));
         setSubmitStatus({
           type: "success",
           message: "Account created successfully! You can now sign in.",

@@ -1,46 +1,32 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { selectAccessToken, selectExpiresAt, selectRefreshToken } from "../store/authSlice";
+import { selectUser } from "../store/authSlice";
 import { store } from "../store";
-import { updateTokens, logout } from "../store/authSlice";
+import { setCredentials, logout } from "../store/authSlice";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
-const VALIDATION_INTERVAL_MS = 60 * 1000; // Re-check every 60 seconds when user stays on page
+const VALIDATION_INTERVAL_MS = 60 * 1000;
 
 /**
- * Hook to validate and refresh access token on page navigation and periodically.
- * Proactively refreshes token if it expires within 1 minute.
- * When refresh token expires, logs user out and redirects to signin.
+ * Validates session via HTTP-only cookies: calls refresh to rotate tokens and get user.
+ * On 401 (expired refresh), forces logout and redirects to signin.
  */
 export function useTokenValidation() {
   const location = useLocation();
   const navigate = useNavigate();
-  const accessToken = useSelector(selectAccessToken);
-  const refreshToken = useSelector(selectRefreshToken);
-  const expiresAt = useSelector(selectExpiresAt);
+  const user = useSelector(selectUser);
   const isValidating = useRef(false);
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    if (!accessToken && !refreshToken) return;
+    if (!user) return;
     const id = setInterval(() => setTick((t) => t + 1), VALIDATION_INTERVAL_MS);
     return () => clearInterval(id);
-  }, [accessToken, refreshToken]);
+  }, [user]);
 
   useEffect(() => {
-    if (!accessToken || isValidating.current) return;
-
-    const now = Date.now();
-    const bufferMs = 60 * 1000; // 1 minute buffer
-
-    if (expiresAt && expiresAt > now + bufferMs) return;
-
-    if (!refreshToken) {
-      store.dispatch(logout());
-      navigate("/signin", { replace: true });
-      return;
-    }
+    if (!user || isValidating.current) return;
 
     isValidating.current = true;
 
@@ -48,34 +34,32 @@ export function useTokenValidation() {
       try {
         const res = await fetch(`${API_BASE}/api/auth/refresh`, {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken }),
+          body: JSON.stringify({}),
         });
 
         if (res.ok) {
           const data = await res.json();
-          if (data.accessToken && typeof data.expiresIn === "number") {
-            store.dispatch(
-              updateTokens({
-                accessToken: data.accessToken,
-                refreshToken: data.refreshToken,
-                expiresIn: data.expiresIn,
-              })
-            );
+          if (data.user) {
+            store.dispatch(setCredentials({ user: data.user }));
             return;
           }
         }
 
-        store.dispatch(logout());
-        navigate("/signin", { replace: true });
+        if (res.status === 401) {
+          await res.json().catch(() => ({}));
+          store.dispatch(logout());
+          window.dispatchEvent(new CustomEvent("auth:forceLogout"));
+          setTimeout(() => navigate("/signin", { replace: true }), 0);
+        }
       } catch {
-        store.dispatch(logout());
-        navigate("/signin", { replace: true });
+        // Network error: do not logout
       } finally {
         isValidating.current = false;
       }
     };
 
     doRefresh();
-  }, [location.pathname, accessToken, refreshToken, expiresAt, tick]);
+  }, [location.pathname, user, tick]);
 }

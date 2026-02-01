@@ -59,7 +59,7 @@ const UserProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="absolute inset-0 w-full overflow-x-hidden bg-gradient-to-b from-pink-100 to-pink-200">
+    <div className="absolute inset-0 w-full overflow-x-hidden bg-gradient-to-b from-rose-50 to-rose-100">
       <div className="container mx-auto px-4 pt-28 pb-6">
         {/* Profile Header */}
         <div className="mb-8">

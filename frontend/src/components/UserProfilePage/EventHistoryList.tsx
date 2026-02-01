@@ -106,7 +106,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-r from-rose-100 to-pink-200 rounded-xl p-6 shadow-lg">
+    <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-xl p-6 shadow-lg">
       <h2 className="text-2xl font-bold text-gray-900 mb-6 font-huglove">
         Events List
       </h2>

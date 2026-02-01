@@ -14,7 +14,7 @@ export async function createRefreshToken(userId: string): Promise<{ token: strin
   const expiresAt = new Date();
   
   // If REFRESH_TOKEN_EXPIRY_DAYS has a time suffix (m, h, d), parse accordingly
-  const envValue = process.env.REFRESH_TOKEN_EXPIRY_DAYS || "5m";
+  const envValue = process.env.REFRESH_TOKEN_EXPIRY_DAYS || "2m";
   const match = envValue.match(/^(\d+)([mhd]?)$/);
   
   if (match) {

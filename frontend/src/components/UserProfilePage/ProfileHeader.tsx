@@ -17,7 +17,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-rose-100 to-pink-200 rounded-xl p-6 md:p-8 shadow-lg">
+    <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-xl p-6 md:p-8 shadow-lg">
       <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
         {/* Avatar */}
         <div className="flex-shrink-0">

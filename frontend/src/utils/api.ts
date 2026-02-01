@@ -1,98 +1,52 @@
 import { store } from "../store";
-import { updateTokens, logout } from "../store/authSlice";
+import { setCredentials, logout } from "../store/authSlice";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-/** Get current access token; optionally refresh if expired or about to expire (1 min buffer) */
-async function getValidAccessToken(): Promise<string | null> {
-  const state = store.getState();
-  const accessToken = state.auth.accessToken;
-  const refreshToken = state.auth.refreshToken;
-  const expiresAt = state.auth.expiresAt;
-
-  const now = Date.now();
-  const bufferMs = 60 * 1000; // 1 min
-  if (accessToken && expiresAt && expiresAt > now + bufferMs) {
-    return accessToken;
-  }
-
-  if (!refreshToken) {
-    store.dispatch(logout());
-    return null;
-  }
-
-  try {
-    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok && data.accessToken && typeof data.expiresIn === "number") {
-      store.dispatch(updateTokens({
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
-        expiresIn: data.expiresIn,
-      }));
-      return data.accessToken;
-    }
-  } catch {
-    // network error
-  }
-  store.dispatch(logout());
-  return null;
-}
-
-export interface ApiOptions extends RequestInit {
-  /** If true, do not attach Authorization or attempt refresh (default false) */
-  skipAuth?: boolean;
-}
+const defaultInit: RequestInit = {
+  credentials: "include",
+};
 
 /**
- * Fetch with auth: adds Bearer token and refreshes on 401.
- * Use for API calls that require authentication.
+ * Fetch with auth: cookies (access token) sent automatically via credentials: 'include'.
+ * On 401, tries refresh (POST /api/auth/refresh with cookies); retries request on success.
+ * On refresh 401, forces logout and dispatches auth:forceLogout.
  */
-export async function apiFetch(path: string, options: ApiOptions = {}): Promise<Response> {
+export async function apiFetch(path: string, options: RequestInit & { skipAuth?: boolean } = {}): Promise<Response> {
   const { skipAuth, ...init } = options;
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
-  const token = skipAuth ? null : await getValidAccessToken();
   const headers = new Headers(init.headers);
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
+  if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
   }
-  let res = await fetch(url, { ...init, headers });
+  let res = await fetch(url, { ...defaultInit, ...init, headers });
 
   if (!skipAuth && res.status === 401) {
-    const state = store.getState();
-    const refreshToken = state.auth.refreshToken;
-    if (refreshToken) {
-      try {
-        const refreshRes = await fetch(`${API_BASE}/api/auth/refresh`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken }),
-        });
-        const refreshData = await refreshRes.json().catch(() => ({}));
-        if (refreshRes.ok && refreshData.accessToken && typeof refreshData.expiresIn === "number") {
-          store.dispatch(
-            updateTokens({
-              accessToken: refreshData.accessToken,
-              refreshToken: refreshData.refreshToken,
-              expiresIn: refreshData.expiresIn,
-            })
-          );
-          headers.set("Authorization", `Bearer ${refreshData.accessToken}`);
-          res = await fetch(url, { ...init, headers });
-        }
-      } catch {
+    try {
+      const refreshRes = await fetch(`${API_BASE}/api/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const refreshData = await refreshRes.json().catch(() => ({}));
+      if (refreshRes.ok && refreshData.user) {
+        store.dispatch(setCredentials({ user: refreshData.user }));
+        res = await fetch(url, { ...defaultInit, ...init, headers });
+      } else if (refreshRes.status === 401) {
         store.dispatch(logout());
+        window.dispatchEvent(new CustomEvent("auth:forceLogout"));
       }
-    } else {
-      store.dispatch(logout());
+    } catch {
+      // network error: do not logout
     }
   }
 
   return res;
+}
+
+export interface ApiOptions extends RequestInit {
+  skipAuth?: boolean;
 }
 
 export { API_BASE };

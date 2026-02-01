@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.js';
@@ -22,6 +23,7 @@ app.use(cors({
   origin: origin,
   credentials: true
 }));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

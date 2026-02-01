@@ -4,7 +4,9 @@ import { generateAccessToken, getAccessTokenExpiresInSeconds } from '../middlewa
 import { createError } from '../middleware/errorHandler.js';
 import { getUserByEmail, createUser, getUserById } from '../services/userService.js';
 import { createRefreshToken as createRefreshTokenRecord, findRefreshToken, deleteRefreshToken } from '../services/refreshTokenService.js';
+import { setAuthCookies, clearAuthCookies, getRefreshTokenCookieName } from '../utils/cookies.js';
 import type { LoginRequest, RegisterRequest, User, UserResponse } from '../types/index.js';
+import type { AuthRequest } from '../middleware/auth.js';
 
 function userToResponse(user: User): UserResponse {
   const { password: _, ...rest } = user;
@@ -34,15 +36,13 @@ export const login = async (
     }
 
     const accessToken = generateAccessToken(user.id, user.email);
-    const { token: refreshToken, expiresAt } = await createRefreshTokenRecord(user.id);
+    const { token: refreshToken } = await createRefreshTokenRecord(user.id);
     const expiresIn = getAccessTokenExpiresInSeconds();
 
+    setAuthCookies(res, accessToken, refreshToken);
     res.json({
       user: userToResponse(user),
-      accessToken,
-      refreshToken,
       expiresIn,
-      refreshExpiresAt: expiresAt.toISOString(),
     });
   } catch (error) {
     next(error);
@@ -77,15 +77,13 @@ export const register = async (
     });
 
     const accessToken = generateAccessToken(user.id, user.email);
-    const { token: refreshToken, expiresAt } = await createRefreshTokenRecord(user.id);
+    const { token: refreshToken } = await createRefreshTokenRecord(user.id);
     const expiresIn = getAccessTokenExpiresInSeconds();
 
+    setAuthCookies(res, accessToken, refreshToken);
     res.status(201).json({
       user: userToResponse(user),
-      accessToken,
-      refreshToken,
       expiresIn,
-      refreshExpiresAt: expiresAt.toISOString(),
     });
   } catch (error) {
     next(error);
@@ -93,42 +91,79 @@ export const register = async (
 };
 
 export const refresh = async (
-  req: Request<{}, {}, { refreshToken?: string }>,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { refreshToken: token } = req.body;
+    const cookieName = getRefreshTokenCookieName();
+    const token = req.cookies?.[cookieName] ?? req.body?.refreshToken;
     if (!token) {
-      res.status(401).json({ status: 'fail', message: 'Refresh token required' });
+      clearAuthCookies(res);
+      res.status(401).json({ status: 'fail', message: 'Refresh token required', forceLogout: true });
       return;
     }
 
     const found = await findRefreshToken(token);
     if (!found) {
-      res.status(401).json({ status: 'fail', message: 'Invalid or expired refresh token' });
+      clearAuthCookies(res);
+      res.status(401).json({ status: 'fail', message: 'Invalid or expired refresh token', forceLogout: true });
       return;
     }
 
     const user = await getUserById(found.userId);
     if (!user) {
       await deleteRefreshToken(token);
-      res.status(401).json({ status: 'fail', message: 'User not found' });
+      clearAuthCookies(res);
+      res.status(401).json({ status: 'fail', message: 'User not found', forceLogout: true });
       return;
     }
 
     await deleteRefreshToken(token);
-    const { token: newRefreshToken, expiresAt } = await createRefreshTokenRecord(user.id);
+    const { token: newRefreshToken } = await createRefreshTokenRecord(user.id);
     const accessToken = generateAccessToken(user.id, user.email);
     const expiresIn = getAccessTokenExpiresInSeconds();
 
+    setAuthCookies(res, accessToken, newRefreshToken);
     res.json({
       user: userToResponse(user),
-      accessToken,
-      refreshToken: newRefreshToken,
       expiresIn,
-      refreshExpiresAt: expiresAt.toISOString(),
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const me = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ status: 'fail', message: 'Not authenticated' });
+      return;
+    }
+    const user = await getUserById(userId);
+    if (!user) {
+      res.status(401).json({ status: 'fail', message: 'User not found' });
+      return;
+    }
+    res.json({ user: userToResponse(user) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    clearAuthCookies(res);
+    res.status(200).json({ status: 'ok', message: 'Logged out' });
   } catch (error) {
     next(error);
   }

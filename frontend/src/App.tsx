@@ -1,5 +1,9 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { useTokenValidation } from "./hooks/useTokenValidation";
+import { setCredentials, logout } from "./store/authSlice";
+import { API_BASE } from "./utils/api";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -25,9 +29,36 @@ import AdminRoute from "./components/AdminRoute";
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const isDashboard = location.pathname === "/dashboard";
 
   useTokenValidation();
+
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/me`, {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) dispatch(setCredentials({ user: data.user }));
+        } else {
+          dispatch(logout());
+        }
+      } catch {
+        dispatch(logout());
+      }
+    };
+    restoreSession();
+  }, [dispatch]);
+
+  useEffect(() => {
+    const handleForceLogout = () => navigate("/signin", { replace: true });
+    window.addEventListener("auth:forceLogout", handleForceLogout);
+    return () => window.removeEventListener("auth:forceLogout", handleForceLogout);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex flex-col transition-all duration-300 w-full overflow-x-hidden">

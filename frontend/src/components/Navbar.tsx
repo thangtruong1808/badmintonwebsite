@@ -4,7 +4,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { FaRegHeart, FaShoppingCart, FaUser, FaSignOutAlt } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
 import { getCartCount } from "../utils/cartStorage";
-import { selectUser, logout } from "../store/authSlice";
+import { API_BASE } from "../utils/api";
+import { selectUser, selectIsAuthenticated, logout } from "../store/authSlice";
 
 interface NavItemProps {
   to: string;
@@ -78,6 +79,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
 
 const Navbar: React.FC = () => {
   const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectUser);
   const [isOpen, setIsOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
@@ -101,10 +103,18 @@ const Navbar: React.FC = () => {
     };
   }, []);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    setShowUserMenu(false);
-    navigate("/signin");
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+    } finally {
+      dispatch(logout());
+      setShowUserMenu(false);
+      navigate("/signin");
+    }
   };
 
   return (
@@ -149,7 +159,7 @@ const Navbar: React.FC = () => {
               setIsOpen={setIsOpen}
               pageName={<span>about-us</span>}
             />
-            {user ? (
+            {isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
@@ -273,7 +283,7 @@ const Navbar: React.FC = () => {
               setIsOpen={setIsOpen}
               pageName={<span>about-us</span>}
             />
-            {user ? (
+            {isAuthenticated && user ? (
               <>
                 <Link
                   to="/profile"
