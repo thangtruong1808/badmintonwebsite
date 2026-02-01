@@ -61,6 +61,36 @@ export const authenticateToken = (
   }
 };
 
+/** Optional auth: sets req.userId/req.user if valid token, otherwise does nothing (no 401). Use for /me to avoid 401 when not logged in. */
+export const optionalAuthenticateToken = (
+  req: AuthRequest,
+  _res: Response,
+  next: NextFunction,
+): void => {
+  const cookieName = getAccessTokenCookieName();
+  const tokenFromCookie = req.cookies?.[cookieName];
+  const authHeader = req.headers["authorization"];
+  const tokenFromHeader = authHeader && authHeader.split(" ")[1];
+  const token = tokenFromCookie || tokenFromHeader;
+
+  if (!token) {
+    next();
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, getJwtSecret()) as {
+      userId: string;
+      email: string;
+    };
+    req.userId = decoded.userId;
+    req.user = { id: decoded.userId, email: decoded.email };
+  } catch {
+    // invalid or expired; leave req.userId/req.user undefined
+  }
+  next();
+};
+
 /** Short-lived access token (e.g. 1 min) for API auth */
 export const generateAccessToken = (userId: string, email: string): string => {
   return jwt.sign({ userId, email }, getJwtSecret(), { expiresIn: getAccessTokenExpiry() as any });

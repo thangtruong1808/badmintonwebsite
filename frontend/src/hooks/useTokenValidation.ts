@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectUser } from "../store/authSlice";
@@ -6,29 +6,35 @@ import { store } from "../store";
 import { setCredentials, logout } from "../store/authSlice";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
-const VALIDATION_INTERVAL_MS = 60 * 1000;
 
 /**
- * Validates session via HTTP-only cookies: calls refresh to rotate tokens and get user.
+ * Validates session: calls refresh ONLY when the user navigates (pathname changes), not on initial load after login.
+ * Refresh extends the refresh token expiry in DB so active users stay logged in.
+ * If user does nothing (no navigation, no app activity), token is not extended — e.g. running SELECT in MySQL does nothing.
  * On 401 (expired refresh), forces logout and redirects to signin.
  */
 export function useTokenValidation() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = useSelector(selectUser);
-  const isValidating = useRef(false);
-  const [tick, setTick] = useState(0);
+  const prevPathnameRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
-    const id = setInterval(() => setTick((t) => t + 1), VALIDATION_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [user]);
+    if (!user) {
+      prevPathnameRef.current = null;
+      return;
+    }
 
-  useEffect(() => {
-    if (!user || isValidating.current) return;
+    const pathname = location.pathname;
 
-    isValidating.current = true;
+    if (prevPathnameRef.current === null) {
+      prevPathnameRef.current = pathname;
+      return;
+    }
+
+    if (prevPathnameRef.current === pathname) return;
+
+    prevPathnameRef.current = pathname;
 
     const doRefresh = async () => {
       try {
@@ -43,11 +49,8 @@ export function useTokenValidation() {
           const data = await res.json();
           if (data.user) {
             store.dispatch(setCredentials({ user: data.user }));
-            return;
           }
-        }
-
-        if (res.status === 401) {
+        } else if (res.status === 401) {
           await res.json().catch(() => ({}));
           store.dispatch(logout());
           window.dispatchEvent(new CustomEvent("auth:forceLogout"));
@@ -55,11 +58,9 @@ export function useTokenValidation() {
         }
       } catch {
         // Network error: do not logout
-      } finally {
-        isValidating.current = false;
       }
     };
 
     doRefresh();
-  }, [location.pathname, user, tick]);
+  }, [user, location.pathname, navigate]);
 }

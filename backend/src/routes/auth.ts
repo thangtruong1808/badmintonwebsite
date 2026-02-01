@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { login, register, refresh, me, logout } from '../controllers/authController.js';
 import { validateLogin, validateRegister } from '../middleware/validation.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { optionalAuthenticateToken } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -28,10 +28,10 @@ router.post('/refresh', refresh);
 
 /**
  * @route   GET /api/auth/me
- * @desc    Return current user if access token cookie is valid
- * @access  Private
+ * @desc    Return current user if access token cookie is valid; 200 { user: null } when not logged in (no 401)
+ * @access  Public (returns 200 with user or null)
  */
-router.get('/me', authenticateToken, me);
+router.get('/me', optionalAuthenticateToken, me);
 
 /**
  * @route   POST /api/auth/logout

@@ -15,11 +15,13 @@ export const errorHandler = (
   const status = err.status || 'error';
   const message = err.message || 'Internal server error';
 
-  console.error('Error:', {
-    statusCode,
-    message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-  });
+  if (statusCode !== 401) {
+    console.error('Error:', {
+      statusCode,
+      message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    });
+  }
 
   res.status(statusCode).json({
     status,

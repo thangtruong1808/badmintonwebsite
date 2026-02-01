@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { generateAccessToken, getAccessTokenExpiresInSeconds } from '../middleware/auth.js';
 import { createError } from '../middleware/errorHandler.js';
 import { getUserByEmail, createUser, getUserById } from '../services/userService.js';
-import { createRefreshToken as createRefreshTokenRecord, findRefreshToken, deleteRefreshToken } from '../services/refreshTokenService.js';
+import { createRefreshToken as createRefreshTokenRecord, findRefreshToken, deleteRefreshToken, extendRefreshTokenExpiry } from '../services/refreshTokenService.js';
 import { setAuthCookies, clearAuthCookies, getRefreshTokenCookieName } from '../utils/cookies.js';
 import type { LoginRequest, RegisterRequest, User, UserResponse } from '../types/index.js';
 import type { AuthRequest } from '../middleware/auth.js';
@@ -119,12 +119,12 @@ export const refresh = async (
       return;
     }
 
-    await deleteRefreshToken(token);
-    const { token: newRefreshToken } = await createRefreshTokenRecord(user.id);
+    // Reuse the same refresh token; extend its expiry on activity so active users stay logged in.
+    await extendRefreshTokenExpiry(token);
     const accessToken = generateAccessToken(user.id, user.email);
     const expiresIn = getAccessTokenExpiresInSeconds();
 
-    setAuthCookies(res, accessToken, newRefreshToken);
+    setAuthCookies(res, accessToken, token);
     res.json({
       user: userToResponse(user),
       expiresIn,
@@ -142,12 +142,12 @@ export const me = async (
   try {
     const userId = req.userId;
     if (!userId) {
-      res.status(401).json({ status: 'fail', message: 'Not authenticated' });
+      res.status(200).json({ user: null });
       return;
     }
     const user = await getUserById(userId);
     if (!user) {
-      res.status(401).json({ status: 'fail', message: 'User not found' });
+      res.status(200).json({ user: null });
       return;
     }
     res.json({ user: userToResponse(user) });
