@@ -100,18 +100,21 @@ export const refresh = async (
   try {
     const { refreshToken: token } = req.body;
     if (!token) {
-      return res.status(401).json({ status: 'fail', message: 'Refresh token required' });
+      res.status(401).json({ status: 'fail', message: 'Refresh token required' });
+      return;
     }
 
     const found = await findRefreshToken(token);
     if (!found) {
-      return res.status(401).json({ status: 'fail', message: 'Invalid or expired refresh token' });
+      res.status(401).json({ status: 'fail', message: 'Invalid or expired refresh token' });
+      return;
     }
 
     const user = await getUserById(found.userId);
     if (!user) {
       await deleteRefreshToken(token);
-      return res.status(401).json({ status: 'fail', message: 'User not found' });
+      res.status(401).json({ status: 'fail', message: 'User not found' });
+      return;
     }
 
     await deleteRefreshToken(token);

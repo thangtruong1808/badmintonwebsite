@@ -83,12 +83,6 @@ const ResetPasswordPage = () => {
         {/* Form Card */}
         <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-r from-rose-50 to-rose-100">
           <div className="p-8 md:p-10">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 font-calibri text-lg">
-              <p className="text-sm text-blue-800 font-calibri text-lg">
-                Enter your email address and we'll send you a link to reset your
-                password.
-              </p>
-            </div>
 
             <form onSubmit={handleResetSubmit} className="space-y-6">
               {/* Email Field */}
@@ -151,20 +145,21 @@ const ResetPasswordPage = () => {
 
             {/* Back to Sign In Link */}
             <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+              <span className="text-gray-500 text-md font-medium font-calibri text-lg text-rose-500">Remember your password? </span>
               <Link
                 to="/signin"
-                className="text-rose-500 hover:text-rose-600 text-sm font-medium font-calibri text-lg"
+                className="text-rose-500 hover:text-rose-600 text-md font-medium font-calibri text-lg"
               >
-                ← Back to Sign In
+                <span className="text-rose-500 hover:text-rose-600 hover:underline">← Back to Sign In</span>
               </Link>
             </div>
 
             {/* Authenticated / Secure Message */}
-            <div className="mt-4 w-full bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col items-center text-gray-500 text-xs">
+            <div className="w-full  rounded-lg p-4 flex flex-col items-center text-gray-500 text-md ">
               <FaShieldAlt className="text-rose-500 mb-2" size={20} />
-              <p className="text-center leading-relaxed font-calibri text-md font-semibold">
+              <span className="text-center leading-relaxed font-calibri text-md">
                 Your information is securely encrypted. We never share your data with third parties.
-              </p>
+              </span>
             </div>
 
 

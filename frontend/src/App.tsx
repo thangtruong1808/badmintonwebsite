@@ -1,4 +1,5 @@
 import { Routes, Route, useLocation } from "react-router-dom";
+import { useTokenValidation } from "./hooks/useTokenValidation";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -25,6 +26,8 @@ import AdminRoute from "./components/AdminRoute";
 function App() {
   const location = useLocation();
   const isDashboard = location.pathname === "/dashboard";
+
+  useTokenValidation();
 
   return (
     <div className="min-h-screen flex flex-col transition-all duration-300 w-full overflow-x-hidden">

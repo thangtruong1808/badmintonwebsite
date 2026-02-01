@@ -101,16 +101,12 @@ const SignInPage = () => {
         const unclaimed = history.filter(
           (h) => h.attendanceStatus === "attended" && !h.pointsClaimed
         );
-        setUnclaimedEvents(unclaimed);
-        setSubmitStatus({
-          type: "success",
-          message: "Successfully signed in!",
-        });
         setSignInData({ email: "", password: "" });
         if (unclaimed.length > 0) {
+          setUnclaimedEvents(unclaimed);
           setShowRewardModal(true);
         } else {
-          setTimeout(() => navigate("/profile"), 1500);
+          navigate("/profile");
         }
       } else {
         setSubmitStatus({
@@ -139,11 +135,6 @@ const SignInPage = () => {
           <p className="text-gray-600 text-lg">
             Sign in to your account to continue
           </p>
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800 font-calibri">
-              <strong>Demo Mode:</strong> Enter any email and password (min. 6 characters) to sign in.
-            </p>
-          </div>
         </div>
 
         {/* Form Card */}
@@ -234,11 +225,17 @@ const SignInPage = () => {
               <button
                 type="submit"
                 disabled={isSigningIn}
-                className={`w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-lg ${isSigningIn ? "opacity-50 cursor-not-allowed" : ""
+                className={`w-full flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-lg ${isSigningIn ? "opacity-90 cursor-wait" : ""
                   }`}
               >
-                {isSigningIn ? <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span className="font-calibri text-lg">Signing In...</span></> : "Sign In"}
+                {isSigningIn ? (
+                  <>
+                    <span className="animate-spin inline-block h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                    <span>Signing in...</span>
+                  </>
+                ) : (
+                  "Sign In"
+                )}
               </button>
 
               {/* Submit Status */}

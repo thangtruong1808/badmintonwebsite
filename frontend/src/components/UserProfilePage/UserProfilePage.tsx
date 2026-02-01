@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../../utils/mockAuth";
 import {
   getUserTransactions,
@@ -11,7 +10,6 @@ import TransactionHistory from "./TransactionHistory";
 import EventHistoryList from "./EventHistoryList";
 
 const UserProfilePage: React.FC = () => {
-  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<RewardPointTransaction[]>([]);
   const [eventHistory, setEventHistory] = useState<UserEventHistory[]>([]);
