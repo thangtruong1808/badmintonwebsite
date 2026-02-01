@@ -42,6 +42,27 @@ CREATE INDEX idx_users_member_since ON users(member_since);
 CREATE INDEX idx_users_created_at ON users(created_at);
 
 -- =====================================================
+-- Table: refresh_tokens
+-- Stores refresh tokens for JWT auth (access token is stateless)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    token_hash VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_refresh_token_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+) ENGINE=INNODB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
+CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
+CREATE INDEX idx_refresh_tokens_token_hash ON refresh_tokens(token_hash);
+
+-- =====================================================
 -- Table: user_shipping_addresses
 -- Stores optional shipping addresses for users
 -- =====================================================
@@ -78,6 +99,8 @@ CREATE INDEX idx_shipping_address_created_at ON user_shipping_addresses(created_
 CREATE INDEX idx_shipping_address_updated_at ON user_shipping_addresses(updated_at);
 CREATE INDEX idx_shipping_addresses_city ON user_shipping_addresses(city);
 CREATE INDEX idx_shipping_addresses_country ON user_shipping_addresses(country);
+
+
 -- =====================================================
 -- Table: events
 -- Stores social events and tournaments

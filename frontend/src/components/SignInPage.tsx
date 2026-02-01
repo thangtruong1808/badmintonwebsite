@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import {
   FaEnvelope,
   FaLock,
@@ -10,12 +11,10 @@ import {
   FaCoins,
   FaTimes,
 } from "react-icons/fa";
-import { setCurrentUser } from "../utils/mockAuth";
+import { setCredentials } from "../store/authSlice";
 import { getUserEventHistory } from "../utils/rewardPointsService";
 import type { UserEventHistory, User } from "../types/user";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
-const AUTH_TOKEN_KEY = "chibibadminton_token";
+import { API_BASE } from "../utils/api";
 
 interface SignInFormData {
   email: string;
@@ -27,11 +26,12 @@ interface FormErrors {
 }
 
 const SignInPage = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   useEffect(() => {
     document.title = "ChibiBadminton - Sign In";
   }, []);
-
-  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [signInData, setSignInData] = useState<SignInFormData>({
     email: "",
@@ -87,9 +87,15 @@ const SignInPage = () => {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        localStorage.setItem(AUTH_TOKEN_KEY, data.token);
-        setCurrentUser(data.user as User);
+      if (res.ok && data.user && data.accessToken && data.refreshToken && typeof data.expiresIn === "number") {
+        dispatch(
+          setCredentials({
+            user: data.user as User,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            expiresIn: data.expiresIn,
+          })
+        );
         const user = data.user as User;
         const history = getUserEventHistory(user.id);
         const unclaimed = history.filter(
@@ -123,7 +129,7 @@ const SignInPage = () => {
   };
 
   return (
-    <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-pink-100 to-pink-200 px-4 py-12 flex items-center justify-center">
+    <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-rose-50 to-rose-100 px-4 py-12 flex items-center justify-center">
       <div className="w-full max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -141,7 +147,7 @@ const SignInPage = () => {
         </div>
 
         {/* Form Card */}
-        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-l from-pink-100 to-pink-200">
+        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-l from-rose-50 to-rose-100">
           <div className="p-8 md:p-10">
             <form onSubmit={handleSignInSubmit} className="space-y-6">
               {/* Email Field */}

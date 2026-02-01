@@ -68,7 +68,7 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-pink-100 to-pink-200 px-4 py-12 flex items-center justify-center">
+    <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-rose-50 to-rose-100 px-4 py-12 flex items-center justify-center">
       <div className="w-full max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -81,7 +81,7 @@ const ResetPasswordPage = () => {
         </div>
 
         {/* Form Card */}
-        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-r from-pink-100 to-pink-200">
+        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-r from-rose-50 to-rose-100">
           <div className="p-8 md:p-10">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 font-calibri text-lg">
               <p className="text-sm text-blue-800 font-calibri text-lg">

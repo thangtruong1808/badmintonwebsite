@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import {
   FaUser,
   FaEnvelope,
@@ -10,11 +11,9 @@ import {
   FaExclamationCircle,
   FaPhone,
 } from "react-icons/fa";
-import { setCurrentUser } from "../utils/mockAuth";
+import { setCredentials } from "../store/authSlice";
 import type { User } from "../types/user";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
-const AUTH_TOKEN_KEY = "chibibadminton_token";
+import { API_BASE } from "../utils/api";
 
 interface RegisterFormData {
   name: string;
@@ -29,6 +28,7 @@ interface FormErrors {
 }
 
 const RegisterPage = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   useEffect(() => {
     document.title = "ChibiBadminton - Register";
@@ -104,13 +104,15 @@ const RegisterPage = () => {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        if (data.token) {
-          localStorage.setItem(AUTH_TOKEN_KEY, data.token);
-        }
-        if (data.user) {
-          setCurrentUser(data.user as User);
-        }
+      if (res.ok && data.user && data.accessToken && data.refreshToken && typeof data.expiresIn === "number") {
+        dispatch(
+          setCredentials({
+            user: data.user as User,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            expiresIn: data.expiresIn,
+          })
+        );
         setSubmitStatus({
           type: "success",
           message: "Account created successfully! You can now sign in.",
@@ -140,7 +142,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-pink-100 to-pink-200 px-4 py-12 flex items-center justify-center">
+    <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-rose-50 to-rose-100 px-4 py-12 flex items-center justify-center">
       <div className="w-full max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -153,7 +155,7 @@ const RegisterPage = () => {
         </div>
 
         {/* Form Card */}
-        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-r from-pink-100 to-pink-200">
+        <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-r from-rose-50 to-rose-100">
           <div className="p-8 md:p-10">
             <form onSubmit={handleRegisterSubmit} className="space-y-6">
               {/* Name Field */}

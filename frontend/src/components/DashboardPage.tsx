@@ -22,8 +22,10 @@ import {
   FaUser,
 } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
-import { getCurrentUser, clearCurrentUser } from "../utils/mockAuth";
-import type { UserRole } from "../types/user";
+import { getCurrentUser } from "../utils/mockAuth";
+import { useDispatch } from "react-redux";
+import { logout } from "../store/authSlice";
+import { apiFetch } from "../utils/api";
 import {
   UsersSection,
   EventsSection,
@@ -40,8 +42,6 @@ import {
   InvoicesSection,
 } from "./Dashboard";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
-const AUTH_TOKEN_KEY = "chibibadminton_token";
 
 interface DashboardStats {
   usersCount: number;
@@ -56,9 +56,6 @@ const MOCK_STATS: DashboardStats = {
   registrationsCount: 0,
   rewardTransactionsCount: 0,
 };
-
-const isAdmin = (role?: UserRole): boolean =>
-  role === "admin" || role === "super_admin";
 
 // Sidebar sections aligned to schema (users, events, registrations, reward_point_transactions, products, gallery, news, reviews, newsletter, contact_messages, service_requests, payments, invoices)
 type DashboardSection =
@@ -96,6 +93,7 @@ const SIDEBAR_ITEMS: { id: DashboardSection; label: string; icon: React.ReactNod
 ];
 
 const DashboardPage = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -110,50 +108,33 @@ const DashboardPage = () => {
   }, []);
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (!user || !isAdmin(user.role)) {
-      navigate("/", { replace: true });
-      return;
-    }
-
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
     const fetchStats = async () => {
       setLoading(true);
       setError(null);
-      if (token) {
-        try {
-          const res = await fetch(`${API_BASE}/api/dashboard/stats`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (res.ok) {
-            const data = await res.json();
-            setStats(data);
-            return;
-          }
-          setError("Could not load dashboard stats. Showing mock data.");
-        } catch {
-          setError("Could not reach the server. Showing mock data.");
+      try {
+        const res = await apiFetch("/api/dashboard/stats");
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+          return;
         }
+        setError("Could not load dashboard stats. Showing mock data.");
+      } catch {
+        setError("Could not reach the server. Showing mock data.");
       }
       setStats(MOCK_STATS);
     };
 
     fetchStats().finally(() => setLoading(false));
-  }, [navigate]);
+  }, []);
+
+  const user = getCurrentUser();
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (!user || !isAdmin(user.role)) return;
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (!token) {
-      setDbStatus({ connected: false, message: "Sign in via backend API to verify connection." });
-      return;
-    }
+    if (!user) return;
     const checkDb = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/dashboard/db-test`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await apiFetch("/api/dashboard/db-test");
         const data = await res.json();
         setDbStatus({ connected: data.connected === true, message: data.message });
       } catch {
@@ -161,12 +142,7 @@ const DashboardPage = () => {
       }
     };
     checkDb();
-  }, []);
-
-  const user = getCurrentUser();
-  if (!user || !isAdmin(user.role)) {
-    return null;
-  }
+  }, [user]);
 
   const toggleSidebar = () => setSidebarOpen((o) => !o);
   const openMobileSidebar = () => setMobileSidebarOpen(true);
@@ -210,7 +186,7 @@ const DashboardPage = () => {
           <button
             type="button"
             onClick={() => {
-              clearCurrentUser();
+              dispatch(logout());
               navigate("/signin");
             }}
             className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-lg text-gray-700 hover:bg-rose-50 hover:text-rose-700 font-calibri text-base transition-colors ${sidebarOpen ? "justify-start" : "justify-center px-0"}`}
@@ -268,7 +244,7 @@ const DashboardPage = () => {
           <button
             type="button"
             onClick={() => {
-              clearCurrentUser();
+              dispatch(logout());
               navigate("/signin");
               closeMobileSidebar();
             }}
@@ -306,7 +282,7 @@ const DashboardPage = () => {
             <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
               <FaUser className="text-gray-500" size={16} />
               <span className="font-calibri text-sm text-gray-700 truncate max-w-[120px]">
-                {user.name}
+                {user?.name || "User"}
               </span>
             </div>
           </div>

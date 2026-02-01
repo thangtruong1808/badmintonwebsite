@@ -1,33 +1,23 @@
 import type { User } from "../types/user";
+import { store } from "../store";
+import { logout, updateUser } from "../store/authSlice";
 
-const CURRENT_USER_KEY = "chibibadminton_current_user";
-const AUTH_TOKEN_KEY = "chibibadminton_token";
-
-// Get current logged-in user
+/** Get current user from Redux store (replaces React Context) */
 export const getCurrentUser = (): User | null => {
-  try {
-    const userStr = localStorage.getItem(CURRENT_USER_KEY);
-    if (userStr) {
-      return JSON.parse(userStr);
-    }
-  } catch (error) {
-    console.error("Error getting current user:", error);
-  }
-  return null;
+  return store.getState().auth.user;
 };
 
-// Set current user
+/** Update current user in store (e.g. after claiming points). Use setCredentials after login/register. */
 export const setCurrentUser = (user: User): void => {
-  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+  store.dispatch(updateUser(user));
 };
 
-// Clear current user (logout)
+/** Clear auth state (logout) */
 export const clearCurrentUser = (): void => {
-  localStorage.removeItem(CURRENT_USER_KEY);
-  localStorage.removeItem(AUTH_TOKEN_KEY);
+  store.dispatch(logout());
 };
 
-// Check if user is logged in
+/** Check if user is logged in */
 export const isUserLoggedIn = (): boolean => {
   return getCurrentUser() !== null;
 };

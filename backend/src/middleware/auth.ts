@@ -15,7 +15,19 @@ export interface AuthRequest<
   };
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || "";
+/** Get JWT secret at runtime (after dotenv loads) */
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET must be defined in environment variables");
+  }
+  return secret;
+};
+
+/** Get access token expiry at runtime */
+const getAccessTokenExpiry = (): string => {
+  return process.env.ACCESS_TOKEN_EXPIRY || "2m";
+};
 
 export const authenticateToken = (
   req: AuthRequest,
@@ -30,7 +42,7 @@ export const authenticateToken = (
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    const decoded = jwt.verify(token, getJwtSecret()) as {
       userId: string;
       email: string;
     };
@@ -41,10 +53,28 @@ export const authenticateToken = (
     };
     next();
   } catch (error) {
-    throw createError("Invalid or expired token", 401);
+    throw createError("Invalid or expired access token", 401);
   }
 };
 
+/** Short-lived access token (e.g. 15 min) for API auth */
+export const generateAccessToken = (userId: string, email: string): string => {
+  return jwt.sign({ userId, email }, getJwtSecret(), { expiresIn: getAccessTokenExpiry() as any });
+};
+
+/** Legacy: single token (use generateAccessToken + refresh token instead) */
 export const generateToken = (userId: string, email: string): string => {
-  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ userId, email }, getJwtSecret(), { expiresIn: "7d" });
+};
+
+export const getAccessTokenExpiresInSeconds = (): number => {
+  const expiry = getAccessTokenExpiry();
+  const match = expiry.match(/^(\d+)([smh])$/);
+  if (!match) return 15 * 60;
+  const [, num, unit] = match;
+  const n = parseInt(num!, 10);
+  if (unit === "s") return n;
+  if (unit === "m") return n * 60;
+  if (unit === "h") return n * 3600;
+  return 15 * 60;
 };

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import { FaRegHeart, FaShoppingCart, FaUser, FaSignOutAlt } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
 import { getCartCount } from "../utils/cartStorage";
-import { getCurrentUser, clearCurrentUser } from "../utils/mockAuth";
+import { selectUser, logout } from "../store/authSlice";
 
 interface NavItemProps {
   to: string;
@@ -76,9 +77,10 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
 };
 
 const Navbar: React.FC = () => {
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
   const [isOpen, setIsOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const [user, setUser] = useState(getCurrentUser());
   const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
 
@@ -99,14 +101,8 @@ const Navbar: React.FC = () => {
     };
   }, []);
 
-  // Update user when it changes
-  useEffect(() => {
-    setUser(getCurrentUser());
-  }, [navigate]);
-
   const handleLogout = () => {
-    clearCurrentUser();
-    setUser(null);
+    dispatch(logout());
     setShowUserMenu(false);
     navigate("/signin");
   };

@@ -21,17 +21,13 @@ const UserProfilePage: React.FC = () => {
     document.title = "ChibiBadminton - My Profile";
 
     const currentUser = getCurrentUser();
-    if (!currentUser) {
-      // Redirect to sign-in if not logged in
-      navigate("/signin");
-      return;
-    }
-
     setUser(currentUser);
-    setTransactions(getUserTransactions(currentUser.id));
-    setEventHistory(getUserEventHistory(currentUser.id));
+    if (currentUser) {
+      setTransactions(getUserTransactions(currentUser.id));
+      setEventHistory(getUserEventHistory(currentUser.id));
+    }
     setLoading(false);
-  }, [navigate]);
+  }, []);
 
   const handlePointsClaimed = () => {
     // Refresh user data and transactions
@@ -55,7 +51,13 @@ const UserProfilePage: React.FC = () => {
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="absolute inset-0 w-full bg-gradient-to-b from-pink-100 to-pink-200 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 font-calibri">No user data available.</p>
+        </div>
+      </div>
+    );
   }
 
   return (

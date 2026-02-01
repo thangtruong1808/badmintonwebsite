@@ -19,6 +19,8 @@ import PlayPage from "./components/PlayPage";
 import NewsDetailPage from "./components/NewsDetailPage";
 import UserProfilePage from "./components/UserProfilePage/UserProfilePage";
 import DashboardPage from "./components/DashboardPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
   const location = useLocation();
@@ -29,6 +31,7 @@ function App() {
       {!isDashboard && <Navbar />}
       <main className={`flex-grow w-full relative ${isDashboard ? "" : "pt-[56px] lg:pt-[72px]"}`}>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/play" element={<PlayPage />} />
           <Route path="/events" element={<EventsPage />} />
@@ -39,13 +42,33 @@ function App() {
           <Route path="/contact-us" element={<ContactUsPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
+          <Route path="/featured-news" element={<FeaturedNewsPage />} />
+          <Route path="/featured-news/:id" element={<NewsDetailPage />} />
+
+          {/* Auth Routes (public) */}
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/profile" element={<UserProfilePage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/featured-news" element={<FeaturedNewsPage />} />
-          <Route path="/featured-news/:id" element={<NewsDetailPage />} />
+
+          {/* Protected Routes (require login) */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Routes (require admin/super_admin role) */}
+          <Route
+            path="/dashboard"
+            element={
+              <AdminRoute>
+                <DashboardPage />
+              </AdminRoute>
+            }
+          />
         </Routes>
       </main>
       {!isDashboard && <Footer />}

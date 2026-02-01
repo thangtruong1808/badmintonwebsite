@@ -112,6 +112,9 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  token: string;
   user: UserResponse;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  refreshExpiresAt?: string;
 }
