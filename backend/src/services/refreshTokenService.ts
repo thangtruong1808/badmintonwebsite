@@ -46,7 +46,7 @@ export async function createRefreshToken(userId: string): Promise<{ token: strin
 
 interface TokenRow extends RowDataPacket {
   user_id: string;
-  expires_at: Date;
+  expires_at: Date | string;
 }
 
 export async function findRefreshToken(token: string): Promise<{ userId: string; expiresAt: Date } | null> {
@@ -57,12 +57,11 @@ export async function findRefreshToken(token: string): Promise<{ userId: string;
   );
   if (!rows.length) return null;
   const row = rows[0];
+  const raw = row.expires_at;
   // Parse as UTC ms for consistent comparison across server timezones (dev/prod, different countries)
-  const expiresAt = row.expires_at instanceof Date
-    ? row.expires_at
-    : new Date(typeof row.expires_at === 'string' && !row.expires_at.endsWith('Z')
-      ? row.expires_at + 'Z'
-      : row.expires_at);
+  const expiresAt = raw instanceof Date
+    ? raw
+    : new Date(typeof raw === 'string' && !raw.endsWith('Z') ? raw + 'Z' : raw);
   if (expiresAt.getTime() < Date.now()) {
     await deleteRefreshToken(token);
     return null;
