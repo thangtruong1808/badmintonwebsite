@@ -56,7 +56,7 @@ export const getAllRegistrations = async (): Promise<RegistrationRow[]> => {
   return rows.map((r) => ({
     id: r.id,
     event_id: r.event_id,
-    user_id: r.user_id ?? undefined,
+    user_id: r.user_id ?? null,
     name: r.name,
     email: r.email,
     phone: r.phone,

@@ -120,12 +120,12 @@ export const update = async (
   if (!existing) return null;
   const updates: string[] = [];
   const values: unknown[] = [];
-  const fields: (keyof NewsRow)[] = ['image', 'title', 'date', 'time', 'location', 'description', 'badge', 'category', 'link', 'display_order'];
+  const fields = ['image', 'title', 'date', 'time', 'location', 'description', 'badge', 'category', 'link', 'display_order'] as const;
   for (const key of fields) {
     if (data[key] !== undefined) {
       const col = key === 'display_order' ? 'display_order' : key;
       updates.push(`${col} = ?`);
-      values.push((data as Record<string, unknown>)[key]);
+      values.push(data[key]);
     }
   }
   if (updates.length === 0) return existing;

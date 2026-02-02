@@ -21,10 +21,12 @@ export const subscribe = async (
       });
       return;
     }
-    res.status(201).json({
-      message: 'Thank you for subscribing to our newsletter!',
-      subscription: result.subscription,
-    });
+    if ('subscription' in result) {
+      res.status(201).json({
+        message: 'Thank you for subscribing to our newsletter!',
+        subscription: result.subscription,
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -67,7 +69,9 @@ export const createNewsletterSubscription = async (
       });
       return;
     }
-    res.status(201).json(result.subscription);
+    if ('subscription' in result) {
+      res.status(201).json(result.subscription);
+    }
   } catch (error) {
     next(error);
   }
