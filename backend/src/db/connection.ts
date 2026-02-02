@@ -1,6 +1,17 @@
 import 'dotenv/config';
 import mysql from 'mysql2/promise';
 
+// Use UTC for token expiry consistency across dev/prod and users in different timezones.
+// Supports: +00:00, -05:00 (offset), or Z/utc (UTC). Named zones (e.g. Australia/Melbourne) are not reliable in mysql2.
+function getConnectionTimezone(): string {
+  const tz = process.env.DB_TIMEZONE?.trim();
+  if (!tz) return 'Z';
+  if (/^[+-]\d{2}:\d{2}$/.test(tz)) return tz;
+  if (/^(Z|utc|UTC)$/i.test(tz)) return 'Z';
+  // Named zones may be ignored by mysql2; default to UTC for consistent refresh_tokens expires_at
+  return 'Z';
+}
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   port: Number(process.env.DB_PORT) || 3306,
@@ -10,8 +21,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 20,
   queueLimit: 0,
-  // MySQL timezone: use offset only (e.g. +10:00). Named zones like Australia/Melbourne may be ignored.
-  ...(process.env.DB_TIMEZONE?.match(/^[+-]\d{2}:\d{2}$/) && { timezone: process.env.DB_TIMEZONE }),
+  timezone: getConnectionTimezone(),
 });
 
 export async function testConnection(): Promise<{ ok: boolean; message?: string }> {

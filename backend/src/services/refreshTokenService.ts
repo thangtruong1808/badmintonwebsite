@@ -57,8 +57,13 @@ export async function findRefreshToken(token: string): Promise<{ userId: string;
   );
   if (!rows.length) return null;
   const row = rows[0];
-  const expiresAt = new Date(row.expires_at);
-  if (expiresAt < new Date()) {
+  // Parse as UTC ms for consistent comparison across server timezones (dev/prod, different countries)
+  const expiresAt = row.expires_at instanceof Date
+    ? row.expires_at
+    : new Date(typeof row.expires_at === 'string' && !row.expires_at.endsWith('Z')
+      ? row.expires_at + 'Z'
+      : row.expires_at);
+  if (expiresAt.getTime() < Date.now()) {
     await deleteRefreshToken(token);
     return null;
   }

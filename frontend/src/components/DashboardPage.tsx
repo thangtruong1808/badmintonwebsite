@@ -26,6 +26,7 @@ import { getCurrentUser } from "../utils/mockAuth";
 import { useDispatch } from "react-redux";
 import { logout } from "../store/authSlice";
 import { apiFetch, API_BASE } from "../utils/api";
+import { AUTH_REQUEST_REFRESH } from "../hooks/useTokenValidation";
 import {
   UsersSection,
   EventsSection,
@@ -155,6 +156,7 @@ const DashboardPage = () => {
   const selectSection = (id: DashboardSection) => {
     setActiveSection(id);
     closeMobileSidebar();
+    window.dispatchEvent(new CustomEvent(AUTH_REQUEST_REFRESH));
   };
 
   return (

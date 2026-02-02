@@ -22,7 +22,14 @@ async function logoutUser() {
 }
 
 /**
- * Validates session: refresh ONLY on navigation (pathname change). Schedules auto-logout via setTimeout at refreshTokenExpiresAt.
+ * Custom event dispatched when Dashboard section changes (no pathname change).
+ * useTokenValidation listens and refreshes token for all authenticated navigation.
+ */
+export const AUTH_REQUEST_REFRESH = "auth:requestRefresh";
+
+/**
+ * Validates session: refresh on navigation (pathname change) OR on auth:requestRefresh (e.g. Dashboard section change).
+ * Schedules auto-logout via setTimeout at refreshTokenExpiresAt.
  * On tab visible: if already past expiry, logout; else re-schedule for remaining time.
  * On 401 from refresh, forces logout and redirects to signin.
  */
@@ -56,6 +63,37 @@ export function useTokenValidation() {
     }, remaining);
   };
 
+  const doRefresh = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user) {
+          store.dispatch(setCredentials({
+            user: data.user,
+            refreshTokenExpiresAt: data.refreshTokenExpiresAt,
+          }));
+          if (data.refreshTokenExpiresAt != null) {
+            scheduleAutoLogout(data.refreshTokenExpiresAt);
+          }
+        }
+      } else if (res.status === 401) {
+        await res.json().catch(() => ({}));
+        clearLogoutTimer();
+        logoutUser();
+        setTimeout(() => navigate("/signin", { replace: true }), 0);
+      }
+    } catch {
+      // Network error: do not logout
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       prevPathnameRef.current = null;
@@ -74,40 +112,17 @@ export function useTokenValidation() {
     if (prevPathnameRef.current === pathname) return;
 
     prevPathnameRef.current = pathname;
-
-    const doRefresh = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/refresh`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.user) {
-            store.dispatch(setCredentials({
-              user: data.user,
-              refreshTokenExpiresAt: data.refreshTokenExpiresAt,
-            }));
-            if (data.refreshTokenExpiresAt != null) {
-              scheduleAutoLogout(data.refreshTokenExpiresAt);
-            }
-          }
-        } else if (res.status === 401) {
-          await res.json().catch(() => ({}));
-          clearLogoutTimer();
-          logoutUser();
-          setTimeout(() => navigate("/signin", { replace: true }), 0);
-        }
-      } catch {
-        // Network error: do not logout
-      }
-    };
-
     doRefresh();
-  }, [user, location.pathname, navigate]);
+  }, [user, location.pathname, navigate, refreshTokenExpiresAt]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const handleRequestRefresh = () => doRefresh();
+
+    window.addEventListener(AUTH_REQUEST_REFRESH, handleRequestRefresh);
+    return () => window.removeEventListener(AUTH_REQUEST_REFRESH, handleRequestRefresh);
+  }, [user, navigate]);
 
   useEffect(() => {
     if (!user || refreshTokenExpiresAt == null) return;
