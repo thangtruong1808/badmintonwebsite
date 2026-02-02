@@ -7,7 +7,16 @@ import { setCredentials, logout } from "../store/authSlice";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-function logoutUser() {
+async function logoutUser() {
+  try {
+    await fetch(`${API_BASE}/api/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch {
+    // ignore network errors
+  }
   store.dispatch(logout());
   window.dispatchEvent(new CustomEvent("auth:forceLogout"));
 }

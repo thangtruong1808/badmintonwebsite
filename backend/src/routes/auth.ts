@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { login, register, refresh, me, logout } from '../controllers/authController.js';
-import { validateLogin, validateRegister } from '../middleware/validation.js';
+import { login, register, refresh, me, logout, requestPasswordReset, resetPassword } from '../controllers/authController.js';
+import { validateLogin, validateRegister, validateRequestPasswordReset, validateResetPassword } from '../middleware/validation.js';
 import { optionalAuthenticateToken } from '../middleware/auth.js';
 
 const router = Router();
@@ -39,5 +39,19 @@ router.get('/me', optionalAuthenticateToken, me);
  * @access  Public
  */
 router.post('/logout', logout);
+
+/**
+ * @route   POST /api/auth/request-password-reset
+ * @desc    Create password reset token for email (stored in DB); same message whether email exists or not
+ * @access  Public
+ */
+router.post('/request-password-reset', validateRequestPasswordReset, requestPasswordReset);
+
+/**
+ * @route   POST /api/auth/reset-password
+ * @desc    Set new password using token from reset link; token consumed and saved to DB
+ * @access  Public
+ */
+router.post('/reset-password', validateResetPassword, resetPassword);
 
 export default router;

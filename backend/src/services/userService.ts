@@ -164,3 +164,10 @@ export const updateUserPoints = async (
     totalPointsSpent,
   });
 };
+
+export const updatePassword = async (
+  userId: string,
+  hashedPassword: string
+): Promise<void> => {
+  await pool.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+};

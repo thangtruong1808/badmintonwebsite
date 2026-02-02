@@ -37,6 +37,15 @@ export async function apiFetch(path: string, options: RequestInit & { skipAuth?:
         }));
         res = await fetch(url, { ...defaultInit, ...init, headers });
       } else if (refreshRes.status === 401) {
+        try {
+          await fetch(`${API_BASE}/api/auth/logout`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch {
+          // ignore
+        }
         store.dispatch(logout());
         window.dispatchEvent(new CustomEvent("auth:forceLogout"));
       }

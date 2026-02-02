@@ -2,8 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import { generateAccessToken, getAccessTokenExpiresInSeconds } from '../middleware/auth.js';
 import { createError } from '../middleware/errorHandler.js';
-import { getUserByEmail, createUser, getUserById } from '../services/userService.js';
+import { getUserByEmail, createUser, getUserById, updatePassword } from '../services/userService.js';
 import { createRefreshToken as createRefreshTokenRecord, findRefreshToken, deleteRefreshToken, extendRefreshTokenExpiry, getRefreshTokenExpiresAt, getRefreshTokenExpiryMs } from '../services/refreshTokenService.js';
+import { createResetToken, findValidResetToken, consumeResetToken } from '../services/passwordResetService.js';
 import { setAuthCookies, clearAuthCookies, getRefreshTokenCookieName } from '../utils/cookies.js';
 import type { LoginRequest, RegisterRequest, User, UserResponse } from '../types/index.js';
 import type { AuthRequest } from '../middleware/auth.js';
@@ -184,6 +185,57 @@ export const logout = async (
     if (token) await deleteRefreshToken(token);
     clearAuthCookies(res);
     res.status(200).json({ status: 'ok', message: 'Logged out' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** Request password reset: create token in DB, always return same message (don't leak if email exists). */
+export const requestPasswordReset = async (
+  req: Request<{}, {}, { email: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email } = req.body;
+    const user = await getUserByEmail(email);
+    if (user) {
+      const { token, expiresAt } = await createResetToken(user.id);
+      // Optional: send email with reset link. For dev, token is stored in DB only.
+      if (process.env.SEND_PASSWORD_RESET_EMAIL === 'true') {
+        // TODO: integrate email provider (e.g. nodemailer) and send link with token
+        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const resetLink = `${baseUrl}/reset-password?token=${token}`;
+        // await sendPasswordResetEmail(user.email, resetLink, expiresAt);
+      }
+    }
+    res.status(200).json({
+      message: 'If an account exists with this email, you will receive a password reset link.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** Reset password using token from email link. */
+export const resetPassword = async (
+  req: Request<{}, {}, { token: string; newPassword: string; confirmPassword: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { token, newPassword, confirmPassword } = req.body;
+    if (newPassword !== confirmPassword) {
+      throw createError('Passwords do not match', 400);
+    }
+    const userId = await findValidResetToken(token);
+    if (!userId) {
+      throw createError('Invalid or expired reset link. Please request a new password reset.', 400);
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await updatePassword(userId, hashedPassword);
+    await consumeResetToken(token);
+    res.status(200).json({ message: 'Password has been reset. You can now sign in with your new password.' });
   } catch (error) {
     next(error);
   }

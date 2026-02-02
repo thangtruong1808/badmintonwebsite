@@ -15,6 +15,19 @@ const registerSchema = z.object({
   phone: z.string().optional(),
 });
 
+const requestPasswordResetSchema = z.object({
+  email: z.string().email('Invalid email format'),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Reset token is required'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
+
 // Validation middleware
 export const validateLogin = (
   req: Request,
@@ -40,6 +53,40 @@ export const validateRegister = (
 ): void => {
   try {
     registerSchema.parse(req.body);
+    next();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errorMessage = error.errors.map((e) => e.message).join(', ');
+      throw createError(errorMessage, 400);
+    }
+    next(error);
+  }
+};
+
+export const validateRequestPasswordReset = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  try {
+    requestPasswordResetSchema.parse(req.body);
+    next();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errorMessage = error.errors.map((e) => e.message).join(', ');
+      throw createError(errorMessage, 400);
+    }
+    next(error);
+  }
+};
+
+export const validateResetPassword = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  try {
+    resetPasswordSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {
