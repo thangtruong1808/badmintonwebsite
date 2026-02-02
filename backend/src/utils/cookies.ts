@@ -5,6 +5,10 @@ const REFRESH_TOKEN_COOKIE = process.env.REFRESH_TOKEN_COOKIE || 'refreshToken';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
+// In production, frontend and API are often on different domains (e.g. app.com vs api.vercel.app).
+// SameSite=None; Secure is required for cross-origin cookies to be sent.
+const sameSiteValue = isProduction ? ('none' as const) : ('lax' as const);
+
 /** Get access token cookie maxAge in seconds from ACCESS_TOKEN_EXPIRY env (e.g. "15m" -> 900) */
 function getAccessTokenMaxAge(): number {
   const expiry = process.env.ACCESS_TOKEN_EXPIRY || '15m';
@@ -33,7 +37,7 @@ function getRefreshTokenMaxAge(): number {
 const cookieOptions = {
   httpOnly: true,
   secure: isProduction,
-  sameSite: 'lax' as const,
+  sameSite: sameSiteValue,
   path: '/',
 };
 

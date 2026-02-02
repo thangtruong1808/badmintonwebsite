@@ -30,16 +30,27 @@ export function getRefreshTokenExpiresAt(): Date {
   return expiresAt;
 }
 
+/** Ensure session uses UTC for consistent token expiry across Hostinger/Vercel timezones. */
+async function ensureUtcSession(conn: Awaited<ReturnType<typeof pool.getConnection>>): Promise<void> {
+  await conn.execute("SET time_zone = '+00:00'");
+}
+
 export async function createRefreshToken(userId: string): Promise<{ token: string; expiresAt: Date }> {
   const id = uuidv4();
   const token = crypto.randomBytes(64).toString('hex');
   const tokenHash = hashToken(token);
   const expiresAt = getRefreshTokenExpiresAt();
 
-  await pool.execute(
-    'INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)',
-    [id, userId, tokenHash, expiresAt]
-  );
+  const conn = await pool.getConnection();
+  try {
+    await ensureUtcSession(conn);
+    await conn.execute(
+      'INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)',
+      [id, userId, tokenHash, expiresAt]
+    );
+  } finally {
+    conn.release();
+  }
 
   return { token, expiresAt };
 }
@@ -51,10 +62,18 @@ interface TokenRow extends RowDataPacket {
 
 export async function findRefreshToken(token: string): Promise<{ userId: string; expiresAt: Date } | null> {
   const tokenHash = hashToken(token);
-  const [rows] = await pool.execute<TokenRow[]>(
-    'SELECT user_id, expires_at FROM refresh_tokens WHERE token_hash = ?',
-    [tokenHash]
-  );
+  const conn = await pool.getConnection();
+  let rows: TokenRow[];
+  try {
+    await ensureUtcSession(conn);
+    const [r] = await conn.execute<TokenRow[]>(
+      'SELECT user_id, expires_at FROM refresh_tokens WHERE token_hash = ?',
+      [tokenHash]
+    );
+    rows = r;
+  } finally {
+    conn.release();
+  }
   if (!rows.length) return null;
   const row = rows[0];
   const raw = row.expires_at;
@@ -77,14 +96,26 @@ export async function getRefreshTokenExpiryMs(token: string): Promise<number | n
 
 export async function deleteRefreshToken(token: string): Promise<void> {
   const tokenHash = hashToken(token);
-  await pool.execute('DELETE FROM refresh_tokens WHERE token_hash = ?', [tokenHash]);
+  const conn = await pool.getConnection();
+  try {
+    await ensureUtcSession(conn);
+    await conn.execute('DELETE FROM refresh_tokens WHERE token_hash = ?', [tokenHash]);
+  } finally {
+    conn.release();
+  }
 }
 
 /** Extend the refresh token's expiry (e.g. on user activity / navigation). Same row, updated expires_at. */
 export async function extendRefreshTokenExpiry(token: string): Promise<void> {
   const tokenHash = hashToken(token);
   const expiresAt = getRefreshTokenExpiresAt();
-  await pool.execute('UPDATE refresh_tokens SET expires_at = ? WHERE token_hash = ?', [expiresAt, tokenHash]);
+  const conn = await pool.getConnection();
+  try {
+    await ensureUtcSession(conn);
+    await conn.execute('UPDATE refresh_tokens SET expires_at = ? WHERE token_hash = ?', [expiresAt, tokenHash]);
+  } finally {
+    conn.release();
+  }
 }
 
 export async function deleteRefreshTokensForUser(userId: string): Promise<void> {
