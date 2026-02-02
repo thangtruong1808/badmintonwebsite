@@ -28,6 +28,10 @@ const resetPasswordSchema = z.object({
   path: ['confirmPassword'],
 });
 
+const newsletterSubscribeSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+});
+
 // Validation middleware
 export const validateLogin = (
   req: Request,
@@ -87,6 +91,23 @@ export const validateResetPassword = (
 ): void => {
   try {
     resetPasswordSchema.parse(req.body);
+    next();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errorMessage = error.errors.map((e) => e.message).join(', ');
+      throw createError(errorMessage, 400);
+    }
+    next(error);
+  }
+};
+
+export const validateNewsletterSubscribe = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  try {
+    newsletterSubscribeSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {

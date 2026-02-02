@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import { TextInput, Select, FormActions } from "../Shared/inputs";
+import { apiFetch } from "../../../utils/api";
 
 export interface NewsletterRow {
   id: number;
@@ -18,6 +19,11 @@ const STATUS_OPTIONS = [
   { value: "unsubscribed", label: "Unsubscribed" },
 ];
 
+function toDatetimeLocal(value: string): string {
+  const s = value.replace(" ", "T").slice(0, 16);
+  return s || new Date().toISOString().slice(0, 16);
+}
+
 const COLUMNS: Column<NewsletterRow>[] = [
   { key: "id", label: "ID" },
   { key: "email", label: "Email" },
@@ -28,16 +34,38 @@ const COLUMNS: Column<NewsletterRow>[] = [
 
 const NewsletterSection: React.FC = () => {
   const [items, setItems] = useState<NewsletterRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<NewsletterRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<NewsletterRow | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState({
     email: "",
     subscribed_at: new Date().toISOString().slice(0, 16),
     status: "active",
   });
 
+  const fetchList = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/newsletter");
+      if (res.ok) {
+        const list = await res.json();
+        setItems(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
+  }, []);
+
   const openCreate = () => {
+    setFormError(null);
     setEditing(null);
     setForm({
       email: "",
@@ -48,48 +76,76 @@ const NewsletterSection: React.FC = () => {
   };
 
   const openEdit = (row: NewsletterRow) => {
+    setFormError(null);
     setEditing(row);
     setForm({
       email: row.email,
-      subscribed_at: row.subscribed_at.slice(0, 16),
+      subscribed_at: toDatetimeLocal(row.subscribed_at),
       status: row.status,
     });
     setModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     const subAt = form.subscribed_at.replace("T", " ") + ":00";
-    if (editing) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-              ...r,
-              email: form.email,
-              subscribed_at: subAt,
-              status: form.status,
-            }
-            : r
-        )
-      );
-    } else {
-      const newId = items.length ? Math.max(...items.map((e) => e.id)) + 1 : 1;
-      setItems((prev) => [
-        ...prev,
-        {
-          id: newId,
-          email: form.email,
-          subscribed_at: subAt,
-          status: form.status,
-        },
-      ]);
+    try {
+      if (editing) {
+        const res = await apiFetch(`/api/dashboard/newsletter/${editing.id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            email: form.email,
+            subscribed_at: subAt,
+            status: form.status,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setFormError(data.message || "Failed to update subscription.");
+          return;
+        }
+        const updated = await res.json();
+        setItems((prev) =>
+          prev.map((r) => (r.id === editing.id ? updated : r))
+        );
+      } else {
+        const res = await apiFetch("/api/dashboard/newsletter", {
+          method: "POST",
+          body: JSON.stringify({
+            email: form.email,
+            subscribed_at: subAt,
+            status: form.status,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 409 || data.alreadySubscribed) {
+          setFormError(data.message || "This email is already subscribed to our newsletter.");
+          return;
+        }
+        if (!res.ok) {
+          setFormError(data.message || "Failed to add subscription.");
+          return;
+        }
+        setItems((prev) => [data, ...prev]);
+      }
+      setModalOpen(false);
+    } catch {
+      setFormError("Something went wrong. Please try again later.");
     }
-    setModalOpen(false);
   };
 
-  const handleDelete = (row: NewsletterRow) => {
-    setItems((prev) => prev.filter((r) => r.id !== row.id));
+  const handleDelete = async (row: NewsletterRow) => {
+    try {
+      const res = await apiFetch(`/api/dashboard/newsletter/${row.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setItems((prev) => prev.filter((r) => r.id !== row.id));
+      }
+    } catch {
+      // keep dialog open or show error
+    }
     setDeleteTarget(null);
   };
 
@@ -105,20 +161,27 @@ const NewsletterSection: React.FC = () => {
           Add Subscription
         </button>
       </div>
-      <DataTable
-        columns={COLUMNS}
-        data={items}
-        getRowId={(r) => r.id}
-        onEdit={openEdit}
-        onDelete={(r) => setDeleteTarget(r)}
-        emptyMessage="No newsletter subscriptions yet. Click Add Subscription to create one."
-      />
+      {loading ? (
+        <p className="font-calibri text-gray-600">Loading...</p>
+      ) : (
+        <DataTable
+          columns={COLUMNS}
+          data={items}
+          getRowId={(r) => r.id}
+          onEdit={openEdit}
+          onDelete={(r) => setDeleteTarget(r)}
+          emptyMessage="No newsletter subscriptions yet. Click Add Subscription to create one."
+        />
+      )}
       <FormModal
         title={editing ? "Edit Subscription" : "Add Subscription"}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
       >
+        {formError && (
+          <p className="text-sm text-red-600 font-calibri mb-2">{formError}</p>
+        )}
         <TextInput
           label="Email"
           name="email"

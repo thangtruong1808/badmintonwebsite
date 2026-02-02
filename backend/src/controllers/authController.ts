@@ -7,6 +7,7 @@ import { createRefreshToken as createRefreshTokenRecord, findRefreshToken, delet
 import { createResetToken, findValidResetToken, consumeResetToken } from '../services/passwordResetService.js';
 import { setAuthCookies, clearAuthCookies, getRefreshTokenCookieName } from '../utils/cookies.js';
 import { sendPasswordResetEmail } from '../utils/email.js';
+import { getFrontendBaseUrl } from '../utils/appUrl.js';
 import type { LoginRequest, RegisterRequest, User, UserResponse } from '../types/index.js';
 import type { AuthRequest } from '../middleware/auth.js';
 
@@ -203,7 +204,7 @@ export const requestPasswordReset = async (
     if (user) {
       const { token, expiresAt } = await createResetToken(user.id);
       if (process.env.SEND_PASSWORD_RESET_EMAIL === 'true') {
-        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const baseUrl = getFrontendBaseUrl();
         const resetLink = `${baseUrl}/reset-password?token=${token}`;
         await sendPasswordResetEmail(user.email, resetLink, expiresAt);
       }

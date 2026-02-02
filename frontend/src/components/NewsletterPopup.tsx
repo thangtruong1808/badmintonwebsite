@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaTimes, FaEnvelope, FaCheckCircle } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
+import { apiFetch } from "../utils/api";
 
 const NewsletterPopup: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -10,24 +11,18 @@ const NewsletterPopup: React.FC = () => {
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
+  const hasSubscribedInSession = useRef(false);
 
   useEffect(() => {
-    // Check if user has already subscribed
-    const hasSubscribed = localStorage.getItem("newsletter_subscribed");
-
-    // Show popup after 2 seconds if user hasn't subscribed yet
-    // Popup will show every time user visits the page unless they've subscribed
-    if (!hasSubscribed) {
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
+    if (hasSubscribedInSession.current) return;
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 2000);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleClose = () => {
     setIsVisible(false);
-    // Don't save dismissal - popup will show again on next visit
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,24 +47,30 @@ const NewsletterPopup: React.FC = () => {
     setIsSubmitting(true);
     setSubmitStatus({ type: null, message: "" });
 
-    // Simulate API call (replace with actual API call later)
     try {
-      // TODO: Replace with actual newsletter subscription API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      localStorage.setItem("newsletter_subscribed", "true");
-      localStorage.setItem("newsletter_email", email);
-
-      setSubmitStatus({
-        type: "success",
-        message: "Thank you for subscribing!",
+      const res = await apiFetch("/api/newsletter/subscribe", {
+        method: "POST",
+        body: JSON.stringify({ email: email.trim() }),
+        skipAuth: true,
       });
+      const data = await res.json().catch(() => ({}));
 
-      // Close popup after 2 seconds
-      setTimeout(() => {
-        setIsVisible(false);
-      }, 2000);
-    } catch (error) {
+      if (res.ok && (res.status === 201 || data.alreadySubscribed)) {
+        hasSubscribedInSession.current = true;
+        setSubmitStatus({
+          type: "success",
+          message: data.message || "Thank you for subscribing!",
+        });
+        setTimeout(() => {
+          setIsVisible(false);
+        }, 10000);
+      } else {
+        setSubmitStatus({
+          type: "error",
+          message: data.message || "Something went wrong. Please try again later.",
+        });
+      }
+    } catch {
       setSubmitStatus({
         type: "error",
         message: "Something went wrong. Please try again later.",

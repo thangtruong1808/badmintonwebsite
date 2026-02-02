@@ -3,12 +3,14 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler.js';
+import { getFrontendBaseUrl } from './utils/appUrl.js';
 import authRoutes from './routes/auth.js';
 import eventsRoutes from './routes/events.js';
 import registrationsRoutes from './routes/registrations.js';
 import usersRoutes from './routes/users.js';
 import rewardsRoutes from './routes/rewards.js';
 import dashboardRoutes from './routes/dashboard.js';
+import newsletterRoutes from './routes/newsletter.js';
 import './utils/initializeData.js'; // Initialize events data
 
 // Load environment variables
@@ -18,7 +20,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-const origin = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+const origin = getFrontendBaseUrl();
 app.use(cors({
   origin: origin,
   credentials: true
@@ -48,6 +50,7 @@ app.use('/api/registrations', registrationsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/rewards', rewardsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 // 404 handler
 app.use((req, res) => {

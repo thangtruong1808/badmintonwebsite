@@ -29,8 +29,8 @@ export function isPasswordResetEmailEnabled(): boolean {
 }
 
 /**
- * Send password reset email with link. Uses FRONTEND_URL for the reset link
- * (change in production via .env). Does not throw; logs errors.
+ * Send password reset email with link. Reset link base URL comes from FRONTEND_URL
+ * in .env (e.g. https://yourdomain.com for Hostinger). Does not throw; logs errors.
  */
 export async function sendPasswordResetEmail(
   to: string,
