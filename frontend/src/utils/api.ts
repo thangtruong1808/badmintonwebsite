@@ -31,7 +31,10 @@ export async function apiFetch(path: string, options: RequestInit & { skipAuth?:
       });
       const refreshData = await refreshRes.json().catch(() => ({}));
       if (refreshRes.ok && refreshData.user) {
-        store.dispatch(setCredentials({ user: refreshData.user }));
+        store.dispatch(setCredentials({
+          user: refreshData.user,
+          refreshTokenExpiresAt: refreshData.refreshTokenExpiresAt,
+        }));
         res = await fetch(url, { ...defaultInit, ...init, headers });
       } else if (refreshRes.status === 401) {
         store.dispatch(logout());

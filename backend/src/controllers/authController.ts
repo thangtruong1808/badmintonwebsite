@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { generateAccessToken, getAccessTokenExpiresInSeconds } from '../middleware/auth.js';
 import { createError } from '../middleware/errorHandler.js';
 import { getUserByEmail, createUser, getUserById } from '../services/userService.js';
-import { createRefreshToken as createRefreshTokenRecord, findRefreshToken, deleteRefreshToken, extendRefreshTokenExpiry } from '../services/refreshTokenService.js';
+import { createRefreshToken as createRefreshTokenRecord, findRefreshToken, deleteRefreshToken, extendRefreshTokenExpiry, getRefreshTokenExpiresAt, getRefreshTokenExpiryMs } from '../services/refreshTokenService.js';
 import { setAuthCookies, clearAuthCookies, getRefreshTokenCookieName } from '../utils/cookies.js';
 import type { LoginRequest, RegisterRequest, User, UserResponse } from '../types/index.js';
 import type { AuthRequest } from '../middleware/auth.js';
@@ -36,13 +36,14 @@ export const login = async (
     }
 
     const accessToken = generateAccessToken(user.id, user.email);
-    const { token: refreshToken } = await createRefreshTokenRecord(user.id);
+    const { token: refreshToken, expiresAt: refreshExpiresAt } = await createRefreshTokenRecord(user.id);
     const expiresIn = getAccessTokenExpiresInSeconds();
 
     setAuthCookies(res, accessToken, refreshToken);
     res.json({
       user: userToResponse(user),
       expiresIn,
+      refreshTokenExpiresAt: refreshExpiresAt.getTime(),
     });
   } catch (error) {
     next(error);
@@ -77,13 +78,14 @@ export const register = async (
     });
 
     const accessToken = generateAccessToken(user.id, user.email);
-    const { token: refreshToken } = await createRefreshTokenRecord(user.id);
+    const { token: refreshToken, expiresAt: refreshExpiresAt } = await createRefreshTokenRecord(user.id);
     const expiresIn = getAccessTokenExpiresInSeconds();
 
     setAuthCookies(res, accessToken, refreshToken);
     res.status(201).json({
       user: userToResponse(user),
       expiresIn,
+      refreshTokenExpiresAt: refreshExpiresAt.getTime(),
     });
   } catch (error) {
     next(error);
@@ -119,8 +121,15 @@ export const refresh = async (
       return;
     }
 
-    // Reuse the same refresh token; extend its expiry on activity so active users stay logged in.
-    await extendRefreshTokenExpiry(token);
+    const doExtend = req.body?.extend !== false;
+    let refreshTokenExpiresAt: number;
+    if (doExtend) {
+      await extendRefreshTokenExpiry(token);
+      refreshTokenExpiresAt = getRefreshTokenExpiresAt().getTime();
+    } else {
+      refreshTokenExpiresAt = found.expiresAt.getTime();
+    }
+
     const accessToken = generateAccessToken(user.id, user.email);
     const expiresIn = getAccessTokenExpiresInSeconds();
 
@@ -128,6 +137,7 @@ export const refresh = async (
     res.json({
       user: userToResponse(user),
       expiresIn,
+      refreshTokenExpiresAt,
     });
   } catch (error) {
     next(error);
@@ -150,18 +160,28 @@ export const me = async (
       res.status(200).json({ user: null });
       return;
     }
-    res.json({ user: userToResponse(user) });
+    const cookieName = getRefreshTokenCookieName();
+    const refreshToken = req.cookies?.[cookieName];
+    const refreshTokenExpiresAt = refreshToken
+      ? await getRefreshTokenExpiryMs(refreshToken)
+      : null;
+    const payload: { user: UserResponse; refreshTokenExpiresAt?: number } = { user: userToResponse(user) };
+    if (refreshTokenExpiresAt != null) payload.refreshTokenExpiresAt = refreshTokenExpiresAt;
+    res.json(payload);
   } catch (error) {
     next(error);
   }
 };
 
 export const logout = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
+    const cookieName = getRefreshTokenCookieName();
+    const token = req.cookies?.[cookieName];
+    if (token) await deleteRefreshToken(token);
     clearAuthCookies(res);
     res.status(200).json({ status: 'ok', message: 'Logged out' });
   } catch (error) {

@@ -8,7 +8,7 @@ function hashToken(token: string): string {
 }
 
 /** Compute expiry date from now using REFRESH_TOKEN_EXPIRY_DAYS env (e.g. "15m", "7d"). */
-function getRefreshTokenExpiresAt(): Date {
+export function getRefreshTokenExpiresAt(): Date {
   const expiresAt = new Date();
   const envValue = process.env.REFRESH_TOKEN_EXPIRY_DAYS || "2m";
   const match = envValue.match(/^(\d+)([mhd]?)$/);
@@ -49,7 +49,7 @@ interface TokenRow extends RowDataPacket {
   expires_at: Date;
 }
 
-export async function findRefreshToken(token: string): Promise<{ userId: string } | null> {
+export async function findRefreshToken(token: string): Promise<{ userId: string; expiresAt: Date } | null> {
   const tokenHash = hashToken(token);
   const [rows] = await pool.execute<TokenRow[]>(
     'SELECT user_id, expires_at FROM refresh_tokens WHERE token_hash = ?',
@@ -57,11 +57,18 @@ export async function findRefreshToken(token: string): Promise<{ userId: string 
   );
   if (!rows.length) return null;
   const row = rows[0];
-  if (new Date(row.expires_at) < new Date()) {
+  const expiresAt = new Date(row.expires_at);
+  if (expiresAt < new Date()) {
     await deleteRefreshToken(token);
     return null;
   }
-  return { userId: row.user_id };
+  return { userId: row.user_id, expiresAt };
+}
+
+/** Return refresh token expiry (ms since epoch) if token exists and is not expired; else null. For /me. */
+export async function getRefreshTokenExpiryMs(token: string): Promise<number | null> {
+  const found = await findRefreshToken(token);
+  return found ? found.expiresAt.getTime() : null;
 }
 
 export async function deleteRefreshToken(token: string): Promise<void> {

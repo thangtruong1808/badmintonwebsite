@@ -43,7 +43,12 @@ function App() {
         });
         if (res.ok) {
           const data = await res.json();
-          if (data.user) dispatch(setCredentials({ user: data.user }));
+          if (data.user) {
+            dispatch(setCredentials({
+              user: data.user,
+              refreshTokenExpiresAt: data.refreshTokenExpiresAt,
+            }));
+          }
         } else {
           dispatch(logout());
         }

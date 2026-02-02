@@ -106,7 +106,10 @@ const RegisterPage = () => {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.user) {
-        dispatch(setCredentials({ user: data.user as User }));
+        dispatch(setCredentials({
+          user: data.user as User,
+          refreshTokenExpiresAt: data.refreshTokenExpiresAt,
+        }));
         setSubmitStatus({
           type: "success",
           message: "Account created successfully! You can now sign in.",

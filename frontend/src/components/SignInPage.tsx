@@ -89,7 +89,10 @@ const SignInPage = () => {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.user) {
-        dispatch(setCredentials({ user: data.user as User }));
+        dispatch(setCredentials({
+          user: data.user as User,
+          refreshTokenExpiresAt: data.refreshTokenExpiresAt,
+        }));
         const user = data.user as User;
         const history = getUserEventHistory(user.id);
         const unclaimed = history.filter(
