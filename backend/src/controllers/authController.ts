@@ -6,6 +6,7 @@ import { getUserByEmail, createUser, getUserById, updatePassword } from '../serv
 import { createRefreshToken as createRefreshTokenRecord, findRefreshToken, deleteRefreshToken, extendRefreshTokenExpiry, getRefreshTokenExpiresAt, getRefreshTokenExpiryMs } from '../services/refreshTokenService.js';
 import { createResetToken, findValidResetToken, consumeResetToken } from '../services/passwordResetService.js';
 import { setAuthCookies, clearAuthCookies, getRefreshTokenCookieName } from '../utils/cookies.js';
+import { sendPasswordResetEmail } from '../utils/email.js';
 import type { LoginRequest, RegisterRequest, User, UserResponse } from '../types/index.js';
 import type { AuthRequest } from '../middleware/auth.js';
 
@@ -201,12 +202,10 @@ export const requestPasswordReset = async (
     const user = await getUserByEmail(email);
     if (user) {
       const { token, expiresAt } = await createResetToken(user.id);
-      // Optional: send email with reset link. For dev, token is stored in DB only.
       if (process.env.SEND_PASSWORD_RESET_EMAIL === 'true') {
-        // TODO: integrate email provider (e.g. nodemailer) and send link with token
         const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const resetLink = `${baseUrl}/reset-password?token=${token}`;
-        // await sendPasswordResetEmail(user.email, resetLink, expiresAt);
+        await sendPasswordResetEmail(user.email, resetLink, expiresAt);
       }
     }
     res.status(200).json({
