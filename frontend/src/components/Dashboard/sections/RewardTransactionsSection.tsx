@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { FaPlus } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
 import DataTable, { type Column } from "../Shared/DataTable";
+import { apiFetch } from "../../../utils/api";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import {
@@ -49,6 +49,7 @@ const COLUMNS: Column<RewardTransactionRow>[] = [
 
 const RewardTransactionsSection: React.FC = () => {
   const [items, setItems] = useState<RewardTransactionRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<RewardTransactionRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<RewardTransactionRow | null>(null);
@@ -63,20 +64,24 @@ const RewardTransactionsSection: React.FC = () => {
     status: "completed",
   });
 
-  const openCreate = () => {
-    setEditing(null);
-    setForm({
-      user_id: "",
-      event_id: "",
-      event_title: "",
-      points: 0,
-      type: "earned",
-      description: "",
-      date: new Date().toISOString().slice(0, 16),
-      status: "completed",
-    });
-    setModalOpen(true);
+  const fetchList = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/reward-transactions");
+      if (res.ok) {
+        const list = await res.json();
+        setItems(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchList();
+  }, []);
 
   const openEdit = (row: RewardTransactionRow) => {
     setEditing(row);
@@ -93,71 +98,29 @@ const RewardTransactionsSection: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const dateVal = form.date.replace("T", " ") + ":00";
-    if (editing) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-              ...r,
-              user_id: form.user_id,
-              event_id: form.event_id ? parseInt(form.event_id, 10) : undefined,
-              event_title: form.event_title || undefined,
-              points: form.points,
-              type: form.type,
-              description: form.description || undefined,
-              date: dateVal,
-              status: form.status,
-            }
-            : r
-        )
-      );
-    } else {
-      setItems((prev) => [
-        ...prev,
-        {
-          id: `tx-${Date.now()}`,
-          user_id: form.user_id,
-          event_id: form.event_id ? parseInt(form.event_id, 10) : undefined,
-          event_title: form.event_title || undefined,
-          points: form.points,
-          type: form.type,
-          description: form.description || undefined,
-          date: dateVal,
-          status: form.status,
-        },
-      ]);
-    }
     setModalOpen(false);
   };
 
-  const handleDelete = (row: RewardTransactionRow) => {
-    setItems((prev) => prev.filter((r) => r.id !== row.id));
+  const handleDelete = (_row: RewardTransactionRow) => {
     setDeleteTarget(null);
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
-        >
-          <FaPlus size={16} />
-          Add Transaction
-        </button>
-      </div>
-      <DataTable
-        columns={COLUMNS}
-        data={items}
-        getRowId={(r) => r.id}
-        onEdit={openEdit}
-        onDelete={(r) => setDeleteTarget(r)}
-        emptyMessage="No reward transactions yet. Click Add Transaction to create one."
-      />
+      {loading ? (
+        <p className="font-calibri text-gray-600">Loading...</p>
+      ) : (
+        <DataTable
+          columns={COLUMNS}
+          data={items}
+          getRowId={(r) => r.id}
+          onEdit={openEdit}
+          onDelete={(r) => setDeleteTarget(r)}
+          emptyMessage="No reward transactions yet."
+        />
+      )}
       <FormModal
         title={editing ? "Edit Reward Transaction" : "Add Reward Transaction"}
         open={modalOpen}

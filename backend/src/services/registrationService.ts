@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import type { RowDataPacket } from 'mysql2';
 import type { Registration, RegistrationFormData } from '../types/index.js';
 import { createError } from '../middleware/errorHandler.js';
 import {
@@ -7,9 +8,69 @@ import {
   decrementEventAttendees,
 } from './eventService.js';
 import { getUserById } from './userService.js';
+import pool from '../db/connection.js';
 
 // In-memory storage (replace with database later)
 let registrations: Registration[] = [];
+
+export interface RegistrationRow {
+  id: string;
+  event_id: number;
+  user_id: string | null;
+  name: string;
+  email: string;
+  phone: string;
+  registration_date: string;
+  status: string;
+  attendance_status: string | null;
+  points_earned: number;
+  points_claimed: boolean;
+  payment_method: string | null;
+  points_used: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface RegRow extends RowDataPacket {
+  id: string;
+  event_id: number;
+  user_id: string | null;
+  name: string;
+  email: string;
+  phone: string;
+  registration_date: Date | string;
+  status: string;
+  attendance_status: string | null;
+  points_earned: number;
+  points_claimed: boolean;
+  payment_method: string | null;
+  points_used: number;
+  created_at: Date | string | null;
+  updated_at: Date | string | null;
+}
+
+export const getAllRegistrations = async (): Promise<RegistrationRow[]> => {
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations ORDER BY registration_date DESC'
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    event_id: r.event_id,
+    user_id: r.user_id ?? undefined,
+    name: r.name,
+    email: r.email,
+    phone: r.phone,
+    registration_date: r.registration_date instanceof Date ? r.registration_date.toISOString().slice(0, 19).replace('T', ' ') : String(r.registration_date).slice(0, 19),
+    status: r.status,
+    attendance_status: r.attendance_status ?? 'upcoming',
+    points_earned: r.points_earned ?? 0,
+    points_claimed: Boolean(r.points_claimed),
+    payment_method: r.payment_method ?? 'stripe',
+    points_used: r.points_used ?? 0,
+    created_at: r.created_at ? String(r.created_at) : undefined,
+    updated_at: r.updated_at ? String(r.updated_at) : undefined,
+  }));
+};
 
 export const getUserRegistrations = async (userId: string): Promise<Registration[]> => {
   return registrations.filter((reg) => reg.userId === userId && reg.status !== 'cancelled');
@@ -124,5 +185,13 @@ export const getRegistrationByEventAndUser = async (
 };
 
 export const getRegistrationsCount = async (): Promise<number> => {
-  return registrations.filter((reg) => reg.status !== 'cancelled').length;
+  try {
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      'SELECT COUNT(*) AS count FROM registrations WHERE status != ?',
+      ['cancelled']
+    );
+    return Number(rows[0]?.count ?? 0);
+  } catch {
+    return registrations.filter((reg) => reg.status !== 'cancelled').length;
+  }
 };

@@ -1,53 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaPaperPlane } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import ChibiBattleRoyale4 from "../assets/ChibiBattleRoyale4.png";
-
-
-import WednesdaySocialPlaytime from "../assets/WednesdaySocialPlaytime.png";
-import MapleStory3 from "../assets/MapleStory3.png";
 import RegistrationModal from "./PlayPage/RegistrationModal";
-import { socialEvents } from "../data/socialEvents";
 import type { SocialEvent } from "../types/socialEvent";
+import { apiFetch } from "../utils/api";
 
-const newsData = [
-  {
-    id: 1,
-    image: ChibiBattleRoyale4,
-    title: "Chibi Battle Royale #4",
-    date: "February 2026",
-    time: " 9:30 AM - 5:00 PM",
-    location: "ACM Truganina - 48, Saintly Drive, Truganina VIC 3029",
-    description:
-      "This is a team-based event consisting of 4 players. Tap Register Now to find all information about the event",
-    badge: "UPCOMING",
-    link: "https://docs.google.com/forms/d/e/1FAIpQLSc-JLX4pyrKoz8-G0CUKdFDrorKanOHJ_d1XmRB7TZoYS1ozQ/viewform",
-  },
-  {
-    id: 2,
-    image: WednesdaySocialPlaytime,
-    title: "Wednesday Social Playtime",
-    date: "Every Wednesday",
-    time: "7:00 PM - 10:00 PM",
-    location: "Altona SportsPoint Badminton Club",
-    description:
-      "Weekly Wednesday social play session. All skill levels welcome! Perfect way to start your week with some badminton action.",
-    badge: "REGULAR",
-    link: "https://docs.google.com/forms/d/e/1FAIpQLSc-JLX4pyrKoz8-G0CUKdFDrorKanOHJ_d1XmRB7TZoYS1ozQ/viewform",
-  },
-  {
-    id: 3,
-    image: MapleStory3,
-    title: "Registration new players",
-    date: "Every Wednesday",
-    time: "7:00 PM - 10:00 PM",
-    location: "Altona SportsPoint Badminton Club",
-    description: "Register for yourself or your friends. Tap Register Now to find all information about the event",
-    badge: "OPEN",
-    link: "https://badmintonwebsite.vercel.app/signin",
-
-  },
-];
+export interface NewsItem {
+  id: number;
+  image: string | null;
+  title: string;
+  date: string | null;
+  time: string | null;
+  location: string | null;
+  description: string | null;
+  badge: string;
+  category: string | null;
+  link: string | null;
+}
 
 const badgeColor = (badge: string) => {
   switch (badge) {
@@ -64,69 +33,102 @@ const badgeColor = (badge: string) => {
 
 
 const FeaturedNews: React.FC = () => {
-  const featured = newsData.slice(0, 3);
-
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [events, setEvents] = useState<SocialEvent[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
   const [registrationEvents, setRegistrationEvents] = useState<SocialEvent[]>([]);
 
-  const handleRegisterClick = (news: (typeof newsData)[number]) => {
-    // For Wednesday Social Playtime, open the registration modal (like PlayPage)
-    if (news.title === "Wednesday Social Playtime") {
-      const wednesdayEvent = socialEvents.find(
-        (event) => event.title === "Wednesday Playtime"
-      );
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [newsRes, eventsRes] = await Promise.all([
+          apiFetch("/api/news", { skipAuth: true }),
+          apiFetch("/api/events", { skipAuth: true }),
+        ]);
+        if (newsRes.ok) {
+          const list = await newsRes.json();
+          setNews(Array.isArray(list) ? list : []);
+        }
+        if (eventsRes.ok) {
+          const list = await eventsRes.json();
+          setEvents(Array.isArray(list) ? list : []);
+        }
+      } catch {
+        setNews([]);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
+  const featured = news.slice(0, 3);
+
+  const handleRegisterClick = (newsItem: NewsItem) => {
+    if (newsItem.title === "Wednesday Social Playtime" || newsItem.title?.toLowerCase().includes("wednesday")) {
+      const wednesdayEvent = events.find(
+        (e) => e.dayOfWeek === "Wednesday" || e.title?.toLowerCase().includes("wednesday")
+      );
       if (wednesdayEvent) {
         setRegistrationEvents([wednesdayEvent]);
         setIsRegistrationModalOpen(true);
         return;
       }
     }
-
-    // Fallback: open external link (existing behaviour)
-    if (news.link) {
-      window.open(news.link, "_blank");
+    if (newsItem.link) {
+      window.open(newsItem.link, "_blank");
     }
   };
-  // bg-gradient-to-b from-slate-100 to-slate-200
   return (
     <div className="py-16 bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-8 font-huglove">
           Featured News
         </h2>
+        {loading && (
+          <div className="text-center py-8 font-calibri text-gray-600">Loading…</div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {featured.map((news) => (
+          {featured.map((newsItem) => (
             <div
-              key={news.id}
+              key={newsItem.id}
               className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col h-full"
             >
               <div className="relative h-64 overflow-hidden bg-white flex items-center justify-center">
-                <img
-                  src={news.image}
-                  alt={news.title}
-                  className="w-full h-full object-contain pt-4"
-                />
+                {newsItem.image ? (
+                  <img
+                    src={newsItem.image}
+                    alt={newsItem.title}
+                    className="w-full h-full object-contain pt-4"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 font-calibri">
+                    No image
+                  </div>
+                )}
                 <span
                   className={`absolute top-2 right-2 text-white text-md font-bold px-2 py-1 rounded font-calibri ${badgeColor(
-                    news.badge
+                    newsItem.badge
                   )}`}
                 >
-                  {news.badge}
+                  {newsItem.badge}
                 </span>
               </div>
               <div className="p-4 flex-grow flex flex-col">
-                <h3 className="font-bold text-3xl mb-2 font-calibri min-h-[3.5rem]">{news.title}</h3>
-                <p className="text-gray-800 text-lg font-calibri text-justify mb-2">{news.description}</p>
+                <h3 className="font-bold text-3xl mb-2 font-calibri min-h-[3.5rem]">{newsItem.title}</h3>
+                <p className="text-gray-800 text-lg font-calibri text-justify mb-2">{newsItem.description ?? ""}</p>
                 <div className="space-y-1 mb-4">
-                  {news.date && <p className="text-gray-800 text-lg font-calibri">Date: {news.date}</p>}
-                  {news.time && <p className="text-gray-800 text-lg font-calibri">Time: {news.time}</p>}
-                  {news.location && <p className="text-gray-800 text-lg font-calibri">Location: {news.location}</p>}
+                  {newsItem.date && <p className="text-gray-800 text-lg font-calibri">Date: {newsItem.date}</p>}
+                  {newsItem.time && <p className="text-gray-800 text-lg font-calibri">Time: {newsItem.time}</p>}
+                  {newsItem.location && <p className="text-gray-800 text-lg font-calibri">Location: {newsItem.location}</p>}
                 </div>
               </div>
               <div className="p-4 pt-0 mt-auto">
                 <button
-                  onClick={() => handleRegisterClick(news)}
+                  onClick={() => handleRegisterClick(newsItem)}
                   className="w-full bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl transform hover:scale-105 font-calibri"
                 >
                   <div className="flex items-center justify-center gap-4">

@@ -94,7 +94,7 @@ const SignInPage = () => {
           refreshTokenExpiresAt: data.refreshTokenExpiresAt,
         }));
         const user = data.user as User;
-        const history = getUserEventHistory(user.id);
+        const history = await getUserEventHistory(user.id);
         const unclaimed = history.filter(
           (h) => h.attendanceStatus === "attended" && !h.pointsClaimed
         );

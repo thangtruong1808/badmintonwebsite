@@ -1,12 +1,58 @@
+import type { RowDataPacket } from 'mysql2';
 import type { RewardPointTransaction, UserEventHistory } from '../types/index.js';
 import { createError } from '../middleware/errorHandler.js';
 import { getUserById, updateUserPoints } from './userService.js';
 import { getRegistrationByEventAndUser, getRegistrationById } from './registrationService.js';
 import { getEventById } from './eventService.js';
+import pool from '../db/connection.js';
 
 // In-memory storage (replace with database later)
 let transactions: RewardPointTransaction[] = [];
 let eventHistory: UserEventHistory[] = [];
+
+export interface RewardTransactionRow {
+  id: string;
+  user_id: string;
+  event_id: number | null;
+  event_title: string | null;
+  points: number;
+  type: string;
+  description: string | null;
+  date: string;
+  status: string;
+  created_at?: string;
+}
+
+interface TxRow extends RowDataPacket {
+  id: string;
+  user_id: string;
+  event_id: number | null;
+  event_title: string | null;
+  points: number;
+  type: string;
+  description: string | null;
+  date: Date | string;
+  status: string;
+  created_at: Date | string | null;
+}
+
+export const getAllRewardTransactions = async (): Promise<RewardTransactionRow[]> => {
+  const [rows] = await pool.execute<TxRow[]>(
+    'SELECT * FROM reward_point_transactions ORDER BY date DESC'
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    user_id: r.user_id,
+    event_id: r.event_id ?? null,
+    event_title: r.event_title ?? null,
+    points: r.points,
+    type: r.type,
+    description: r.description ?? null,
+    date: r.date instanceof Date ? r.date.toISOString().slice(0, 19).replace('T', ' ') : String(r.date).slice(0, 19),
+    status: r.status,
+    created_at: r.created_at ? String(r.created_at) : undefined,
+  }));
+};
 
 export const getUserRewardPoints = async (userId: string): Promise<number> => {
   const user = await getUserById(userId);
@@ -20,7 +66,14 @@ export const getUserTransactions = async (
 };
 
 export const getRewardTransactionsCount = async (): Promise<number> => {
-  return transactions.length;
+  try {
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      'SELECT COUNT(*) AS count FROM reward_point_transactions'
+    );
+    return Number(rows[0]?.count ?? 0);
+  } catch {
+    return transactions.length;
+  }
 };
 
 export const getUserEventHistory = async (userId: string): Promise<UserEventHistory[]> => {

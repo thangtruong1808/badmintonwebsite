@@ -199,7 +199,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
       if (user && (paymentMethod === "points" || paymentMethod === "mixed")) {
         const pointsNeeded = paymentMethod === "points" ? totalPrice : pointsToUse;
         if (pointsNeeded > 0) {
-          const success = usePointsForBooking(user.id, events[0].id, pointsNeeded);
+          const success = await usePointsForBooking(user.id, events[0].id, pointsNeeded);
           if (!success) {
             setSubmitStatus({
               type: "error",
@@ -211,8 +211,8 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
         }
       }
 
-      // Step 2: Register the user for events locally
-      const registrationResult = registerUserForEvents(events, formData);
+      // Step 2: Register the user for events via API
+      const registrationResult = await registerUserForEvents(events, formData);
 
       if (!registrationResult.success) {
         setSubmitStatus({
@@ -244,7 +244,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
       // Reset form after success
       setTimeout(() => {
         setFormData({ name: "", email: "", phone: "" });
-        onSuccess(registrationResult.updatedEvents);
+        onSuccess(registrationResult.updatedEvents ?? []);
         onClose();
       }, 2000);
     } catch (error) {

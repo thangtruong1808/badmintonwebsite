@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import { TextInput, Select, TextArea, FormActions } from "../Shared/inputs";
+import { apiFetch } from "../../../utils/api";
 
 export interface ContactMessageRow {
   id: number;
@@ -34,9 +35,11 @@ const COLUMNS: Column<ContactMessageRow>[] = [
 
 const ContactMessagesSection: React.FC = () => {
   const [items, setItems] = useState<ContactMessageRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ContactMessageRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ContactMessageRow | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -45,6 +48,25 @@ const ContactMessagesSection: React.FC = () => {
     message: "",
     status: "new",
   });
+
+  const fetchList = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/contact-messages");
+      if (res.ok) {
+        const list = await res.json();
+        setItems(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -72,44 +94,34 @@ const ContactMessagesSection: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editing) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-              ...r,
-              name: form.name,
-              email: form.email,
-              phone: form.phone || undefined,
-              subject: form.subject,
-              message: form.message,
-              status: form.status,
-            }
-            : r
-        )
-      );
-    } else {
-      const newId = items.length ? Math.max(...items.map((e) => e.id)) + 1 : 1;
-      setItems((prev) => [
-        ...prev,
-        {
-          id: newId,
-          name: form.name,
-          email: form.email,
-          phone: form.phone || undefined,
-          subject: form.subject,
-          message: form.message,
-          status: form.status,
-        },
-      ]);
+    setFormError(null);
+    if (!editing) {
+      setModalOpen(false);
+      return;
     }
-    setModalOpen(false);
+    try {
+      const res = await apiFetch(`/api/dashboard/contact-messages/${editing.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ status: form.status }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setFormError(data.message || "Failed to update.");
+        return;
+      }
+      const updated = await res.json();
+      setItems((prev) =>
+        prev.map((r) => (r.id === editing.id ? updated : r))
+      );
+      setModalOpen(false);
+    } catch {
+      setFormError("Something went wrong. Please try again later.");
+    }
   };
 
-  const handleDelete = (row: ContactMessageRow) => {
-    setItems((prev) => prev.filter((r) => r.id !== row.id));
+  const handleDelete = (_row: ContactMessageRow) => {
     setDeleteTarget(null);
   };
 
@@ -125,20 +137,27 @@ const ContactMessagesSection: React.FC = () => {
           Add Message
         </button>
       </div>
-      <DataTable
-        columns={COLUMNS}
-        data={items}
-        getRowId={(r) => r.id}
-        onEdit={openEdit}
-        onDelete={(r) => setDeleteTarget(r)}
-        emptyMessage="No contact messages yet. Click Add Message to create one."
-      />
+      {loading ? (
+        <p className="font-calibri text-gray-600">Loading...</p>
+      ) : (
+        <DataTable
+          columns={COLUMNS}
+          data={items}
+          getRowId={(r) => r.id}
+          onEdit={openEdit}
+          onDelete={(r) => setDeleteTarget(r)}
+          emptyMessage="No contact messages yet."
+        />
+      )}
       <FormModal
         title={editing ? "Edit Contact Message" : "Add Contact Message"}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
       >
+        {formError && (
+          <p className="text-sm text-red-600 font-calibri mb-2">{formError}</p>
+        )}
         <TextInput
           label="Name"
           name="name"

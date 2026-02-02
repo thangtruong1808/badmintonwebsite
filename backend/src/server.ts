@@ -11,6 +11,9 @@ import usersRoutes from './routes/users.js';
 import rewardsRoutes from './routes/rewards.js';
 import dashboardRoutes from './routes/dashboard.js';
 import newsletterRoutes from './routes/newsletter.js';
+import galleryRoutes from './routes/gallery.js';
+import newsRoutes from './routes/news.js';
+import uploadRoutes from './routes/upload.js';
 import './utils/initializeData.js'; // Initialize events data
 
 // Load environment variables
@@ -51,6 +54,9 @@ app.use('/api/users', usersRoutes);
 app.use('/api/rewards', rewardsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/gallery', galleryRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // 404 handler
 app.use((req, res) => {

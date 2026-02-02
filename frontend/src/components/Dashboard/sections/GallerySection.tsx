@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import { TextInput, NumberInput, Select, FormActions } from "../Shared/inputs";
+import { apiFetch } from "../../../utils/api";
 
 type GalleryTab = "photos" | "videos";
 
@@ -59,6 +60,8 @@ const GallerySection: React.FC = () => {
   const [tab, setTab] = useState<GalleryTab>("photos");
   const [photos, setPhotos] = useState<GalleryPhotoRow[]>([]);
   const [videos, setVideos] = useState<GalleryVideoRow[]>([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(true);
+  const [loadingVideos, setLoadingVideos] = useState(true);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [editingPhoto, setEditingPhoto] = useState<GalleryPhotoRow | null>(null);
@@ -79,6 +82,41 @@ const GallerySection: React.FC = () => {
     display_order: 0,
   });
 
+  const fetchPhotos = async () => {
+    setLoadingPhotos(true);
+    try {
+      const res = await apiFetch("/api/dashboard/gallery/photos");
+      if (res.ok) {
+        const list = await res.json();
+        setPhotos(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setPhotos([]);
+    } finally {
+      setLoadingPhotos(false);
+    }
+  };
+
+  const fetchVideos = async () => {
+    setLoadingVideos(true);
+    try {
+      const res = await apiFetch("/api/dashboard/gallery/videos");
+      if (res.ok) {
+        const list = await res.json();
+        setVideos(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setVideos([]);
+    } finally {
+      setLoadingVideos(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPhotos();
+    fetchVideos();
+  }, []);
+
   const openPhotoCreate = () => {
     setEditingPhoto(null);
     setPhotoForm({ src: "", alt: "", type: "social", display_order: 0 });
@@ -94,22 +132,42 @@ const GallerySection: React.FC = () => {
     });
     setPhotoModalOpen(true);
   };
-  const handlePhotoSubmit = (e: React.FormEvent) => {
+  const handlePhotoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingPhoto) {
-      setPhotos((prev) =>
-        prev.map((p) =>
-          p.id === editingPhoto.id ? { ...p, ...photoForm } : p
-        )
-      );
-    } else {
-      const newId = photos.length ? Math.max(...photos.map((p) => p.id)) + 1 : 1;
-      setPhotos((prev) => [...prev, { id: newId, ...photoForm }]);
+    try {
+      if (editingPhoto) {
+        const res = await apiFetch(`/api/dashboard/gallery/photos/${editingPhoto.id}`, {
+          method: "PUT",
+          body: JSON.stringify(photoForm),
+        });
+        if (!res.ok) return;
+        const updated = await res.json();
+        setPhotos((prev) =>
+          prev.map((p) => (p.id === editingPhoto.id ? updated : p))
+        );
+      } else {
+        const res = await apiFetch("/api/dashboard/gallery/photos", {
+          method: "POST",
+          body: JSON.stringify(photoForm),
+        });
+        if (!res.ok) return;
+        const created = await res.json();
+        setPhotos((prev) => [created, ...prev]);
+      }
+      setPhotoModalOpen(false);
+    } catch {
+      // keep modal open
     }
-    setPhotoModalOpen(false);
   };
-  const handlePhotoDelete = (row: GalleryPhotoRow) => {
-    setPhotos((prev) => prev.filter((p) => p.id !== row.id));
+  const handlePhotoDelete = async (row: GalleryPhotoRow) => {
+    try {
+      const res = await apiFetch(`/api/dashboard/gallery/photos/${row.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) setPhotos((prev) => prev.filter((p) => p.id !== row.id));
+    } catch {
+      // keep dialog open
+    }
     setDeletePhoto(null);
   };
 
@@ -135,22 +193,46 @@ const GallerySection: React.FC = () => {
     });
     setVideoModalOpen(true);
   };
-  const handleVideoSubmit = (e: React.FormEvent) => {
+  const handleVideoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingVideo) {
-      setVideos((prev) =>
-        prev.map((v) =>
-          v.id === editingVideo.id ? { ...v, ...videoForm } : v
-        )
-      );
-    } else {
-      const newId = videos.length ? Math.max(...videos.map((v) => v.id)) + 1 : 1;
-      setVideos((prev) => [...prev, { id: newId, ...videoForm }]);
+    try {
+      const payload = {
+        ...videoForm,
+        thumbnail: videoForm.thumbnail || undefined,
+      };
+      if (editingVideo) {
+        const res = await apiFetch(`/api/dashboard/gallery/videos/${editingVideo.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) return;
+        const updated = await res.json();
+        setVideos((prev) =>
+          prev.map((v) => (v.id === editingVideo.id ? updated : v))
+        );
+      } else {
+        const res = await apiFetch("/api/dashboard/gallery/videos", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) return;
+        const created = await res.json();
+        setVideos((prev) => [created, ...prev]);
+      }
+      setVideoModalOpen(false);
+    } catch {
+      // keep modal open
     }
-    setVideoModalOpen(false);
   };
-  const handleVideoDelete = (row: GalleryVideoRow) => {
-    setVideos((prev) => prev.filter((v) => v.id !== row.id));
+  const handleVideoDelete = async (row: GalleryVideoRow) => {
+    try {
+      const res = await apiFetch(`/api/dashboard/gallery/videos/${row.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) setVideos((prev) => prev.filter((v) => v.id !== row.id));
+    } catch {
+      // keep dialog open
+    }
     setDeleteVideo(null);
   };
 
@@ -161,8 +243,8 @@ const GallerySection: React.FC = () => {
           type="button"
           onClick={() => setTab("photos")}
           className={`border-b-2 px-4 py-2 font-calibri text-sm ${tab === "photos"
-              ? "border-rose-500 text-rose-600"
-              : "border-transparent text-gray-600 hover:text-rose-600"
+            ? "border-rose-500 text-rose-600"
+            : "border-transparent text-gray-600 hover:text-rose-600"
             }`}
         >
           Photos
@@ -171,8 +253,8 @@ const GallerySection: React.FC = () => {
           type="button"
           onClick={() => setTab("videos")}
           className={`border-b-2 px-4 py-2 font-calibri text-sm ${tab === "videos"
-              ? "border-rose-500 text-rose-600"
-              : "border-transparent text-gray-600 hover:text-rose-600"
+            ? "border-rose-500 text-rose-600"
+            : "border-transparent text-gray-600 hover:text-rose-600"
             }`}
         >
           Videos
@@ -190,14 +272,18 @@ const GallerySection: React.FC = () => {
               Add Photo
             </button>
           </div>
-          <DataTable
-            columns={PHOTO_COLUMNS}
-            data={photos}
-            getRowId={(r) => r.id}
-            onEdit={openPhotoEdit}
-            onDelete={(r) => setDeletePhoto(r)}
-            emptyMessage="No photos yet. Click Add Photo to create one."
-          />
+          {loadingPhotos ? (
+            <p className="font-calibri text-gray-600">Loading...</p>
+          ) : (
+            <DataTable
+              columns={PHOTO_COLUMNS}
+              data={photos}
+              getRowId={(r) => r.id}
+              onEdit={openPhotoEdit}
+              onDelete={(r) => setDeletePhoto(r)}
+              emptyMessage="No photos yet. Click Add Photo to create one."
+            />
+          )}
         </>
       )}
       {tab === "videos" && (
@@ -212,14 +298,18 @@ const GallerySection: React.FC = () => {
               Add Video
             </button>
           </div>
-          <DataTable
-            columns={VIDEO_COLUMNS}
-            data={videos}
-            getRowId={(r) => r.id}
-            onEdit={openVideoEdit}
-            onDelete={(r) => setDeleteVideo(r)}
-            emptyMessage="No videos yet. Click Add Video to create one."
-          />
+          {loadingVideos ? (
+            <p className="font-calibri text-gray-600">Loading...</p>
+          ) : (
+            <DataTable
+              columns={VIDEO_COLUMNS}
+              data={videos}
+              getRowId={(r) => r.id}
+              onEdit={openVideoEdit}
+              onDelete={(r) => setDeleteVideo(r)}
+              emptyMessage="No videos yet. Click Add Video to create one."
+            />
+          )}
         </>
       )}
       <FormModal

@@ -90,6 +90,29 @@ export const getAllUsersCount = async (): Promise<number> => {
   return Number(rows[0]?.count ?? 0);
 };
 
+export const getAllUsers = async (): Promise<Omit<User, 'password'>[]> => {
+  const [rows] = await pool.execute<UserRow[]>(
+    'SELECT id, name, email, phone, role, reward_points, total_points_earned, total_points_spent, member_since, avatar, created_at, updated_at FROM users ORDER BY created_at DESC'
+  );
+  return rows.map((row) => {
+    const memberSince = row.member_since instanceof Date
+      ? row.member_since.toISOString().slice(0, 10)
+      : String(row.member_since).slice(0, 10);
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      phone: row.phone ?? undefined,
+      role: row.role as User['role'],
+      rewardPoints: row.reward_points,
+      totalPointsEarned: row.total_points_earned,
+      totalPointsSpent: row.total_points_spent,
+      memberSince,
+      avatar: row.avatar ?? undefined,
+    };
+  });
+};
+
 export const updateUser = async (
   userId: string,
   updates: Partial<Omit<User, 'id' | 'email' | 'password'>>

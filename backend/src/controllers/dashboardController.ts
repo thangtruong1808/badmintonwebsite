@@ -1,9 +1,18 @@
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { testConnection } from '../db/connection.js';
-import { getAllUsersCount } from '../services/userService.js';
+import { getAllUsersCount, getAllUsers, updateUser } from '../services/userService.js';
 import { getAllEvents } from '../services/eventService.js';
-import { getRegistrationsCount } from '../services/registrationService.js';
-import { getRewardTransactionsCount } from '../services/rewardService.js';
+import { getRegistrationsCount, getAllRegistrations } from '../services/registrationService.js';
+import { getRewardTransactionsCount, getAllRewardTransactions } from '../services/rewardService.js';
+import * as productService from '../services/productService.js';
+import * as galleryService from '../services/galleryService.js';
+import * as newsService from '../services/newsService.js';
+import * as reviewService from '../services/reviewService.js';
+import * as contactMessageService from '../services/contactMessageService.js';
+import * as serviceRequestService from '../services/serviceRequestService.js';
+import * as paymentService from '../services/paymentService.js';
+import * as invoiceService from '../services/invoiceService.js';
+import { createError } from '../middleware/errorHandler.js';
 
 export const testDbConnection = async (req: Request, res: Response): Promise<void> => {
   const result = await testConnection();
@@ -28,4 +37,429 @@ export const getDashboardStats = async (req: Request, res: Response): Promise<vo
     registrationsCount,
     rewardTransactionsCount,
   });
+};
+
+export const getDashboardUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const users = await getAllUsers();
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardUser = async (
+  req: Request<{ id: string }, {}, { name?: string; phone?: string; role?: string; rewardPoints?: number }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const updated = await updateUser(id, req.body as Parameters<typeof updateUser>[1]);
+    if (!updated) {
+      throw createError('User not found', 404);
+    }
+    const { password: _, ...userResponse } = updated;
+    res.json(userResponse);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDashboardRegistrations = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await getAllRegistrations();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDashboardRewardTransactions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await getAllRewardTransactions();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDashboardProducts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await productService.findAll();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createDashboardProduct = async (
+  req: Request<{}, {}, { name: string; price: number; original_price?: number; image: string; category: string; in_stock?: boolean; description?: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const body = req.body;
+    if (!body.name || body.price == null) {
+      throw createError('Name and price are required', 400);
+    }
+    const created = await productService.create({
+      name: body.name,
+      price: Number(body.price),
+      original_price: body.original_price ?? null,
+      image: body.image || '',
+      category: body.category || '',
+      in_stock: body.in_stock,
+      description: body.description ?? null,
+    });
+    res.status(201).json(created);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardProduct = async (
+  req: Request<{ id: string }, {}, { name?: string; price?: number; original_price?: number; image?: string; category?: string; in_stock?: boolean; description?: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid product ID', 400);
+    const updated = await productService.update(id, req.body as Parameters<typeof productService.update>[1]);
+    if (!updated) throw createError('Product not found', 404);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDashboardProduct = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid product ID', 400);
+    const deleted = await productService.remove(id);
+    if (!deleted) throw createError('Product not found', 404);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Gallery photos (dashboard)
+export const getDashboardGalleryPhotos = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await galleryService.findAllPhotos();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createDashboardGalleryPhoto = async (
+  req: Request<{}, {}, { src: string; alt: string; type: string; display_order?: number }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { src, alt, type, display_order } = req.body;
+    if (!src || !alt || !type) throw createError('src, alt and type are required', 400);
+    const created = await galleryService.createPhoto({ src, alt, type, display_order });
+    res.status(201).json(created);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardGalleryPhoto = async (
+  req: Request<{ id: string }, {}, { src?: string; alt?: string; type?: string; display_order?: number }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid photo ID', 400);
+    const updated = await galleryService.updatePhoto(id, req.body);
+    if (!updated) throw createError('Photo not found', 404);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDashboardGalleryPhoto = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid photo ID', 400);
+    const deleted = await galleryService.removePhoto(id);
+    if (!deleted) throw createError('Photo not found', 404);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Gallery videos (dashboard)
+export const getDashboardGalleryVideos = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await galleryService.findAllVideos();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createDashboardGalleryVideo = async (
+  req: Request<{}, {}, { title: string; embed_id: string; thumbnail?: string; category: string; display_order?: number }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { title, embed_id, thumbnail, category, display_order } = req.body;
+    if (!title || !embed_id || !category) throw createError('title, embed_id and category are required', 400);
+    const created = await galleryService.createVideo({ title, embed_id, thumbnail: thumbnail ?? null, category, display_order });
+    res.status(201).json(created);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardGalleryVideo = async (
+  req: Request<{ id: string }, {}, { title?: string; embed_id?: string; thumbnail?: string; category?: string; display_order?: number }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid video ID', 400);
+    const updated = await galleryService.updateVideo(id, req.body);
+    if (!updated) throw createError('Video not found', 404);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDashboardGalleryVideo = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid video ID', 400);
+    const deleted = await galleryService.removeVideo(id);
+    if (!deleted) throw createError('Video not found', 404);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+// News (dashboard)
+export const getDashboardNews = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await newsService.findAll();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createDashboardNews = async (
+  req: Request<{}, {}, Record<string, unknown>>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const body = req.body as { image?: string; title: string; date?: string; time?: string; location?: string; description?: string; badge?: string; category?: string; link?: string; display_order?: number };
+    if (!body.title) throw createError('title is required', 400);
+    const created = await newsService.create(body);
+    res.status(201).json(created);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardNews = async (
+  req: Request<{ id: string }, {}, Record<string, unknown>>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid news ID', 400);
+    const updated = await newsService.update(id, req.body as Parameters<typeof newsService.update>[1]);
+    if (!updated) throw createError('News article not found', 404);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDashboardNews = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid news ID', 400);
+    const deleted = await newsService.remove(id);
+    if (!deleted) throw createError('News article not found', 404);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Reviews (dashboard)
+export const getDashboardReviews = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await reviewService.findAll();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createDashboardReview = async (
+  req: Request<{}, {}, Record<string, unknown>>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const body = req.body as { user_id?: string; name: string; rating: number; review_date: string; review_text: string; is_verified?: boolean; status?: string };
+    if (!body.name || body.rating == null) throw createError('name and rating are required', 400);
+    const created = await reviewService.create(body);
+    res.status(201).json(created);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardReview = async (
+  req: Request<{ id: string }, {}, Record<string, unknown>>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid review ID', 400);
+    const updated = await reviewService.update(id, req.body as Parameters<typeof reviewService.update>[1]);
+    if (!updated) throw createError('Review not found', 404);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDashboardReview = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid review ID', 400);
+    const deleted = await reviewService.remove(id);
+    if (!deleted) throw createError('Review not found', 404);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Contact messages (dashboard: list + update)
+export const getDashboardContactMessages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await contactMessageService.findAll();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardContactMessage = async (
+  req: Request<{ id: string }, {}, { status?: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid contact message ID', 400);
+    const updated = await contactMessageService.update(id, { status: req.body.status });
+    if (!updated) throw createError('Contact message not found', 404);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Service requests (dashboard: list + update)
+export const getDashboardServiceRequests = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await serviceRequestService.findAll();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardServiceRequest = async (
+  req: Request<{ id: string }, {}, { status?: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid service request ID', 400);
+    const updated = await serviceRequestService.update(id, { status: req.body.status });
+    if (!updated) throw createError('Service request not found', 404);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Payments (dashboard: list)
+export const getDashboardPayments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await paymentService.findAll();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Invoices (dashboard: list + detail)
+export const getDashboardInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await invoiceService.findAll();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDashboardInvoiceById = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const invoice = await invoiceService.findById(req.params.id);
+    if (!invoice) throw createError('Invoice not found', 404);
+    res.json(invoice);
+  } catch (error) {
+    next(error);
+  }
 };

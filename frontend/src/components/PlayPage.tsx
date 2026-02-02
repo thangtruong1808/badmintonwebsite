@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import SearchBar from "./PlayPage/SearchBar";
 import EventList from "./PlayPage/EventList";
 import RegistrationModal from "./PlayPage/RegistrationModal";
 import Pagination from "./PlayPage/Pagination";
-import { socialEvents as initialSocialEvents } from "../data/socialEvents";
 import { setCartItems, getCartItems, clearCart } from "../utils/cartStorage";
-import { getInitialEvents, getUserRegistrations } from "../utils/registrationService";
-import { getOrCreateUserId } from "../utils/userStorage";
+import { getUserRegistrations } from "../utils/registrationService";
+import { getCurrentUser } from "../utils/mockAuth";
+import { apiFetch } from "../utils/api";
 import type { SocialEvent, Registration } from "../types/socialEvent";
 import { FaPaperPlane } from "react-icons/fa";
 
@@ -15,10 +15,12 @@ const PlayPage: React.FC = () => {
     document.title = "ChibiBadminton - Play Sessions";
   }, []);
 
-  const userId = getOrCreateUserId();
+  const user = getCurrentUser();
+  const userId = user?.id;
 
   // State management
-  const [allEvents, setAllEvents] = useState<SocialEvent[]>(() => getInitialEvents(initialSocialEvents));
+  const [allEvents, setAllEvents] = useState<SocialEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
   const [userRegistrations, setUserRegistrations] = useState<Registration[]>([]);
   const [myRegistrationsFilter, setMyRegistrationsFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,9 +38,37 @@ const PlayPage: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<SocialEvent | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const fetchEvents = useCallback(async () => {
+    setEventsLoading(true);
+    try {
+      const res = await apiFetch("/api/events", { skipAuth: true });
+      if (res.ok) {
+        const list = await res.json();
+        setAllEvents(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setAllEvents([]);
+    } finally {
+      setEventsLoading(false);
+    }
+  }, []);
+
+  const fetchRegistrations = useCallback(async () => {
+    if (!userId) {
+      setUserRegistrations([]);
+      return;
+    }
+    const regs = await getUserRegistrations(userId);
+    setUserRegistrations(regs);
+  }, [userId]);
+
   useEffect(() => {
-    setUserRegistrations(getUserRegistrations(userId));
-  }, [userId]); // Re-fetch registrations when userId changes
+    fetchEvents();
+  }, [fetchEvents]);
+
+  useEffect(() => {
+    fetchRegistrations();
+  }, [fetchRegistrations]);
 
   const EVENTS_PER_PAGE = 8; // 2 rows × 4 columns = 8 events
 
@@ -155,12 +185,9 @@ const PlayPage: React.FC = () => {
     setMyRegistrationsFilter(false);
   };
 
-  const handleRegistrationSuccess = (updatedEvents: SocialEvent[]) => {
-    // Update all events with the new state
-    setAllEvents(updatedEvents);
-    // Refresh user registrations after successful registration
-    setUserRegistrations(getUserRegistrations(userId));
-    // Clear selected events after successful registration
+  const handleRegistrationSuccess = async (_updatedEvents?: SocialEvent[]) => {
+    await fetchEvents();
+    await fetchRegistrations();
     setSelectedEventIds([]);
     clearCart();
   };
@@ -222,145 +249,150 @@ const PlayPage: React.FC = () => {
           onClearFilters={handleClearFilters}
         />
 
+        {eventsLoading && (
+          <div className="text-center py-8 font-calibri text-gray-600">Loading events…</div>
+        )}
         {/* Main Content */}
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 font-calibri">
-              {sortedEvents.length} Event{sortedEvents.length !== 1 ? "s" : ""}{" "}
-              Found
-              {totalPages > 1 && (
-                <span className="text-lg font-normal text-gray-600 ml-2 font-calibri">
-                  (Page {currentPage} of {totalPages})
-                </span>
-              )}
-            </h2>
-            {selectedEventIds.length > 0 && (
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600 font-calibri">
-                  {selectedEventIds.length} event{selectedEventIds.length !== 1 ? "s" : ""} selected
-                </span>
-                <button
-                  onClick={handleBookAll}
-                  className="bg-rose-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-rose-600 transition-colors font-calibri"
-                >
-                  Book All ({selectedEventIds.length})
-                </button>
-                <button
-                  onClick={handleClearCart}
-                  className="text-sm text-gray-600 hover:text-gray-900 font-calibri"
-                >
-                  Clear
-                </button>
-              </div>
-            )}
-          </div>
-          <EventList
-            events={paginatedEvents}
-            selectedEventIds={selectedEventIds}
-            onSelectEvent={handleSelectEvent}
-            onRegister={handleRegister}
-            onViewDetails={handleViewDetails}
-          />
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      </div>
-
-      {/* Registration Modal */}
-      <RegistrationModal
-        isOpen={isRegistrationModalOpen}
-        onClose={() => setIsRegistrationModalOpen(false)}
-        events={registrationEvents}
-        isMultiEvent={registrationEvents.length > 1}
-        onSuccess={handleRegistrationSuccess}
-      />
-
-      {/* Event Details Modal (Simple version) */}
-      {isDetailsModalOpen && selectedEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {selectedEvent.title}
-              </h2>
-              <button
-                onClick={() => setIsDetailsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-6">
-              {selectedEvent.imageUrl && (
-                <img
-                  src={selectedEvent.imageUrl}
-                  alt={selectedEvent.title}
-                  className="w-full h-full object-contain rounded-lg mb-4"
-                />
-              )}
-              <div className="space-y-3 mb-4 font-calibri text-lg">
-                <p className="text-gray-700">
-                  <strong>Date:</strong> {new Date(selectedEvent.date).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-                <p className="text-gray-700">
-                  <strong>Time:</strong> {selectedEvent.time}
-                </p>
-                <p className="text-gray-700">
-                  <strong>Location:</strong> {selectedEvent.location}
-                </p>
-                <p className="text-gray-700">
-                  <strong>Capacity:</strong> {selectedEvent.currentAttendees} / {selectedEvent.maxCapacity} attendees
-                </p>
-                {selectedEvent.price && (
-                  <p className="text-gray-700">
-                    <strong>Price:</strong> ${selectedEvent.price}
-                  </p>
-                )}
-                <p className="text-gray-700">
-                  <strong>Status:</strong>{" "}
-                  <span
-                    className={`px-2 py-1 rounded text-sm font-semibold ${selectedEvent.status === "available"
-                      ? "bg-green-100 text-green-800"
-                      : selectedEvent.status === "full"
-                        ? "bg-orange-100 text-orange-800"
-                        : selectedEvent.status === "completed"
-                          ? "bg-gray-100 text-gray-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                  >
-                    {selectedEvent.status.toUpperCase()}
+        {!eventsLoading && (
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 font-calibri">
+                {sortedEvents.length} Event{sortedEvents.length !== 1 ? "s" : ""}{" "}
+                Found
+                {totalPages > 1 && (
+                  <span className="text-lg font-normal text-gray-600 ml-2 font-calibri">
+                    (Page {currentPage} of {totalPages})
                   </span>
-                </p>
-              </div>
-              <p className="text-gray-800 whitespace-pre-line font-calibri">
-                {selectedEvent.description}
-              </p>
-              {selectedEvent.status === "available" && (
-                <button
-                  onClick={() => {
-                    setIsDetailsModalOpen(false);
-                    handleRegister(selectedEvent);
-                  }}
-                  className="mt-6 w-full bg-rose-500 text-white text-xl py-3 px-4 rounded-lg hover:bg-rose-600 transition-colors font-calibri"
-                >
-                  <div className="flex items-center justify-center gap-4">
-                    <FaPaperPlane size={18} />
-                    <span className="font-calibri text-md font-bold">Register Now</span>
-                  </div>
-                </button>
+                )}
+              </h2>
+              {selectedEventIds.length > 0 && (
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-600 font-calibri">
+                    {selectedEventIds.length} event{selectedEventIds.length !== 1 ? "s" : ""} selected
+                  </span>
+                  <button
+                    onClick={handleBookAll}
+                    className="bg-rose-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-rose-600 transition-colors font-calibri"
+                  >
+                    Book All ({selectedEventIds.length})
+                  </button>
+                  <button
+                    onClick={handleClearCart}
+                    className="text-sm text-gray-600 hover:text-gray-900 font-calibri"
+                  >
+                    Clear
+                  </button>
+                </div>
               )}
             </div>
+            <EventList
+              events={paginatedEvents}
+              selectedEventIds={selectedEventIds}
+              onSelectEvent={handleSelectEvent}
+              onRegister={handleRegister}
+              onViewDetails={handleViewDetails}
+            />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Registration Modal */}
+        <RegistrationModal
+          isOpen={isRegistrationModalOpen}
+          onClose={() => setIsRegistrationModalOpen(false)}
+          events={registrationEvents}
+          isMultiEvent={registrationEvents.length > 1}
+          onSuccess={handleRegistrationSuccess}
+        />
+
+        {/* Event Details Modal (Simple version) */}
+        {isDetailsModalOpen && selectedEvent && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {selectedEvent.title}
+                </h2>
+                <button
+                  onClick={() => setIsDetailsModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="p-6">
+                {selectedEvent.imageUrl && (
+                  <img
+                    src={selectedEvent.imageUrl}
+                    alt={selectedEvent.title}
+                    className="w-full h-full object-contain rounded-lg mb-4"
+                  />
+                )}
+                <div className="space-y-3 mb-4 font-calibri text-lg">
+                  <p className="text-gray-700">
+                    <strong>Date:</strong> {new Date(selectedEvent.date).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                  <p className="text-gray-700">
+                    <strong>Time:</strong> {selectedEvent.time}
+                  </p>
+                  <p className="text-gray-700">
+                    <strong>Location:</strong> {selectedEvent.location}
+                  </p>
+                  <p className="text-gray-700">
+                    <strong>Capacity:</strong> {selectedEvent.currentAttendees} / {selectedEvent.maxCapacity} attendees
+                  </p>
+                  {selectedEvent.price && (
+                    <p className="text-gray-700">
+                      <strong>Price:</strong> ${selectedEvent.price}
+                    </p>
+                  )}
+                  <p className="text-gray-700">
+                    <strong>Status:</strong>{" "}
+                    <span
+                      className={`px-2 py-1 rounded text-sm font-semibold ${selectedEvent.status === "available"
+                        ? "bg-green-100 text-green-800"
+                        : selectedEvent.status === "full"
+                          ? "bg-orange-100 text-orange-800"
+                          : selectedEvent.status === "completed"
+                            ? "bg-gray-100 text-gray-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                    >
+                      {selectedEvent.status.toUpperCase()}
+                    </span>
+                  </p>
+                </div>
+                <p className="text-gray-800 whitespace-pre-line font-calibri">
+                  {selectedEvent.description}
+                </p>
+                {selectedEvent.status === "available" && (
+                  <button
+                    onClick={() => {
+                      setIsDetailsModalOpen(false);
+                      handleRegister(selectedEvent);
+                    }}
+                    className="mt-6 w-full bg-rose-500 text-white text-xl py-3 px-4 rounded-lg hover:bg-rose-600 transition-colors font-calibri"
+                  >
+                    <div className="flex items-center justify-center gap-4">
+                      <FaPaperPlane size={18} />
+                      <span className="font-calibri text-md font-bold">Register Now</span>
+                    </div>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

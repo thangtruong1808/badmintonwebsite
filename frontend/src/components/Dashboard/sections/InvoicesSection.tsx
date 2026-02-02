@@ -1,14 +1,6 @@
-import React, { useState } from "react";
-import { FaPlus } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
 import DataTable, { type Column } from "../Shared/DataTable";
-import FormModal from "../Shared/FormModal";
-import ConfirmDialog from "../Shared/ConfirmDialog";
-import {
-  TextInput,
-  NumberInput,
-  Select,
-  FormActions,
-} from "../Shared/inputs";
+import { apiFetch } from "../../../utils/api";
 
 export interface InvoiceLineItemRow {
   description: string;
@@ -36,13 +28,6 @@ export interface InvoiceRow {
   created_at?: string;
 }
 
-const STATUS_OPTIONS = [
-  { value: "draft", label: "Draft" },
-  { value: "issued", label: "Issued" },
-  { value: "paid", label: "Paid" },
-  { value: "cancelled", label: "Cancelled" },
-];
-
 const COLUMNS: Column<InvoiceRow>[] = [
   { key: "id", label: "ID", render: (r) => r.id.slice(0, 10) + "…" },
   { key: "invoice_number", label: "Invoice #" },
@@ -54,325 +39,144 @@ const COLUMNS: Column<InvoiceRow>[] = [
   { key: "paid_at", label: "Paid at", render: (r) => (r.paid_at ? r.paid_at.slice(0, 10) : "—") },
 ];
 
-const defaultLineItem = (sortOrder: number): InvoiceLineItemRow => ({
-  description: "",
-  quantity: 1,
-  unit_price: 0,
-  amount: 0,
-  sort_order: sortOrder,
-});
-
 const InvoicesSection: React.FC = () => {
   const [items, setItems] = useState<InvoiceRow[]>([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<InvoiceRow | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<InvoiceRow | null>(null);
-  const [form, setForm] = useState({
-    user_id: "",
-    payment_id: "",
-    invoice_number: "",
-    status: "draft",
-    subtotal: 0,
-    total: 0,
-    currency: "AUD",
-    due_date: "",
-    paid_at: "",
-    pdf_url: "",
-  });
-  const [lineItems, setLineItems] = useState<InvoiceLineItemRow[]>([
-    defaultLineItem(0),
-  ]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detail, setDetail] = useState<InvoiceRow | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
-  const openCreate = () => {
-    setEditing(null);
-    setForm({
-      user_id: "",
-      payment_id: "",
-      invoice_number: `INV-${Date.now()}`,
-      status: "draft",
-      subtotal: 0,
-      total: 0,
-      currency: "AUD",
-      due_date: "",
-      paid_at: "",
-      pdf_url: "",
-    });
-    setLineItems([defaultLineItem(0)]);
-    setModalOpen(true);
-  };
-
-  const openEdit = (row: InvoiceRow) => {
-    setEditing(row);
-    setForm({
-      user_id: row.user_id,
-      payment_id: row.payment_id ?? "",
-      invoice_number: row.invoice_number,
-      status: row.status,
-      subtotal: row.subtotal,
-      total: row.total,
-      currency: row.currency,
-      due_date: row.due_date ?? "",
-      paid_at: row.paid_at ? row.paid_at.slice(0, 16) : "",
-      pdf_url: row.pdf_url ?? "",
-    });
-    setLineItems(
-      row.line_items.length > 0
-        ? row.line_items
-        : [defaultLineItem(0)]
-    );
-    setModalOpen(true);
-  };
-
-  const addLineItem = () => {
-    setLineItems((prev) => [...prev, defaultLineItem(prev.length)]);
-  };
-
-  const removeLineItem = (index: number) => {
-    setLineItems((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const updateLineItem = (index: number, field: keyof InvoiceLineItemRow, value: string | number) => {
-    setLineItems((prev) => {
-      const next = [...prev];
-      const item = { ...next[index], [field]: value };
-      if (field === "quantity" || field === "unit_price") {
-        item.amount = item.quantity * item.unit_price;
+  const fetchList = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch("/api/dashboard/invoices");
+      if (res.ok) {
+        const list = await res.json();
+        setItems(Array.isArray(list) ? list : []);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setError(err.message || "Failed to load invoices");
+        setItems([]);
       }
-      next[index] = item;
-      return next;
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const paidAt = form.paid_at ? form.paid_at.replace("T", " ") + ":00" : undefined;
-    if (editing) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-              ...r,
-              user_id: form.user_id,
-              payment_id: form.payment_id || undefined,
-              invoice_number: form.invoice_number,
-              status: form.status,
-              subtotal: form.subtotal,
-              total: form.total,
-              currency: form.currency,
-              due_date: form.due_date || undefined,
-              paid_at: paidAt,
-              pdf_url: form.pdf_url || undefined,
-              line_items: lineItems,
-            }
-            : r
-        )
-      );
-    } else {
-      setItems((prev) => [
-        ...prev,
-        {
-          id: `inv-${Date.now()}`,
-          user_id: form.user_id,
-          payment_id: form.payment_id || undefined,
-          invoice_number: form.invoice_number,
-          status: form.status,
-          subtotal: form.subtotal,
-          total: form.total,
-          currency: form.currency,
-          due_date: form.due_date || undefined,
-          paid_at: paidAt,
-          pdf_url: form.pdf_url || undefined,
-          line_items: lineItems,
-        },
-      ]);
+    } catch {
+      setError("Could not load invoices");
+      setItems([]);
+    } finally {
+      setLoading(false);
     }
-    setModalOpen(false);
   };
 
-  const handleDelete = (row: InvoiceRow) => {
-    setItems((prev) => prev.filter((r) => r.id !== row.id));
-    setDeleteTarget(null);
+  useEffect(() => {
+    fetchList();
+  }, []);
+
+  const openDetail = async (row: InvoiceRow) => {
+    setDetail(row);
+    setDetailOpen(true);
+    setDetailLoading(true);
+    try {
+      const res = await apiFetch(`/api/dashboard/invoices/${row.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setDetail(data);
+      }
+    } catch {
+      // keep row as fallback
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
-        >
-          <FaPlus size={16} />
-          Add Invoice
-        </button>
-      </div>
-      <DataTable
-        columns={COLUMNS}
-        data={items}
-        getRowId={(r) => r.id}
-        onEdit={openEdit}
-        onDelete={(r) => setDeleteTarget(r)}
-        emptyMessage="No invoices yet. Click Add Invoice to create one."
-      />
-      <FormModal
-        title={editing ? "Edit Invoice" : "Add Invoice"}
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleSubmit}
-      >
-        <TextInput
-          label="User ID"
-          name="user_id"
-          value={form.user_id}
-          onChange={(e) => setForm((f) => ({ ...f, user_id: e.target.value }))}
-          required
+      {loading && <p className="text-gray-600 font-calibri">Loading invoices…</p>}
+      {error && (
+        <p className="text-red-600 font-calibri">{error}</p>
+      )}
+      {!loading && (
+        <DataTable
+          columns={COLUMNS}
+          data={items}
+          getRowId={(r) => r.id}
+          onEdit={openDetail}
+          emptyMessage="No invoices yet."
         />
-        <TextInput
-          label="Payment ID (optional)"
-          name="payment_id"
-          value={form.payment_id}
-          onChange={(e) => setForm((f) => ({ ...f, payment_id: e.target.value }))}
-        />
-        <TextInput
-          label="Invoice number"
-          name="invoice_number"
-          value={form.invoice_number}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, invoice_number: e.target.value }))
-          }
-          required
-        />
-        <Select
-          label="Status"
-          name="status"
-          value={form.status}
-          onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-          options={STATUS_OPTIONS}
-        />
-        <NumberInput
-          label="Subtotal"
-          name="subtotal"
-          value={form.subtotal}
-          onChange={(e) =>
-            setForm((f) => ({
-              ...f,
-              subtotal: Number(e.target.value) || 0,
-            }))
-          }
-        />
-        <NumberInput
-          label="Total"
-          name="total"
-          value={form.total}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, total: Number(e.target.value) || 0 }))
-          }
-        />
-        <TextInput
-          label="Currency"
-          name="currency"
-          value={form.currency}
-          onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
-        />
-        <TextInput
-          label="Due date"
-          name="due_date"
-          type="date"
-          value={form.due_date}
-          onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
-        />
-        <TextInput
-          label="Paid at (datetime)"
-          name="paid_at"
-          type="datetime-local"
-          value={form.paid_at}
-          onChange={(e) => setForm((f) => ({ ...f, paid_at: e.target.value }))}
-        />
-        <TextInput
-          label="PDF URL"
-          name="pdf_url"
-          value={form.pdf_url}
-          onChange={(e) => setForm((f) => ({ ...f, pdf_url: e.target.value }))}
-        />
-        <div className="border-t border-gray-200 pt-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-calibri font-medium text-gray-700">
-              Line items
-            </span>
-            <button
-              type="button"
-              onClick={addLineItem}
-              className="text-sm text-rose-600 hover:text-rose-700 font-calibri"
-            >
-              + Add row
-            </button>
-          </div>
-          <div className="space-y-3 max-h-48 overflow-y-auto">
-            {lineItems.map((item, index) => (
-              <div
-                key={index}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 rounded border border-gray-200 p-2 bg-gray-50 items-end"
+      )}
+      {detailOpen && detail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-calibri font-bold text-gray-900">
+                Invoice: {detail.invoice_number}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setDetailOpen(false)}
+                className="text-gray-500 hover:text-gray-700 font-calibri"
               >
-                <div className="sm:col-span-2">
-                  <TextInput
-                    label="Description"
-                    name={`line_${index}_desc`}
-                    value={item.description}
-                    onChange={(e) =>
-                      updateLineItem(index, "description", e.target.value)
-                    }
-                  />
+                Close
+              </button>
+            </div>
+            {detailLoading ? (
+              <p className="text-gray-600 font-calibri">Loading details…</p>
+            ) : (
+              <div className="space-y-4 font-calibri">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <span className="text-gray-600">ID</span>
+                  <span>{detail.id}</span>
+                  <span className="text-gray-600">Invoice #</span>
+                  <span>{detail.invoice_number}</span>
+                  <span className="text-gray-600">User ID</span>
+                  <span>{detail.user_id}</span>
+                  <span className="text-gray-600">Payment ID</span>
+                  <span>{detail.payment_id ?? "—"}</span>
+                  <span className="text-gray-600">Status</span>
+                  <span>{detail.status}</span>
+                  <span className="text-gray-600">Subtotal</span>
+                  <span>{detail.subtotal}</span>
+                  <span className="text-gray-600">Total</span>
+                  <span>{detail.total} {detail.currency}</span>
+                  <span className="text-gray-600">Due date</span>
+                  <span>{detail.due_date ?? "—"}</span>
+                  <span className="text-gray-600">Paid at</span>
+                  <span>{detail.paid_at ?? "—"}</span>
+                  <span className="text-gray-600">PDF URL</span>
+                  <span className="break-all">{detail.pdf_url ?? "—"}</span>
                 </div>
-                <NumberInput
-                  label="Qty"
-                  name={`line_${index}_qty`}
-                  value={item.quantity}
-                  onChange={(e) =>
-                    updateLineItem(index, "quantity", Number(e.target.value) || 0)
-                  }
-                />
-                <NumberInput
-                  label="Unit price"
-                  name={`line_${index}_unit`}
-                  value={item.unit_price}
-                  onChange={(e) =>
-                    updateLineItem(index, "unit_price", Number(e.target.value) || 0)
-                  }
-                />
-                <NumberInput
-                  label="Amount"
-                  name={`line_${index}_amount`}
-                  value={item.amount}
-                  onChange={(e) =>
-                    updateLineItem(index, "amount", Number(e.target.value) || 0)
-                  }
-                />
-                <button
-                  type="button"
-                  onClick={() => removeLineItem(index)}
-                  className="rounded p-2 text-red-600 hover:bg-red-100 text-sm"
-                  disabled={lineItems.length <= 1}
-                >
-                  Remove
-                </button>
+                {detail.line_items && detail.line_items.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-700 mb-2">Line items</h4>
+                    <div className="border rounded overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="text-left p-2">Description</th>
+                            <th className="text-right p-2">Qty</th>
+                            <th className="text-right p-2">Unit price</th>
+                            <th className="text-right p-2">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {detail.line_items.map((item, i) => (
+                            <tr key={i} className="border-t">
+                              <td className="p-2">{item.description}</td>
+                              <td className="p-2 text-right">{item.quantity}</td>
+                              <td className="p-2 text-right">{item.unit_price}</td>
+                              <td className="p-2 text-right">{item.amount}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
-            ))}
+            )}
           </div>
         </div>
-        <FormActions onCancel={() => setModalOpen(false)} />
-      </FormModal>
-      <ConfirmDialog
-        open={!!deleteTarget}
-        title="Delete Invoice"
-        message={
-          deleteTarget
-            ? `Delete invoice "${deleteTarget.invoice_number}"? This cannot be undone.`
-            : ""
-        }
-        confirmLabel="Delete"
-        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
-        onCancel={() => setDeleteTarget(null)}
-      />
+      )}
     </div>
   );
 };

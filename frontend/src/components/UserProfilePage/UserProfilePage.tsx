@@ -21,19 +21,35 @@ const UserProfilePage: React.FC = () => {
     const currentUser = getCurrentUser();
     setUser(currentUser);
     if (currentUser) {
-      setTransactions(getUserTransactions(currentUser.id));
-      setEventHistory(getUserEventHistory(currentUser.id));
+      Promise.all([
+        getUserTransactions(currentUser.id),
+        getUserEventHistory(currentUser.id),
+      ]).then(([txs, history]) => {
+        setTransactions(txs);
+        setEventHistory(history);
+      }).finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
-  const handlePointsClaimed = () => {
-    // Refresh user data and transactions
+  const handlePointsClaimed = async () => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      setTransactions(getUserTransactions(currentUser.id));
-      setEventHistory(getUserEventHistory(currentUser.id));
+      const [txs, history] = await Promise.all([
+        getUserTransactions(currentUser.id),
+        getUserEventHistory(currentUser.id),
+      ]);
+      setTransactions(txs);
+      setEventHistory(history);
+    }
+  };
+
+  const handleAvatarUpdate = (newAvatarUrl: string) => {
+    // Update local user state with new avatar
+    if (user) {
+      setUser({ ...user, avatar: newAvatarUrl });
     }
   };
 
@@ -63,7 +79,7 @@ const UserProfilePage: React.FC = () => {
       <div className="container mx-auto px-4 pt-28 pb-6">
         {/* Profile Header */}
         <div className="mb-8">
-          <ProfileHeader user={user} />
+          <ProfileHeader user={user} onAvatarUpdate={handleAvatarUpdate} />
         </div>
 
         {/* Transaction History and Event History Side by Side */}

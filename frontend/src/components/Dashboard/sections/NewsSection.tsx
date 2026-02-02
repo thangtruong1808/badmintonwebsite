@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
@@ -10,6 +10,7 @@ import {
   TextArea,
   FormActions,
 } from "../Shared/inputs";
+import { apiFetch } from "../../../utils/api";
 
 export interface NewsRow {
   id: number;
@@ -44,9 +45,11 @@ const COLUMNS: Column<NewsRow>[] = [
 
 const NewsSection: React.FC = () => {
   const [items, setItems] = useState<NewsRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<NewsRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<NewsRow | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState({
     image: "",
     title: "",
@@ -59,6 +62,25 @@ const NewsSection: React.FC = () => {
     link: "",
     display_order: 0,
   });
+
+  const fetchList = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/news");
+      if (res.ok) {
+        const list = await res.json();
+        setItems(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -94,52 +116,64 @@ const NewsSection: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editing) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-              ...r,
-              image: form.image || undefined,
-              title: form.title,
-              date: form.date || undefined,
-              time: form.time || undefined,
-              location: form.location || undefined,
-              description: form.description || undefined,
-              badge: form.badge,
-              category: form.category || undefined,
-              link: form.link || undefined,
-              display_order: form.display_order,
-            }
-            : r
-        )
-      );
-    } else {
-      const newId = items.length ? Math.max(...items.map((e) => e.id)) + 1 : 1;
-      setItems((prev) => [
-        ...prev,
-        {
-          id: newId,
-          image: form.image || undefined,
-          title: form.title,
-          date: form.date || undefined,
-          time: form.time || undefined,
-          location: form.location || undefined,
-          description: form.description || undefined,
-          badge: form.badge,
-          category: form.category || undefined,
-          link: form.link || undefined,
-          display_order: form.display_order,
-        },
-      ]);
+    setFormError(null);
+    const payload = {
+      image: form.image || undefined,
+      title: form.title,
+      date: form.date || undefined,
+      time: form.time || undefined,
+      location: form.location || undefined,
+      description: form.description || undefined,
+      badge: form.badge,
+      category: form.category || undefined,
+      link: form.link || undefined,
+      display_order: form.display_order,
+    };
+    try {
+      if (editing) {
+        const res = await apiFetch(`/api/dashboard/news/${editing.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setFormError(data.message || "Failed to update news.");
+          return;
+        }
+        const updated = await res.json();
+        setItems((prev) =>
+          prev.map((r) => (r.id === editing.id ? updated : r))
+        );
+      } else {
+        const res = await apiFetch("/api/dashboard/news", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setFormError(data.message || "Failed to add news.");
+          return;
+        }
+        const created = await res.json();
+        setItems((prev) => [created, ...prev]);
+      }
+      setModalOpen(false);
+    } catch {
+      setFormError("Something went wrong. Please try again later.");
     }
-    setModalOpen(false);
   };
 
-  const handleDelete = (row: NewsRow) => {
-    setItems((prev) => prev.filter((r) => r.id !== row.id));
+  const handleDelete = async (row: NewsRow) => {
+    try {
+      const res = await apiFetch(`/api/dashboard/news/${row.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) setItems((prev) => prev.filter((r) => r.id !== row.id));
+    } catch {
+      // keep dialog open
+    }
     setDeleteTarget(null);
   };
 
@@ -155,20 +189,27 @@ const NewsSection: React.FC = () => {
           Add News
         </button>
       </div>
-      <DataTable
-        columns={COLUMNS}
-        data={items}
-        getRowId={(r) => r.id}
-        onEdit={openEdit}
-        onDelete={(r) => setDeleteTarget(r)}
-        emptyMessage="No news articles yet. Click Add News to create one."
-      />
+      {loading ? (
+        <p className="font-calibri text-gray-600">Loading...</p>
+      ) : (
+        <DataTable
+          columns={COLUMNS}
+          data={items}
+          getRowId={(r) => r.id}
+          onEdit={openEdit}
+          onDelete={(r) => setDeleteTarget(r)}
+          emptyMessage="No news articles yet. Click Add News to create one."
+        />
+      )}
       <FormModal
         title={editing ? "Edit News Article" : "Add News Article"}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
       >
+        {formError && (
+          <p className="text-sm text-red-600 font-calibri mb-2">{formError}</p>
+        )}
         <TextInput
           label="Image URL"
           name="image"

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
+import { apiFetch } from "../../../utils/api";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import {
@@ -52,6 +53,42 @@ const DAY_OPTIONS = [
   { value: "Sunday", label: "Sunday" },
 ];
 
+function toEventRow(e: {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  dayOfWeek: string;
+  location: string;
+  description?: string;
+  maxCapacity: number;
+  currentAttendees: number;
+  price?: number;
+  imageUrl?: string;
+  status: string;
+  category: string;
+  recurring?: boolean;
+  created_at?: string;
+}): EventRow {
+  return {
+    id: e.id,
+    title: e.title,
+    date: e.date,
+    time: e.time,
+    day_of_week: e.dayOfWeek,
+    location: e.location,
+    description: e.description,
+    max_capacity: e.maxCapacity,
+    current_attendees: e.currentAttendees,
+    price: e.price,
+    image_url: e.imageUrl,
+    status: e.status,
+    category: e.category,
+    recurring: e.recurring ?? false,
+    created_at: e.created_at,
+  };
+}
+
 const COLUMNS: Column<EventRow>[] = [
   { key: "id", label: "ID" },
   { key: "title", label: "Title" },
@@ -67,9 +104,11 @@ const COLUMNS: Column<EventRow>[] = [
 
 const EventsSection: React.FC = () => {
   const [items, setItems] = useState<EventRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<EventRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<EventRow | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     date: "",
@@ -85,6 +124,25 @@ const EventsSection: React.FC = () => {
     category: "regular",
     recurring: false,
   });
+
+  const fetchList = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/events");
+      if (res.ok) {
+        const list = await res.json();
+        setItems(Array.isArray(list) ? list.map(toEventRow) : []);
+      }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -126,59 +184,66 @@ const EventsSection: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     const priceNum = form.price ? parseFloat(form.price) : undefined;
-    if (editing) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-              ...r,
-              title: form.title,
-              date: form.date,
-              time: form.time,
-              day_of_week: form.day_of_week,
-              location: form.location,
-              description: form.description || undefined,
-              max_capacity: form.max_capacity,
-              current_attendees: form.current_attendees,
-              price: priceNum,
-              image_url: form.image_url || undefined,
-              status: form.status,
-              category: form.category,
-              recurring: form.recurring,
-            }
-            : r
-        )
-      );
-    } else {
-      const newId = items.length ? Math.max(...items.map((e) => e.id)) + 1 : 1;
-      setItems((prev) => [
-        ...prev,
-        {
-          id: newId,
-          title: form.title,
-          date: form.date,
-          time: form.time,
-          day_of_week: form.day_of_week,
-          location: form.location,
-          description: form.description || undefined,
-          max_capacity: form.max_capacity,
-          current_attendees: form.current_attendees,
-          price: priceNum,
-          image_url: form.image_url || undefined,
-          status: form.status,
-          category: form.category,
-          recurring: form.recurring,
-        },
-      ]);
+    const payload = {
+      title: form.title,
+      date: form.date,
+      time: form.time,
+      dayOfWeek: form.day_of_week,
+      location: form.location,
+      description: form.description || undefined,
+      maxCapacity: form.max_capacity,
+      currentAttendees: form.current_attendees,
+      price: priceNum,
+      imageUrl: form.image_url || undefined,
+      status: form.status,
+      category: form.category,
+      recurring: form.recurring,
+    };
+    try {
+      if (editing) {
+        const res = await apiFetch(`/api/events/${editing.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setFormError(data.message || "Failed to update event.");
+          return;
+        }
+        const updated = await res.json();
+        setItems((prev) =>
+          prev.map((r) => (r.id === editing.id ? toEventRow(updated) : r))
+        );
+      } else {
+        const res = await apiFetch("/api/events", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setFormError(data.message || "Failed to create event.");
+          return;
+        }
+        const created = await res.json();
+        setItems((prev) => [toEventRow(created), ...prev]);
+      }
+      setModalOpen(false);
+    } catch {
+      setFormError("Something went wrong. Please try again later.");
     }
-    setModalOpen(false);
   };
 
-  const handleDelete = (row: EventRow) => {
-    setItems((prev) => prev.filter((r) => r.id !== row.id));
+  const handleDelete = async (row: EventRow) => {
+    try {
+      const res = await apiFetch(`/api/events/${row.id}`, { method: "DELETE" });
+      if (res.ok) setItems((prev) => prev.filter((r) => r.id !== row.id));
+    } catch {
+      // keep dialog open
+    }
     setDeleteTarget(null);
   };
 
@@ -194,20 +259,27 @@ const EventsSection: React.FC = () => {
           Add Event
         </button>
       </div>
-      <DataTable
-        columns={COLUMNS}
-        data={items}
-        getRowId={(r) => r.id}
-        onEdit={openEdit}
-        onDelete={(r) => setDeleteTarget(r)}
-        emptyMessage="No events yet. Click Add Event to create one."
-      />
+      {loading ? (
+        <p className="font-calibri text-gray-600">Loading...</p>
+      ) : (
+        <DataTable
+          columns={COLUMNS}
+          data={items}
+          getRowId={(r) => r.id}
+          onEdit={openEdit}
+          onDelete={(r) => setDeleteTarget(r)}
+          emptyMessage="No events yet. Click Add Event to create one."
+        />
+      )}
       <FormModal
         title={editing ? "Edit Event" : "Add Event"}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
       >
+        {formError && (
+          <p className="text-sm text-red-600 font-calibri mb-2">{formError}</p>
+        )}
         <TextInput
           label="Title"
           name="title"

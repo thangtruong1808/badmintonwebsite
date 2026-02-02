@@ -1,10 +1,59 @@
 import { useState, useEffect } from "react";
 import { FaPlay, FaImages, FaVideo } from "react-icons/fa";
-import { photos as allPhotos, videos as allVideos } from "../data/galleryData";
+import type { Photo } from "../types/gallery";
+import { apiFetch } from "../utils/api";
+
+export interface GalleryVideoFromApi {
+  id: number;
+  title: string;
+  embed_id: string;
+  thumbnail: string | null;
+  category: string;
+  display_order?: number;
+}
 
 const GalleryPage = () => {
   useEffect(() => {
     document.title = "ChibiBadminton - Gallery";
+  }, []);
+
+  const [allPhotos, setAllPhotos] = useState<Photo[]>([]);
+  const [allVideos, setAllVideos] = useState<GalleryVideoFromApi[]>([]);
+  const [photosLoading, setPhotosLoading] = useState(true);
+  const [videosLoading, setVideosLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      setPhotosLoading(true);
+      setVideosLoading(true);
+      setError(null);
+      try {
+        const [photosRes, videosRes] = await Promise.all([
+          apiFetch("/api/gallery/photos", { skipAuth: true }),
+          apiFetch("/api/gallery/videos", { skipAuth: true }),
+        ]);
+        if (photosRes.ok) {
+          const list = await photosRes.json();
+          setAllPhotos(Array.isArray(list) ? list : []);
+        }
+        if (videosRes.ok) {
+          const list = await videosRes.json();
+          setAllVideos(Array.isArray(list) ? list : []);
+        }
+        if (!photosRes.ok && !videosRes.ok) {
+          setError("Could not load gallery.");
+        }
+      } catch {
+        setError("Could not load gallery.");
+        setAllPhotos([]);
+        setAllVideos([]);
+      } finally {
+        setPhotosLoading(false);
+        setVideosLoading(false);
+      }
+    };
+    fetchGallery();
   }, []);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -24,7 +73,6 @@ const GalleryPage = () => {
     if (selectedVideoCategory === "all") return allVideos;
 
     if (selectedVideoCategory === "Wednesday") {
-      // Show latest 3 Wednesday videos
       const wedVideos = allVideos
         .filter((video) => video.category === "Wednesday")
         .slice(-3);
@@ -32,7 +80,6 @@ const GalleryPage = () => {
     }
 
     if (selectedVideoCategory === "Friday") {
-      // Show latest 3 Friday videos
       const friVideos = allVideos
         .filter((video) => video.category === "Friday")
         .slice(-3);
@@ -40,20 +87,11 @@ const GalleryPage = () => {
     }
 
     if (selectedVideoCategory === "tournament") {
-      // Show tournament videos (includes Badminton Veterans Collection videos)
       return allVideos.filter((video) => video.category === "tournament");
     }
 
     if (selectedVideoCategory === "playlists") {
-      // Show only Wed, Fri, and Badminton Veterans playlists (3 total)
-      return allVideos.filter((video) => {
-        if (video.category !== "playlists") return false;
-        return (
-          video.title === "Chibi Wednesday Playlists" ||
-          video.title === "Chibi Friday Playlists" ||
-          video.title === "Badminton Veterans Collection"
-        );
-      });
+      return allVideos.filter((video) => video.category === "playlists");
     }
 
     return [];
@@ -80,6 +118,16 @@ const GalleryPage = () => {
     <div className="w-full overflow-x-hidden min-h-screen relative bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="w-full overflow-x-hidden min-h-screen">
         <div className="px-4 md:px-8 py-8 md:py-12 max-w-7xl mx-auto min-h-full">
+          {error && (
+            <div className="text-center mb-4 p-4 rounded-lg bg-rose-50 text-rose-700 font-calibri">
+              {error}
+            </div>
+          )}
+          {(photosLoading || videosLoading) && (
+            <div className="text-center mb-4 font-calibri text-gray-600">
+              Loading gallery…
+            </div>
+          )}
           {/* Header Message */}
           <div className="text-center mb-10 p-6 rounded-lg shadow-xl bg-gradient-to-t from-rose-50 to-rose-100">
             <h1 className="text-4xl md:text-5xl font-extrabold text-black mb-4">
@@ -202,20 +250,20 @@ const GalleryPage = () => {
                       >
                         <div className="relative aspect-video bg-gray-200 flex items-center justify-center">
                           <img
-                            src={video.thumbnail}
+                            src={video.thumbnail || `https://img.youtube.com/vi/${video.embed_id}/0.jpg`}
                             alt={video.title}
                             className="w-full h-full object-cover font-calibri"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.src = `https://img.youtube.com/vi/${video.embedId}/0.jpg`;
+                              target.src = `https://img.youtube.com/vi/${video.embed_id}/0.jpg`;
                             }}
                           />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-all duration-300">
                             <a
                               href={
                                 video.category === "playlists"
-                                  ? `https://www.youtube.com/playlist?list=${video.embedId}`
-                                  : `https://www.youtube.com/watch?v=${video.embedId}`
+                                  ? `https://www.youtube.com/playlist?list=${video.embed_id}`
+                                  : `https://www.youtube.com/watch?v=${video.embed_id}`
                               }
                               target="_blank"
                               rel="noopener noreferrer"

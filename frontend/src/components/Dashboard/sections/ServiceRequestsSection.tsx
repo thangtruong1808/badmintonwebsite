@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
@@ -10,6 +10,7 @@ import {
   Checkbox,
   FormActions,
 } from "../Shared/inputs";
+import { apiFetch } from "../../../utils/api";
 
 export interface ServiceRequestRow {
   id: number;
@@ -49,9 +50,11 @@ const COLUMNS: Column<ServiceRequestRow>[] = [
 
 const ServiceRequestsSection: React.FC = () => {
   const [items, setItems] = useState<ServiceRequestRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ServiceRequestRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ServiceRequestRow | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState({
     user_id: "",
     name: "",
@@ -68,6 +71,25 @@ const ServiceRequestsSection: React.FC = () => {
     message: "",
     status: "pending",
   });
+
+  const fetchList = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/service-requests");
+      if (res.ok) {
+        const list = await res.json();
+        setItems(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -111,60 +133,34 @@ const ServiceRequestsSection: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editing) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-              ...r,
-              user_id: form.user_id || undefined,
-              name: form.name,
-              email: form.email,
-              phone: form.phone,
-              racket_brand: form.racket_brand,
-              racket_model: form.racket_model,
-              string_type: form.string_type,
-              string_colour: form.string_colour || undefined,
-              tension: form.tension,
-              stencil: form.stencil,
-              grip: form.grip,
-              grommet_replacement: form.grommet_replacement || undefined,
-              message: form.message || undefined,
-              status: form.status,
-            }
-            : r
-        )
-      );
-    } else {
-      const newId = items.length ? Math.max(...items.map((e) => e.id)) + 1 : 1;
-      setItems((prev) => [
-        ...prev,
-        {
-          id: newId,
-          user_id: form.user_id || undefined,
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          racket_brand: form.racket_brand,
-          racket_model: form.racket_model,
-          string_type: form.string_type,
-          string_colour: form.string_colour || undefined,
-          tension: form.tension,
-          stencil: form.stencil,
-          grip: form.grip,
-          grommet_replacement: form.grommet_replacement || undefined,
-          message: form.message || undefined,
-          status: form.status,
-        },
-      ]);
+    setFormError(null);
+    if (!editing) {
+      setModalOpen(false);
+      return;
     }
-    setModalOpen(false);
+    try {
+      const res = await apiFetch(`/api/dashboard/service-requests/${editing.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ status: form.status }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setFormError(data.message || "Failed to update.");
+        return;
+      }
+      const updated = await res.json();
+      setItems((prev) =>
+        prev.map((r) => (r.id === editing.id ? updated : r))
+      );
+      setModalOpen(false);
+    } catch {
+      setFormError("Something went wrong. Please try again later.");
+    }
   };
 
-  const handleDelete = (row: ServiceRequestRow) => {
-    setItems((prev) => prev.filter((r) => r.id !== row.id));
+  const handleDelete = (_row: ServiceRequestRow) => {
     setDeleteTarget(null);
   };
 
@@ -180,20 +176,27 @@ const ServiceRequestsSection: React.FC = () => {
           Add Service Request
         </button>
       </div>
-      <DataTable
-        columns={COLUMNS}
-        data={items}
-        getRowId={(r) => r.id}
-        onEdit={openEdit}
-        onDelete={(r) => setDeleteTarget(r)}
-        emptyMessage="No service requests yet. Click Add Service Request to create one."
-      />
+      {loading ? (
+        <p className="font-calibri text-gray-600">Loading...</p>
+      ) : (
+        <DataTable
+          columns={COLUMNS}
+          data={items}
+          getRowId={(r) => r.id}
+          onEdit={openEdit}
+          onDelete={(r) => setDeleteTarget(r)}
+          emptyMessage="No service requests yet."
+        />
+      )}
       <FormModal
         title={editing ? "Edit Service Request" : "Add Service Request"}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
       >
+        {formError && (
+          <p className="text-sm text-red-600 font-calibri mb-2">{formError}</p>
+        )}
         <TextInput
           label="User ID (optional)"
           name="user_id"

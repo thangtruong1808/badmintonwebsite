@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { FaPlus } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
@@ -9,6 +8,7 @@ import {
   Select,
   FormActions,
 } from "../Shared/inputs";
+import { apiFetch } from "../../../utils/api";
 
 export interface UserRow {
   id: string;
@@ -43,11 +43,26 @@ const COLUMNS: Column<UserRow>[] = [
   { key: "member_since", label: "Member Since" },
 ];
 
+function toUserRow(u: { id: string; name: string; email: string; phone?: string; role: string; rewardPoints: number; memberSince: string; created_at?: string }): UserRow {
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    phone: u.phone,
+    role: u.role,
+    reward_points: u.rewardPoints,
+    member_since: u.memberSince,
+    created_at: u.created_at,
+  };
+}
+
 const UsersSection: React.FC = () => {
   const [items, setItems] = useState<UserRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -62,25 +77,27 @@ const UsersSection: React.FC = () => {
     password: "",
   });
 
-  const openCreate = () => {
-    setEditing(null);
-    setForm({
-      name: "",
-      email: "",
-      phone: "",
-      role: "user",
-      default_payment_method: "",
-      reward_points: 0,
-      total_points_earned: 0,
-      total_points_spent: 0,
-      member_since: new Date().toISOString().slice(0, 10),
-      avatar: "",
-      password: "",
-    });
-    setModalOpen(true);
+  const fetchList = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/users");
+      if (res.ok) {
+        const list = await res.json();
+        setItems(Array.isArray(list) ? list.map(toUserRow) : []);
+      }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchList();
+  }, []);
+
   const openEdit = (row: UserRow) => {
+    setFormError(null);
     setEditing(row);
     setForm({
       name: row.name,
@@ -98,72 +115,58 @@ const UsersSection: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editing) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-              ...r,
-              name: form.name,
-              email: form.email,
-              phone: form.phone || undefined,
-              role: form.role,
-              reward_points: form.reward_points,
-              member_since: form.member_since,
-            }
-            : r
-        )
-      );
-    } else {
-      setItems((prev) => [
-        ...prev,
-        {
-          id: `user-${Date.now()}`,
+    setFormError(null);
+    if (!editing) return;
+    try {
+      const res = await apiFetch(`/api/dashboard/users/${editing.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
           name: form.name,
-          email: form.email,
           phone: form.phone || undefined,
           role: form.role,
-          reward_points: form.reward_points,
-          member_since: form.member_since,
-        },
-      ]);
+          rewardPoints: form.reward_points,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setFormError(data.message || "Failed to update user.");
+        return;
+      }
+      const updated = await res.json();
+      setItems((prev) =>
+        prev.map((r) => (r.id === editing.id ? toUserRow(updated) : r))
+      );
+      setModalOpen(false);
+    } catch {
+      setFormError("Something went wrong. Please try again later.");
     }
-    setModalOpen(false);
-  };
-
-  const handleDelete = (row: UserRow) => {
-    setItems((prev) => prev.filter((r) => r.id !== row.id));
-    setDeleteTarget(null);
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
-        >
-          <FaPlus size={16} />
-          Add User
-        </button>
-      </div>
-      <DataTable
-        columns={COLUMNS}
-        data={items}
-        getRowId={(r) => r.id}
-        onEdit={openEdit}
-        onDelete={(r) => setDeleteTarget(r)}
-        emptyMessage="No users yet. Click Add User to create one."
-      />
+      {loading ? (
+        <p className="font-calibri text-gray-600">Loading...</p>
+      ) : (
+        <DataTable
+          columns={COLUMNS}
+          data={items}
+          getRowId={(r) => r.id}
+          onEdit={openEdit}
+          onDelete={(r) => setDeleteTarget(r)}
+          emptyMessage="No users yet."
+        />
+      )}
       <FormModal
-        title={editing ? "Edit User" : "Add User"}
+        title="Edit User"
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
       >
+        {formError && (
+          <p className="text-sm text-red-600 font-calibri mb-2">{formError}</p>
+        )}
         <TextInput
           label="Name"
           name="name"
@@ -178,7 +181,7 @@ const UsersSection: React.FC = () => {
           value={form.email}
           onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
           required
-          disabled={!!editing}
+          disabled
         />
         <TextInput
           label="Phone"
@@ -220,15 +223,6 @@ const UsersSection: React.FC = () => {
           value={form.member_since}
           onChange={(e) => setForm((f) => ({ ...f, member_since: e.target.value }))}
         />
-        {!editing && (
-          <TextInput
-            label="Password (optional for mock)"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-          />
-        )}
         <FormActions onCancel={() => setModalOpen(false)} />
       </FormModal>
       <ConfirmDialog
@@ -236,11 +230,11 @@ const UsersSection: React.FC = () => {
         title="Delete User"
         message={
           deleteTarget
-            ? `Delete user "${deleteTarget.name}"? This cannot be undone.`
+            ? "User deletion is not available from the dashboard. Use your database or user management tools."
             : ""
         }
-        confirmLabel="Delete"
-        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+        confirmLabel="OK"
+        onConfirm={() => setDeleteTarget(null)}
         onCancel={() => setDeleteTarget(null)}
       />
     </div>

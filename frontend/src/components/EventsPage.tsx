@@ -14,8 +14,8 @@ import {
 import emailjs from "@emailjs/browser";
 import EventsHistory from "./EventsHistory";
 import UpcomingEvents from "./UpcomingEvents";
-import type { Event } from "../data/eventData";
-import { events } from "../data/eventData";
+import type { EventDisplay } from "../types/event";
+import { apiFetch } from "../utils/api";
 
 
 
@@ -40,13 +40,39 @@ const EventsPage = () => {
     document.title = "ChibiBadminton - Events";
   }, []);
 
-  const completedEvents = events.filter(
-    (event) => event.status === "completed"
+  const [events, setEvents] = useState<EventDisplay[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [eventsError, setEventsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setEventsLoading(true);
+      setEventsError(null);
+      try {
+        const res = await apiFetch("/api/events", { skipAuth: true });
+        if (res.ok) {
+          const list = await res.json();
+          setEvents(Array.isArray(list) ? list : []);
+        } else {
+          setEvents([]);
+        }
+      } catch {
+        setEventsError("Could not load events.");
+        setEvents([]);
+      } finally {
+        setEventsLoading(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const completedEvents = events.filter((e) => e.status === "completed");
+  const upcomingEvents = events.filter(
+    (e) => e.status === "available" || e.status === "upcoming" || e.status === "full"
   );
-  const upcomingEvents = events.filter((event) => event.status === "upcoming");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventDisplay | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -206,15 +232,24 @@ const EventsPage = () => {
   return (
     <div className="w-full min-h-screen overflow-x-hidden relative ">
       <div className="relative z-10">
+        {eventsLoading && (
+          <div className="container mx-auto px-4 py-12 text-center font-calibri text-gray-600">
+            Loading events…
+          </div>
+        )}
+        {eventsError && (
+          <div className="container mx-auto px-4 py-4 text-center font-calibri text-rose-600">
+            {eventsError}
+          </div>
+        )}
         {/* Upcoming Events Section - Full Width */}
-        {/* <UpcomingEvents upcomingEvents={upcomingEvents} openRegistrationModal={openRegistrationModal} /> */}
         <UpcomingEvents upcomingEvents={upcomingEvents} />
 
         {/* Events History Section */}
         <EventsHistory completedEvents={completedEvents} />
 
         {/* Empty State (if no events) */}
-        {events.length === 0 && (
+        {!eventsLoading && events.length === 0 && (
           <div className="px-4 md:px-8 py-12 md:py-16">
             <div className="max-w-7xl mx-auto">
               <div className="text-center py-20">

@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import type { UserEventHistory } from "../../types/user";
 import { formatPoints } from "../../utils/rewardPoints";
-import { claimPointsForEvent, canClaimPoints } from "../../utils/rewardPointsService";
+import { claimPointsForEvent } from "../../utils/rewardPointsService";
 import { getCurrentUser } from "../../utils/mockAuth";
 
 interface EventHistoryListProps {
@@ -46,7 +46,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
 
     setClaimingEventId(eventId);
     try {
-      const success = claimPointsForEvent(user.id, eventId);
+      const success = await claimPointsForEvent(user.id, eventId);
       if (success) {
         onPointsClaimed();
       }
@@ -136,7 +136,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
         ) : (
           filteredHistory.map((event) => {
             const user = getCurrentUser();
-            const canClaim = user && canClaimPoints(user.id, event.eventId);
+            const canClaim = user && event.attendanceStatus === "attended" && !event.pointsClaimed;
 
             return (
               <div

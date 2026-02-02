@@ -1,10 +1,10 @@
 import React from "react";
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaInfoCircle } from "react-icons/fa";
-import type { Event } from "../data/eventData";
+import type { EventDisplay } from "../types/event";
 import { FaPaperPlane } from "react-icons/fa";
 
 interface UpcomingEventsProps {
-  upcomingEvents: Event[];
+  upcomingEvents: EventDisplay[];
   // openRegistrationModal: (event: Event) => void;
 }
 
@@ -38,7 +38,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                     <div className="flex flex-col lg:flex-row w-full">
                       <div className="relative w-full lg:w-1/2 h-64 lg:h-auto lg:min-h-[400px] overflow-hidden bg-white">
                         <img
-                          src={event.imageUrl}
+                          src={event.imageUrl ?? ""}
                           alt={event.title}
                           className="w-full h-full object-contain"
                         />

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
+import { apiFetch } from "../../../utils/api";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import {
@@ -61,6 +62,7 @@ const COLUMNS: Column<RegistrationRow>[] = [
 
 const RegistrationsSection: React.FC = () => {
   const [items, setItems] = useState<RegistrationRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<RegistrationRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<RegistrationRow | null>(null);
@@ -78,6 +80,25 @@ const RegistrationsSection: React.FC = () => {
     payment_method: "stripe",
     points_used: 0,
   });
+
+  const fetchList = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/registrations");
+      if (res.ok) {
+        const list = await res.json();
+        setItems(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -117,56 +138,12 @@ const RegistrationsSection: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const regDate = form.registration_date.replace("T", " ") + ":00";
-    if (editing) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-              ...r,
-              event_id: form.event_id,
-              user_id: form.user_id || undefined,
-              name: form.name,
-              email: form.email,
-              phone: form.phone,
-              registration_date: regDate,
-              status: form.status,
-              attendance_status: form.attendance_status,
-              points_earned: form.points_earned,
-              points_claimed: form.points_claimed,
-              payment_method: form.payment_method,
-              points_used: form.points_used,
-            }
-            : r
-        )
-      );
-    } else {
-      setItems((prev) => [
-        ...prev,
-        {
-          id: `reg-${Date.now()}`,
-          event_id: form.event_id,
-          user_id: form.user_id || undefined,
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          registration_date: regDate,
-          status: form.status,
-          attendance_status: form.attendance_status,
-          points_earned: form.points_earned,
-          points_claimed: form.points_claimed,
-          payment_method: form.payment_method,
-          points_used: form.points_used,
-        },
-      ]);
-    }
     setModalOpen(false);
   };
 
-  const handleDelete = (row: RegistrationRow) => {
-    setItems((prev) => prev.filter((r) => r.id !== row.id));
+  const handleDelete = (_row: RegistrationRow) => {
     setDeleteTarget(null);
   };
 
@@ -182,14 +159,18 @@ const RegistrationsSection: React.FC = () => {
           Add Registration
         </button>
       </div>
-      <DataTable
-        columns={COLUMNS}
-        data={items}
-        getRowId={(r) => r.id}
-        onEdit={openEdit}
-        onDelete={(r) => setDeleteTarget(r)}
-        emptyMessage="No registrations yet. Click Add Registration to create one."
-      />
+      {loading ? (
+        <p className="font-calibri text-gray-600">Loading...</p>
+      ) : (
+        <DataTable
+          columns={COLUMNS}
+          data={items}
+          getRowId={(r) => r.id}
+          onEdit={openEdit}
+          onDelete={(r) => setDeleteTarget(r)}
+          emptyMessage="No registrations yet."
+        />
+      )}
       <FormModal
         title={editing ? "Edit Registration" : "Add Registration"}
         open={modalOpen}

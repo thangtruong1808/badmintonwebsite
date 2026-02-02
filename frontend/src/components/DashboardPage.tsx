@@ -50,13 +50,6 @@ interface DashboardStats {
   rewardTransactionsCount: number;
 }
 
-const MOCK_STATS: DashboardStats = {
-  usersCount: 1,
-  eventsCount: 0,
-  registrationsCount: 0,
-  rewardTransactionsCount: 0,
-};
-
 // Sidebar sections aligned to schema (users, events, registrations, reward_point_transactions, products, gallery, news, reviews, newsletter, contact_messages, service_requests, payments, invoices)
 type DashboardSection =
   | "overview"
@@ -118,11 +111,11 @@ const DashboardPage = () => {
           setStats(data);
           return;
         }
-        setError("Could not load dashboard stats. Showing mock data.");
+        setError("Could not load dashboard stats.");
       } catch {
-        setError("Could not reach the server. Showing mock data.");
+        setError("Could not reach the server.");
       }
-      setStats(MOCK_STATS);
+      setStats(null);
     };
 
     fetchStats().finally(() => setLoading(false));
@@ -317,14 +310,14 @@ const DashboardPage = () => {
               {error && (
                 <p className="font-calibri text-rose-600 mb-4">{error}</p>
               )}
-              {!loading && (stats ?? MOCK_STATS) && (
+              {!loading && stats && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                   <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
                     <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
                       Total Users
                     </p>
                     <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {(stats ?? MOCK_STATS).usersCount}
+                      {stats.usersCount}
                     </p>
                   </div>
                   <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
@@ -332,7 +325,7 @@ const DashboardPage = () => {
                       Total Events
                     </p>
                     <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {(stats ?? MOCK_STATS).eventsCount}
+                      {stats.eventsCount}
                     </p>
                   </div>
                   <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
@@ -340,7 +333,7 @@ const DashboardPage = () => {
                       Registrations
                     </p>
                     <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {(stats ?? MOCK_STATS).registrationsCount}
+                      {stats.registrationsCount}
                     </p>
                   </div>
                   <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
@@ -348,7 +341,7 @@ const DashboardPage = () => {
                       Reward Transactions
                     </p>
                     <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {(stats ?? MOCK_STATS).rewardTransactionsCount}
+                      {stats.rewardTransactionsCount}
                     </p>
                   </div>
                 </div>

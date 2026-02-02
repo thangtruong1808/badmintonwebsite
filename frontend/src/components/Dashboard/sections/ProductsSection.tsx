@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
@@ -10,6 +10,7 @@ import {
   Checkbox,
   FormActions,
 } from "../Shared/inputs";
+import { apiFetch } from "../../../utils/api";
 
 export interface ProductRow {
   id: number;
@@ -35,9 +36,11 @@ const COLUMNS: Column<ProductRow>[] = [
 
 const ProductsSection: React.FC = () => {
   const [items, setItems] = useState<ProductRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ProductRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProductRow | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     price: 0,
@@ -47,6 +50,25 @@ const ProductsSection: React.FC = () => {
     in_stock: true,
     description: "",
   });
+
+  const fetchList = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/products");
+      if (res.ok) {
+        const list = await res.json();
+        setItems(Array.isArray(list) ? list : []);
+      }
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList();
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -76,47 +98,69 @@ const ProductsSection: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     const origPrice = form.original_price ? parseFloat(form.original_price) : undefined;
-    if (editing) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editing.id
-            ? {
-              ...r,
-              name: form.name,
-              price: form.price,
-              original_price: origPrice,
-              image: form.image,
-              category: form.category,
-              in_stock: form.in_stock,
-              description: form.description || undefined,
-            }
-            : r
-        )
-      );
-    } else {
-      const newId = items.length ? Math.max(...items.map((e) => e.id)) + 1 : 1;
-      setItems((prev) => [
-        ...prev,
-        {
-          id: newId,
-          name: form.name,
-          price: form.price,
-          original_price: origPrice,
-          image: form.image,
-          category: form.category,
-          in_stock: form.in_stock,
-          description: form.description || undefined,
-        },
-      ]);
+    try {
+      if (editing) {
+        const res = await apiFetch(`/api/dashboard/products/${editing.id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            name: form.name,
+            price: form.price,
+            original_price: origPrice,
+            image: form.image,
+            category: form.category,
+            in_stock: form.in_stock,
+            description: form.description || undefined,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setFormError(data.message || "Failed to update product.");
+          return;
+        }
+        const updated = await res.json();
+        setItems((prev) =>
+          prev.map((r) => (r.id === editing.id ? updated : r))
+        );
+      } else {
+        const res = await apiFetch("/api/dashboard/products", {
+          method: "POST",
+          body: JSON.stringify({
+            name: form.name,
+            price: form.price,
+            original_price: origPrice,
+            image: form.image,
+            category: form.category,
+            in_stock: form.in_stock,
+            description: form.description || undefined,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setFormError(data.message || "Failed to add product.");
+          return;
+        }
+        const created = await res.json();
+        setItems((prev) => [created, ...prev]);
+      }
+      setModalOpen(false);
+    } catch {
+      setFormError("Something went wrong. Please try again later.");
     }
-    setModalOpen(false);
   };
 
-  const handleDelete = (row: ProductRow) => {
-    setItems((prev) => prev.filter((r) => r.id !== row.id));
+  const handleDelete = async (row: ProductRow) => {
+    try {
+      const res = await apiFetch(`/api/dashboard/products/${row.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) setItems((prev) => prev.filter((r) => r.id !== row.id));
+    } catch {
+      // keep dialog open
+    }
     setDeleteTarget(null);
   };
 
@@ -132,20 +176,27 @@ const ProductsSection: React.FC = () => {
           Add Product
         </button>
       </div>
-      <DataTable
-        columns={COLUMNS}
-        data={items}
-        getRowId={(r) => r.id}
-        onEdit={openEdit}
-        onDelete={(r) => setDeleteTarget(r)}
-        emptyMessage="No products yet. Click Add Product to create one."
-      />
+      {loading ? (
+        <p className="font-calibri text-gray-600">Loading...</p>
+      ) : (
+        <DataTable
+          columns={COLUMNS}
+          data={items}
+          getRowId={(r) => r.id}
+          onEdit={openEdit}
+          onDelete={(r) => setDeleteTarget(r)}
+          emptyMessage="No products yet. Click Add Product to create one."
+        />
+      )}
       <FormModal
         title={editing ? "Edit Product" : "Add Product"}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
       >
+        {formError && (
+          <p className="text-sm text-red-600 font-calibri mb-2">{formError}</p>
+        )}
         <TextInput
           label="Name"
           name="name"

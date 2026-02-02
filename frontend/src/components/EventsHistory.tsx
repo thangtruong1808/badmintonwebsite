@@ -5,10 +5,10 @@ import {
   FaMapMarkerAlt,
   FaUsers,
 } from "react-icons/fa";
-import type { Event } from "../data/eventData";
+import type { EventDisplay } from "../types/event";
 
 interface EventsHistoryProps {
-  completedEvents: Event[];
+  completedEvents: EventDisplay[];
 }
 
 const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
@@ -38,7 +38,7 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
                 >
                   <div className="relative h-64 overflow-hidden bg-gray-100">
                     <img
-                      src={event.imageUrl}
+                      src={event.imageUrl ?? ""}
                       alt={event.title}
                       className="w-full h-full object-fill group-hover:scale-110 transition-transform duration-500"
                     />
@@ -81,7 +81,7 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
                           size={16}
                         />
                         <span className="text-sm font-medium font-calibri">
-                          {event.attendees} Attendees
+                          {(event.currentAttendees ?? event.attendees ?? 0)} Attendees
                         </span>
                       </div>
                     </div>

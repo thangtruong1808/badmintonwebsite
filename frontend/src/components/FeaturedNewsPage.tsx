@@ -1,171 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import ChibiBattleRoyale4 from "../assets/ChibiBattleRoyale4.png";
-import MapleStory3 from "../assets/MapleStory3.png";
-import WednesdaySocialPlaytime from "../assets/WednesdaySocialPlaytime.png";
-import { socialEvents } from "../data/socialEvents";
 import type { SocialEvent } from "../types/socialEvent";
+import type { NewsItem } from "./FeaturedNews";
 import RegistrationModal from "./PlayPage/RegistrationModal";
 import { FaArrowRight } from "react-icons/fa";
-
-// Simulated fake news data
-const allNewsData = [
-  {
-    id: 1,
-    image: ChibiBattleRoyale4,
-    title: "Chibi Battle Royale #4",
-    date: "February 2026",
-    time: " 9:30 AM - 5:00 PM",
-    location: "ACM Truganina - 48, Saintly Drive, Truganina VIC 3029",
-    description:
-      "This is a team-based event consisting of 4 players. Tap Register Now to find all information about the event",
-    badge: "UPCOMING",
-    category: "Events",
-    link: "https://docs.google.com/forms/d/e/1FAIpQLSc-JLX4pyrKoz8-G0CUKdFDrorKanOHJ_d1XmRB7TZoYS1ozQ/viewform",
-  },
-  {
-    id: 2,
-    image: WednesdaySocialPlaytime,
-    title: "Wednesday Social Playtime",
-    date: "Every Wednesday",
-    time: "7:00 PM - 10:00 PM",
-    location: "Altona SportsPoint Badminton Club",
-    description:
-      "Weekly Wednesday social play session. All skill levels welcome! Perfect way to start your week with some badminton action.",
-    badge: "REGULAR",
-    category: "Latest",
-    link: "https://docs.google.com/forms/d/e/1FAIpQLSc-JLX4pyrKoz8-G0CUKdFDrorKanOHJ_d1XmRB7TZoYS1ozQ/viewform",
-  },
-  {
-    id: 3,
-    image: MapleStory3,
-    title: "Registration new players",
-    date: "Every Wednesday",
-    time: "7:00 PM - 10:00 PM",
-    location: "Altona SportsPoint Badminton Club",
-    description: "Register for yourself or your friends. Tap Register Now to find all information about the event",
-    badge: "OPEN",
-    category: "Info",
-    link: "https://badmintonwebsite.vercel.app/signin",
-  },
-  {
-    id: 4,
-    image: ChibiBattleRoyale4,
-    title: "Chibi Battle Royale #3 Recap",
-    date: "January 2026",
-    time: "9:00 AM - 4:00 PM",
-    location: "ACM Truganina - 48, Saintly Drive, Truganina VIC 3029",
-    description:
-      "Thank you to everyone who participated in our third Battle Royale tournament! Check out the highlights and results from this exciting event.",
-    badge: "UPCOMING",
-    category: "Updates",
-    link: "#",
-  },
-  {
-    id: 5,
-    image: WednesdaySocialPlaytime,
-    title: "Friday Night Social Sessions",
-    date: "Every Friday",
-    time: "7:00 PM - 10:00 PM",
-    location: "Altona SportsPoint Badminton Club",
-    description:
-      "Join us every Friday for our evening social badminton sessions. Great way to unwind after a long week and meet fellow players!",
-    badge: "REGULAR",
-    category: "Latest",
-    link: "#",
-  },
-  {
-    id: 6,
-    image: MapleStory3,
-    title: "New Equipment Available",
-    date: "Ongoing",
-    time: "All Day",
-    location: "Club Facilities",
-    description:
-      "We've added new rackets and shuttlecocks to our equipment collection. Members can now access premium gear for their games.",
-    badge: "OPEN",
-    category: "Info",
-    link: "#",
-  },
-  {
-    id: 7,
-    image: ChibiBattleRoyale4,
-    title: "Summer Tournament Announcement",
-    date: "March 2026",
-    time: "10:00 AM - 6:00 PM",
-    location: "TBA",
-    description:
-      "Get ready for our biggest tournament of the year! Registration opens soon. Stay tuned for more details and early bird discounts.",
-    badge: "UPCOMING",
-    category: "Events",
-    link: "#",
-  },
-  {
-    id: 8,
-    image: WednesdaySocialPlaytime,
-    title: "Coaching Sessions Available",
-    date: "Every Saturday",
-    time: "2:00 PM - 4:00 PM",
-    location: "Altona SportsPoint Badminton Club",
-    description:
-      "Professional coaching sessions now available for all skill levels. Improve your technique and strategy with our experienced coaches.",
-    badge: "REGULAR",
-    category: "Info",
-    link: "#",
-  },
-  {
-    id: 9,
-    image: MapleStory3,
-    title: "Member Spotlight: Player of the Month",
-    date: "February 2026",
-    time: "All Month",
-    location: "Club",
-    description:
-      "Congratulations to our Player of the Month! Read about their journey and achievements in badminton.",
-    badge: "OPEN",
-    category: "Updates",
-    link: "#",
-  },
-  {
-    id: 10,
-    image: ChibiBattleRoyale4,
-    title: "Youth Development Program",
-    date: "Starting March 2026",
-    time: "Saturdays 10:00 AM - 12:00 PM",
-    location: "Altona SportsPoint Badminton Club",
-    description:
-      "New program designed for young players aged 8-16. Focus on fundamentals, fun, and building a love for the sport.",
-    badge: "UPCOMING",
-    category: "Events",
-    link: "#",
-  },
-  {
-    id: 11,
-    image: WednesdaySocialPlaytime,
-    title: "Facility Improvements Complete",
-    date: "February 2026",
-    time: "All Day",
-    location: "Club Facilities",
-    description:
-      "Our recent facility upgrades are now complete! New lighting, improved court surfaces, and updated amenities for all members.",
-    badge: "OPEN",
-    category: "Updates",
-    link: "#",
-  },
-  {
-    id: 12,
-    image: MapleStory3,
-    title: "Weekend Doubles Tournament",
-    date: "February 15, 2026",
-    time: "9:00 AM - 5:00 PM",
-    location: "ACM Truganina",
-    description:
-      "Team up for our doubles tournament! Open to all members. Prizes and trophies for winners. Registration required.",
-    badge: "UPCOMING",
-    category: "Events",
-    link: "#",
-  },
-];
+import { apiFetch } from "../utils/api";
 
 type FilterType = "All" | "Latest" | "Info" | "Updates" | "Events";
 
@@ -174,23 +13,49 @@ const FeaturedNewsPage: React.FC = () => {
     document.title = "ChibiBadminton - Featured News";
   }, []);
 
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [events, setEvents] = useState<SocialEvent[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("All");
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
   const [registrationEvents, setRegistrationEvents] = useState<SocialEvent[]>([]);
-  const [itemsToShow, setItemsToShow] = useState(6); // Show 6 items initially
-  const itemsPerLoad = 6; // Load 6 more items each time
+  const [itemsToShow, setItemsToShow] = useState(6);
+  const itemsPerLoad = 6;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [newsRes, eventsRes] = await Promise.all([
+          apiFetch("/api/news", { skipAuth: true }),
+          apiFetch("/api/events", { skipAuth: true }),
+        ]);
+        if (newsRes.ok) {
+          const list = await newsRes.json();
+          setNews(Array.isArray(list) ? list : []);
+        }
+        if (eventsRes.ok) {
+          const list = await eventsRes.json();
+          setEvents(Array.isArray(list) ? list : []);
+        }
+      } catch {
+        setNews([]);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const filterOptions: FilterType[] = ["All", "Latest", "Info", "Updates", "Events"];
 
-  const filteredNews = allNewsData.filter((news) => {
+  const filteredNews = news.filter((item) => {
     if (selectedFilter === "All") return true;
-    return news.category === selectedFilter;
+    return item.category === selectedFilter;
   });
 
-  // Featured banner cards (first 3 items)
   const featuredNews = filteredNews.slice(0, 3);
-
-  // News list (excluding the first 3 featured items)
   const listNews = filteredNews.slice(3);
   const displayedNews = listNews.slice(0, itemsToShow);
   const hasMore = listNews.length > itemsToShow;
@@ -199,28 +64,23 @@ const FeaturedNewsPage: React.FC = () => {
     setItemsToShow((prev) => prev + itemsPerLoad);
   };
 
-  // Reset items to show when filter changes
   useEffect(() => {
     setItemsToShow(6);
   }, [selectedFilter]);
 
-  const handleRegisterClick = (news: (typeof allNewsData)[number]) => {
-    // For Wednesday Social Playtime, open the registration modal (like PlayPage)
-    if (news.title === "Wednesday Social Playtime") {
-      const wednesdayEvent = socialEvents.find(
-        (event) => event.title === "Wednesday Playtime"
+  const handleRegisterClick = (newsItem: NewsItem) => {
+    if (newsItem.title === "Wednesday Social Playtime" || newsItem.title?.toLowerCase().includes("wednesday")) {
+      const wednesdayEvent = events.find(
+        (e) => e.dayOfWeek === "Wednesday" || e.title?.toLowerCase().includes("wednesday")
       );
-
       if (wednesdayEvent) {
         setRegistrationEvents([wednesdayEvent]);
         setIsRegistrationModalOpen(true);
         return;
       }
     }
-
-    // Fallback: open external link (existing behaviour)
-    if (news.link) {
-      window.open(news.link, "_blank");
+    if (newsItem.link) {
+      window.open(newsItem.link, "_blank");
     }
   };
 
@@ -234,8 +94,11 @@ const FeaturedNewsPage: React.FC = () => {
           </h1>
         </div>
 
+        {loading && (
+          <div className="text-center py-8 font-calibri text-gray-600">Loading…</div>
+        )}
         {/* Featured Banner - 3 Cards */}
-        {featuredNews.length > 0 && (
+        {!loading && featuredNews.length > 0 && (
           <div className="mb-8 md:mb-12">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {featuredNews.map((news) => (
@@ -246,11 +109,15 @@ const FeaturedNewsPage: React.FC = () => {
                 >
                   {/* Image */}
                   <div className="relative w-full h-48 md:h-56 overflow-hidden bg-gray-100">
-                    <img
-                      src={news.image}
-                      alt={news.title}
-                      className="w-full h-full object-contain p-3"
-                    />
+                    {news.image ? (
+                      <img
+                        src={news.image}
+                        alt={news.title}
+                        className="w-full h-full object-contain p-3"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 font-calibri">No image</div>
+                    )}
                   </div>
 
                   {/* Content */}
@@ -259,16 +126,16 @@ const FeaturedNewsPage: React.FC = () => {
                       {news.title}
                     </h3>
                     <p className="text-gray-600 text-sm font-calibri mb-3 line-clamp-2">
-                      {news.description}
+                      {news.description ?? ""}
                     </p>
                     <div className="flex items-center justify-between text-xs text-gray-500 font-calibri">
-                      <span>{news.date}</span>
+                      <span>{news.date ?? ""}</span>
                       <Link
                         to={`/featured-news/${news.id}`}
                         onClick={(e) => e.stopPropagation()}
                         className="text-rose-500 hover:text-rose-600 transition-colors"
                       >
-                        {news.category}
+                        {news.category ?? ""}
                       </Link>
                     </div>
                   </div>
@@ -303,11 +170,15 @@ const FeaturedNewsPage: React.FC = () => {
             >
               {/* Image Section - Smaller, square-like */}
               <div className="relative w-full md:w-48 lg:w-56 h-48 md:h-48 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 flex items-center justify-center">
-                <img
-                  src={news.image}
-                  alt={news.title}
-                  className="w-full h-full object-contain p-2"
-                />
+                {news.image ? (
+                  <img
+                    src={news.image}
+                    alt={news.title}
+                    className="w-full h-full object-contain p-2"
+                  />
+                ) : (
+                  <div className="text-gray-400 font-calibri">No image</div>
+                )}
               </div>
 
               {/* Content Section */}
@@ -316,7 +187,7 @@ const FeaturedNewsPage: React.FC = () => {
                   {news.title}
                 </h3>
                 <p className="text-gray-600 text-sm md:text-base font-calibri mb-3 line-clamp-2">
-                  {news.description}
+                  {news.description ?? ""}
                 </p>
                 <div className="flex items-center gap-4 text-sm text-gray-500 font-calibri mb-3">
                   {news.date && <span>{news.date}</span>}
@@ -333,7 +204,7 @@ const FeaturedNewsPage: React.FC = () => {
                     to={`/featured-news/${news.id}`}
                     className="text-gray-600 hover:text-gray-900 font-medium text-sm md:text-base font-calibri transition-colors"
                   >
-                    {news.category}
+                    {news.category ?? ""}
                   </Link>
                 </div>
               </div>
