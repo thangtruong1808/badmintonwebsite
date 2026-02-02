@@ -23,6 +23,21 @@ export async function apiFetch(path: string, options: RequestInit & { skipAuth?:
 
   if (!skipAuth && res.status === 401) {
     try {
+      const expiresAt = store.getState().auth.refreshTokenExpiresAt;
+      if (expiresAt != null && Date.now() >= expiresAt) {
+        try {
+          await fetch(`${API_BASE}/api/auth/logout`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch {
+          // ignore
+        }
+        store.dispatch(logout());
+        window.dispatchEvent(new CustomEvent("auth:forceLogout"));
+        return res;
+      }
       const refreshRes = await fetch(`${API_BASE}/api/auth/refresh`, {
         method: "POST",
         credentials: "include",

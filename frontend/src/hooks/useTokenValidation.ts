@@ -65,6 +65,12 @@ export function useTokenValidation() {
 
   const doRefresh = async () => {
     try {
+      if (refreshTokenExpiresAt != null && Date.now() >= refreshTokenExpiresAt) {
+        clearLogoutTimer();
+        logoutUser();
+        setTimeout(() => navigate("/signin", { replace: true }), 0);
+        return;
+      }
       const res = await fetch(`${API_BASE}/api/auth/refresh`, {
         method: "POST",
         credentials: "include",
