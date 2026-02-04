@@ -153,21 +153,33 @@ export const me = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const userId = req.userId;
-    if (!userId) {
-      res.status(200).json({ user: null });
-      return;
+    let userId = req.userId;
+    let user = userId ? await getUserById(userId) : null;
+    let refreshToken = req.cookies?.[getRefreshTokenCookieName()];
+    let refreshTokenExpiresAt: number | null = null;
+
+    // Access token invalid/missing but refresh token present: try refresh (avoids frontend /refresh call and 401 when not logged in)
+    if (!user && refreshToken) {
+      const found = await findRefreshToken(refreshToken);
+      if (found) {
+        user = await getUserById(found.userId);
+        if (user) {
+          await extendRefreshTokenExpiry(refreshToken);
+          refreshTokenExpiresAt = getRefreshTokenExpiresAt().getTime();
+          const accessToken = generateAccessToken(user.id, user.email);
+          setAuthCookies(res, accessToken, refreshToken);
+        } else {
+          await deleteRefreshToken(refreshToken);
+        }
+      }
+    } else if (user && refreshToken) {
+      refreshTokenExpiresAt = await getRefreshTokenExpiryMs(refreshToken);
     }
-    const user = await getUserById(userId);
+
     if (!user) {
       res.status(200).json({ user: null });
       return;
     }
-    const cookieName = getRefreshTokenCookieName();
-    const refreshToken = req.cookies?.[cookieName];
-    const refreshTokenExpiresAt = refreshToken
-      ? await getRefreshTokenExpiryMs(refreshToken)
-      : null;
     const payload: { user: UserResponse; refreshTokenExpiresAt?: number } = { user: userToResponse(user) };
     if (refreshTokenExpiresAt != null) payload.refreshTokenExpiresAt = refreshTokenExpiresAt;
     res.json(payload);

@@ -6,9 +6,11 @@ export interface AuthState {
   user: User | null;
   /** Refresh token expiry (ms since epoch) for client-side auto-logout timer. */
   refreshTokenExpiresAt: number | null;
+  /** True once initial session restore (on app load/refresh) has completed. */
+  authInitialized: boolean;
 }
 
-const initialState: AuthState = { user: null, refreshTokenExpiresAt: null };
+const initialState: AuthState = { user: null, refreshTokenExpiresAt: null, authInitialized: false };
 
 export const authSlice = createSlice({
   name: "auth",
@@ -28,6 +30,9 @@ export const authSlice = createSlice({
       state.user = null;
       state.refreshTokenExpiresAt = null;
     },
+    setAuthInitialized: (state, action: PayloadAction<boolean>) => {
+      state.authInitialized = action.payload;
+    },
     updateUser: (state, action: PayloadAction<Partial<User> | User>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
@@ -36,7 +41,7 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout, updateUser } = authSlice.actions;
+export const { setCredentials, logout, updateUser, setAuthInitialized } = authSlice.actions;
 export default authSlice.reducer;
 
 /** Selectors */
@@ -45,3 +50,5 @@ export const selectIsAuthenticated = (state: { auth: AuthState }) =>
   !!state.auth.user;
 export const selectRefreshTokenExpiresAt = (state: { auth: AuthState }) =>
   state.auth.refreshTokenExpiresAt;
+export const selectAuthInitialized = (state: { auth: AuthState }) =>
+  state.auth.authInitialized;

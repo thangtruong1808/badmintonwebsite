@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { selectIsAuthenticated } from "../store/authSlice";
+import { selectIsAuthenticated, selectAuthInitialized } from "../store/authSlice";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -8,14 +8,19 @@ interface ProtectedRouteProps {
 
 /**
  * ProtectedRoute: requires user to be logged in.
- * Redirects to /signin if not authenticated, then returns to original path after login.
+ * Waits for initial session restore before redirecting (keeps user on page on refresh if tokens valid).
+ * Redirects to /signin if not authenticated after init, then returns to original path after login.
  */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const authInitialized = useSelector(selectAuthInitialized);
   const location = useLocation();
 
+  if (!authInitialized) {
+    return null;
+  }
+
   if (!isAuthenticated) {
-    // Redirect to signin with return path so user can come back after login
     return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 

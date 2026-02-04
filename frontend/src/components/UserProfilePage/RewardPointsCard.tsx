@@ -9,11 +9,11 @@ interface RewardPointsCardProps {
 
 const RewardPointsCard: React.FC<RewardPointsCardProps> = ({ user }) => {
   return (
-    <div className="bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 rounded-xl p-6 shadow-lg text-white w-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 rounded-xl p-6 shadow-lg text-white w-full flex flex-col w-[480px] aspect-[1.586]">
+      <div className="flex items-center justify-between mb-4 w-full">
         <div className="flex items-center gap-3">
           <FaCoins size={32} className="text-yellow-200" />
-          <h2 className="text-xl font-bold font-huglove">Reward Points with ChibiBadminton</h2>
+          <h2 className="text-3xl font-bold font-calibri">Chibi Tokens</h2>
         </div>
       </div>
 
@@ -25,18 +25,18 @@ const RewardPointsCard: React.FC<RewardPointsCardProps> = ({ user }) => {
         <div className="bg-white bg-opacity-20 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-1">
             <FaArrowUp className="text-green-200" size={16} />
-            <span className="text-sm font-semibold font-calibri">Earned</span>
+            <span className="text-lg font-semibold font-calibri">Earned</span>
           </div>
-          <div className="text-xl font-bold font-calibri">
+          <div className="text-2xl font-bold font-calibri">
             {formatPoints(user.totalPointsEarned)}
           </div>
         </div>
         <div className="bg-white bg-opacity-20 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-1">
             <FaArrowDown className="text-red-200" size={16} />
-            <span className="text-sm font-semibold font-calibri">Spent</span>
+            <span className="text-lg font-semibold font-calibri">Spent</span>
           </div>
-          <div className="text-xl font-bold font-calibri">
+          <div className="text-2xl font-bold font-calibri">
             {formatPoints(user.totalPointsSpent)}
           </div>
         </div>

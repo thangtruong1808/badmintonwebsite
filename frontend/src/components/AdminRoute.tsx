@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { selectIsAuthenticated, selectUser } from "../store/authSlice";
+import { selectIsAuthenticated, selectUser, selectAuthInitialized } from "../store/authSlice";
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -8,12 +8,18 @@ interface AdminRouteProps {
 
 /**
  * AdminRoute: requires user to be logged in AND have admin or super_admin role.
+ * Waits for initial session restore before redirecting.
  * Redirects to /signin if not authenticated, or to / if authenticated but not admin.
  */
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectUser);
+  const authInitialized = useSelector(selectAuthInitialized);
   const location = useLocation();
+
+  if (!authInitialized) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/signin" state={{ from: location }} replace />;

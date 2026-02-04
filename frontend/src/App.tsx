@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useTokenValidation } from "./hooks/useTokenValidation";
-import { setCredentials, logout } from "./store/authSlice";
+import { setCredentials, logout, setAuthInitialized } from "./store/authSlice";
 import { API_BASE } from "./utils/api";
 import "./App.css";
 import Navbar from "./components/Navbar";
@@ -41,19 +41,20 @@ function App() {
         const res = await fetch(`${API_BASE}/api/auth/me`, {
           credentials: "include",
         });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.user) {
-            dispatch(setCredentials({
-              user: data.user,
-              refreshTokenExpiresAt: data.refreshTokenExpiresAt,
-            }));
-          }
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.user) {
+          dispatch(setCredentials({
+            user: data.user,
+            refreshTokenExpiresAt: data.refreshTokenExpiresAt,
+          }));
         } else {
           dispatch(logout());
         }
       } catch {
         dispatch(logout());
+      } finally {
+        dispatch(setAuthInitialized(true));
       }
     };
     restoreSession();
