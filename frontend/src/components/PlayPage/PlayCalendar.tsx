@@ -168,7 +168,7 @@ const PlayCalendar: React.FC<PlayCalendarProps> = ({
         onNavigate={(_newDate: Date) => setDate(_newDate)}
         onView={(newView: CalendarView) => setView(newView)}
         components={{ toolbar: PlayCalendarToolbar as React.ComponentType<unknown> }}
-        style={{ height: 800, minHeight: 400 }}
+        style={{ height: "min(560px, 100vh)", minHeight: 800 }}
         onSelectEvent={(evt: unknown) => onViewSession((evt as { resource: SocialEvent }).resource)}
         eventPropGetter={(evt: unknown) => {
           const e = (evt as { resource: SocialEvent }).resource;

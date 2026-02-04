@@ -23,7 +23,7 @@ const PlayPage: React.FC = () => {
     try {
       const from = new Date();
       const to = new Date();
-      to.setMonth(to.getMonth() + 3);
+      to.setFullYear(to.getFullYear() + 20);
       const fromStr = from.toISOString().slice(0, 10);
       const toStr = to.toISOString().slice(0, 10);
       const res = await fetch(
@@ -69,8 +69,8 @@ const PlayPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-r from-rose-50 to-rose-100">
-      <div className="container mx-auto px-4 pt-12">
+    <div className="w-full min-h-full overflow-x-hidden bg-gradient-to-r from-rose-50 to-rose-100">
+      <div className="container mx-auto px-4 pt-12 pb-8">
         {/* Header */}
         <div className="text-center mb-10 p-6 rounded-lg shadow-xl bg-gradient-to-r from-rose-50 to-rose-100">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 font-huglove">

@@ -35,6 +35,7 @@ function App() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const isDashboard = location.pathname === "/dashboard";
+  const isPlayRoute = location.pathname === "/play";
 
   useTokenValidation();
 
@@ -72,7 +73,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col transition-all duration-300 w-full overflow-x-hidden">
       {!isDashboard && <Navbar />}
-      <main className={`flex-grow w-full relative ${isDashboard ? "" : "pt-[56px] lg:pt-[72px]"}`}>
+      <main className={`flex-grow w-full relative ${isDashboard ? "" : "pt-[56px] lg:pt-[72px]"} ${isPlayRoute ? "bg-gradient-to-r from-rose-50 to-rose-100" : ""}`}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
