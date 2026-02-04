@@ -1,5 +1,6 @@
 export { default as UsersSection } from "./sections/UsersSection";
 export { default as EventsSection } from "./sections/EventsSection";
+export { default as PlaySlotsSection } from "./sections/PlaySlotsSection";
 export { default as RegistrationsSection } from "./sections/RegistrationsSection";
 export { default as RewardTransactionsSection } from "./sections/RewardTransactionsSection";
 export { default as ProductsSection } from "./sections/ProductsSection";

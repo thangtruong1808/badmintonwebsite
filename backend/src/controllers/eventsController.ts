@@ -5,18 +5,53 @@ import {
   createEvent as createEventService,
   updateEvent as updateEventService,
   deleteEvent as deleteEventService,
+  generateEventsFromSlots,
 } from '../services/eventService.js';
+import { getEventRegistrationsPublic as getEventRegistrationsPublicService } from '../services/registrationService.js';
 import { createError } from '../middleware/errorHandler.js';
 import type { SocialEvent } from '../types/index.js';
 
 export const getAllEvents = async (
-  req: Request,
+  req: Request<{}, {}, {}, { from?: string; to?: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const events = await getAllEventsService();
+    const { from, to } = req.query;
+    const events = await getAllEventsService(from, to);
     res.json(events);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const generateEvents = async (
+  req: Request<{}, {}, {}, { from?: string; to?: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { from, to } = req.query;
+    if (!from || !to) {
+      throw createError('Query params from and to (YYYY-MM-DD) are required', 400);
+    }
+    const generated = await generateEventsFromSlots(from, to);
+    res.json({ generated: generated.length, events: generated });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getEventRegistrationsPublic = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const eventId = parseInt(req.params.id);
+    if (isNaN(eventId)) throw createError('Invalid event ID', 400);
+    const registrations = await getEventRegistrationsPublicService(eventId);
+    res.json({ registrations });
   } catch (error) {
     next(error);
   }

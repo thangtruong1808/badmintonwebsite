@@ -10,7 +10,7 @@ function hashToken(token: string): string {
 /** Compute expiry date from now using REFRESH_TOKEN_EXPIRY_DAYS env (e.g. "15m", "7d"). */
 export function getRefreshTokenExpiresAt(): Date {
   const expiresAt = new Date();
-  const envValue = process.env.REFRESH_TOKEN_EXPIRY_DAYS || "2m";
+  const envValue = process.env.REFRESH_TOKEN_EXPIRY_DAYS || "7d";
   const match = envValue.match(/^(\d+)([mhd]?)$/);
 
   if (match) {

@@ -1,50 +1,40 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import SearchBar from "./PlayPage/SearchBar";
-import EventList from "./PlayPage/EventList";
-import RegistrationModal from "./PlayPage/RegistrationModal";
-import Pagination from "./PlayPage/Pagination";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import PlayCalendar from "./PlayPage/PlayCalendar";
+import SessionDetailModal from "./PlayPage/SessionDetailModal";
 import { setCartItems, getCartItems, clearCart } from "../utils/cartStorage";
-import { getUserRegistrations } from "../utils/registrationService";
-import { getCurrentUser } from "../utils/mockAuth";
-import { apiFetch } from "../utils/api";
-import type { SocialEvent, Registration } from "../types/socialEvent";
-import { FaPaperPlane } from "react-icons/fa";
+import type { SocialEvent } from "../types/socialEvent";
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const PlayPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [allEvents, setAllEvents] = useState<SocialEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [selectedEventIds, setSelectedEventIds] = useState<number[]>(() => getCartItems());
+  const [selectedEvent, setSelectedEvent] = useState<SocialEvent | null>(null);
+
   useEffect(() => {
     document.title = "ChibiBadminton - Play Sessions";
   }, []);
 
-  const user = getCurrentUser();
-  const userId = user?.id;
-
-  // State management
-  const [allEvents, setAllEvents] = useState<SocialEvent[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
-  const [userRegistrations, setUserRegistrations] = useState<Registration[]>([]);
-  const [myRegistrationsFilter, setMyRegistrationsFilter] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "available" | "completed"
-  >("all");
-  const [categoryFilter, setCategoryFilter] = useState<
-    "all" | "regular" | "tournament"
-  >("all");
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [selectedEventIds, setSelectedEventIds] = useState<number[]>(() => getCartItems());
-  const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
-  const [registrationEvents, setRegistrationEvents] = useState<SocialEvent[]>([]);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<SocialEvent | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-
   const fetchEvents = useCallback(async () => {
     setEventsLoading(true);
     try {
-      const res = await apiFetch("/api/events", { skipAuth: true });
+      const from = new Date();
+      const to = new Date();
+      to.setMonth(to.getMonth() + 3);
+      const fromStr = from.toISOString().slice(0, 10);
+      const toStr = to.toISOString().slice(0, 10);
+      const res = await fetch(
+        `${API_BASE}/api/events?from=${fromStr}&to=${toStr}`,
+        { credentials: "include" }
+      );
       if (res.ok) {
         const list = await res.json();
         setAllEvents(Array.isArray(list) ? list : []);
+      } else {
+        setAllEvents([]);
       }
     } catch {
       setAllEvents([]);
@@ -53,79 +43,12 @@ const PlayPage: React.FC = () => {
     }
   }, []);
 
-  const fetchRegistrations = useCallback(async () => {
-    if (!userId) {
-      setUserRegistrations([]);
-      return;
-    }
-    const regs = await getUserRegistrations(userId);
-    setUserRegistrations(regs);
-  }, [userId]);
-
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
 
-  useEffect(() => {
-    fetchRegistrations();
-  }, [fetchRegistrations]);
+  const selectedEvents = allEvents.filter((e) => selectedEventIds.includes(e.id));
 
-  const EVENTS_PER_PAGE = 8; // 2 rows × 4 columns = 8 events
-
-  // Memoize registered event IDs to prevent unnecessary recalculations
-  const registeredEventIds = useMemo(() => {
-    return new Set(userRegistrations.map(reg => reg.eventId));
-  }, [userRegistrations]);
-
-  // Filter and search logic
-  const filteredEvents = useMemo(() => {
-    let eventsToFilter = allEvents;
-
-    if (myRegistrationsFilter) {
-      eventsToFilter = allEvents.filter(event => registeredEventIds.has(event.id));
-    }
-
-    return eventsToFilter.filter((event) => {
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesSearch =
-          event.title.toLowerCase().includes(query) ||
-          event.location.toLowerCase().includes(query) ||
-          event.description.toLowerCase().includes(query);
-        if (!matchesSearch) return false;
-      }
-
-      // Status filter
-      if (statusFilter !== "all") {
-        if (statusFilter === "available" && event.status !== "available") {
-          return false;
-        }
-        if (statusFilter === "completed" && event.status !== "completed") {
-          return false;
-        }
-      }
-
-      // Category filter
-      if (categoryFilter !== "all" && event.category !== categoryFilter) {
-        return false;
-      }
-
-      // Day of week filter
-      if (selectedDays.length > 0 && !selectedDays.includes(event.dayOfWeek)) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [allEvents, searchQuery, statusFilter, categoryFilter, selectedDays, myRegistrationsFilter, registeredEventIds]);
-
-  // Get selected events
-  const selectedEvents = useMemo(() => {
-    return allEvents.filter((event) => selectedEventIds.includes(event.id));
-  }, [allEvents, selectedEventIds]);
-
-  // Event handlers
   const handleSelectEvent = (eventId: number) => {
     setSelectedEventIds((prev) => {
       const newIds = prev.includes(eventId)
@@ -136,262 +59,117 @@ const PlayPage: React.FC = () => {
     });
   };
 
-  const handleClearCart = () => {
-    setSelectedEventIds([]);
-    clearCart();
-  };
-
-  const handleRegister = (event: SocialEvent) => {
-    // Only allow registration for available events
-    if (event.status === "available" || event.status === "full") {
-      setRegistrationEvents([event]);
-      setIsRegistrationModalOpen(true);
-    }
-  };
-
-  const handleBookAll = () => {
-    if (selectedEvents.length > 0) {
-      // Filter to only available events
-      const availableEvents = selectedEvents.filter(
-        (e) => e.status === "available"
-      );
-      if (availableEvents.length > 0) {
-        setRegistrationEvents(availableEvents);
-        setIsRegistrationModalOpen(true);
-      }
-    }
-  };
-
-  const handleViewDetails = (event: SocialEvent) => {
+  const handleViewSession = (event: SocialEvent) => {
     setSelectedEvent(event);
-    setIsDetailsModalOpen(true);
   };
 
-  const handleDayFilterChange = (day: string) => {
-    setSelectedDays((prev) => {
-      if (prev.includes(day)) {
-        return prev.filter((d) => d !== day);
-      } else {
-        return [...prev, day];
-      }
-    });
-  };
-
-  const handleClearFilters = () => {
-    setSearchQuery("");
-    setStatusFilter("all");
-    setCategoryFilter("all");
-    setSelectedDays([]);
-    setMyRegistrationsFilter(false);
-  };
-
-  const handleRegistrationSuccess = async (_updatedEvents?: SocialEvent[]) => {
-    await fetchEvents();
-    await fetchRegistrations();
-    setSelectedEventIds([]);
-    clearCart();
-  };
-
-  // Sort events: available first, then by date
-  const sortedEvents = useMemo(() => {
-    return [...filteredEvents].sort((a, b) => {
-      // Available events first
-      if (a.status === "available" && b.status !== "available") return -1;
-      if (a.status !== "available" && b.status === "available") return 1;
-      // Then sort by date (future dates first)
-      return new Date(a.date).getTime() - new Date(b.date).getTime();
-    });
-  }, [filteredEvents]);
-
-  // Pagination calculations
-  const totalPages = Math.ceil(sortedEvents.length / EVENTS_PER_PAGE);
-  const startIndex = (currentPage - 1) * EVENTS_PER_PAGE;
-  const endIndex = startIndex + EVENTS_PER_PAGE;
-  const paginatedEvents = sortedEvents.slice(startIndex, endIndex);
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, statusFilter, categoryFilter, selectedDays, myRegistrationsFilter]);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    // Scroll to top of events list
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const handleProceedToCheckout = () => {
+    if (selectedEvents.length === 0) return;
+    navigate("/play/checkout", { state: { events: selectedEvents } });
   };
 
   return (
-    <div className="absolute inset-0 w-full overflow-x-hidden bg-gradient-to-r from-rose-50 to-rose-100">
-      <div className="container mx-auto px-4 pt-28 pb-8">
+    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-r from-rose-50 to-rose-100">
+      <div className="container mx-auto px-4 pt-12">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-huglove">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 font-huglove">
             Play Sessions
           </h1>
-          <p className="text-gray-600 text-2xl max-w-7xl mx-auto font-calibri">
-            Register for our social badminton sessions. Select multiple events
-            and book them all at once!
+          <p className="text-gray-600 text-base md:text-lg lg:text-xl max-w-3xl mx-auto font-calibri">
+            Join our social badminton sessions! We currently host sessions on Wednesdays and Fridays.
+            You are welcome to register for one or multiple sessions in advance.
           </p>
         </div>
 
-        {/* Search and Filters */}
-        <SearchBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          categoryFilter={categoryFilter}
-          onCategoryFilterChange={setCategoryFilter}
-          selectedDays={selectedDays}
-          onDayFilterChange={handleDayFilterChange}
-          myRegistrationsFilter={myRegistrationsFilter}
-          onMyRegistrationsFilterChange={setMyRegistrationsFilter}
-          onClearFilters={handleClearFilters}
-        />
+        {/* Cart bar */}
+        {selectedEventIds.length > 0 && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 bg-white rounded-xl shadow-md p-4">
+            <span className="font-calibri text-gray-700">
+              {selectedEventIds.length} session{selectedEventIds.length !== 1 ? "s" : ""} selected
+            </span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleProceedToCheckout}
+                className="bg-rose-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-rose-600 transition-colors font-calibri"
+              >
+                Proceed to checkout
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedEventIds([]);
+                  clearCart();
+                }}
+                className="text-sm text-gray-600 hover:text-gray-900 font-calibri"
+              >
+                Clear selection
+              </button>
+            </div>
+          </div>
+        )}
 
         {eventsLoading && (
-          <div className="text-center py-8 font-calibri text-gray-600">Loading events…</div>
+          <div className="text-center py-12 font-calibri text-gray-600">
+            Loading sessions…
+          </div>
         )}
-        {/* Main Content */}
+
         {!eventsLoading && (
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900 font-calibri">
-                {sortedEvents.length} Event{sortedEvents.length !== 1 ? "s" : ""}{" "}
-                Found
-                {totalPages > 1 && (
-                  <span className="text-lg font-normal text-gray-600 ml-2 font-calibri">
-                    (Page {currentPage} of {totalPages})
-                  </span>
-                )}
-              </h2>
-              {selectedEventIds.length > 0 && (
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-600 font-calibri">
-                    {selectedEventIds.length} event{selectedEventIds.length !== 1 ? "s" : ""} selected
-                  </span>
-                  <button
-                    onClick={handleBookAll}
-                    className="bg-rose-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-rose-600 transition-colors font-calibri"
-                  >
-                    Book All ({selectedEventIds.length})
-                  </button>
-                  <button
-                    onClick={handleClearCart}
-                    className="text-sm text-gray-600 hover:text-gray-900 font-calibri"
-                  >
-                    Clear
-                  </button>
-                </div>
-              )}
-            </div>
-            <EventList
-              events={paginatedEvents}
+          <>
+            <PlayCalendar
+              events={allEvents}
               selectedEventIds={selectedEventIds}
               onSelectEvent={handleSelectEvent}
-              onRegister={handleRegister}
-              onViewDetails={handleViewDetails}
+              onViewSession={handleViewSession}
             />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
-          </div>
-        )}
 
-        {/* Registration Modal */}
-        <RegistrationModal
-          isOpen={isRegistrationModalOpen}
-          onClose={() => setIsRegistrationModalOpen(false)}
-          events={registrationEvents}
-          isMultiEvent={registrationEvents.length > 1}
-          onSuccess={handleRegistrationSuccess}
-        />
-
-        {/* Event Details Modal (Simple version) */}
-        {isDetailsModalOpen && selectedEvent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {selectedEvent.title}
-                </h2>
-                <button
-                  onClick={() => setIsDetailsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="p-6">
-                {selectedEvent.imageUrl && (
-                  <img
-                    src={selectedEvent.imageUrl}
-                    alt={selectedEvent.title}
-                    className="w-full h-full object-contain rounded-lg mb-4"
-                  />
-                )}
-                <div className="space-y-3 mb-4 font-calibri text-lg">
-                  <p className="text-gray-700">
-                    <strong>Date:</strong> {new Date(selectedEvent.date).toLocaleDateString("en-US", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Time:</strong> {selectedEvent.time}
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Location:</strong> {selectedEvent.location}
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Capacity:</strong> {selectedEvent.currentAttendees} / {selectedEvent.maxCapacity} attendees
-                  </p>
-                  {selectedEvent.price && (
-                    <p className="text-gray-700">
-                      <strong>Price:</strong> ${selectedEvent.price}
-                    </p>
-                  )}
-                  <p className="text-gray-700">
-                    <strong>Status:</strong>{" "}
-                    <span
-                      className={`px-2 py-1 rounded text-sm font-semibold ${selectedEvent.status === "available"
-                        ? "bg-green-100 text-green-800"
-                        : selectedEvent.status === "full"
-                          ? "bg-orange-100 text-orange-800"
-                          : selectedEvent.status === "completed"
-                            ? "bg-gray-100 text-gray-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                    >
-                      {selectedEvent.status.toUpperCase()}
-                    </span>
-                  </p>
+            {/* Sessions list with View registered players links */}
+            {/* {allEvents.filter((e) => e.status === "available" || e.status === "full").length > 0 && (
+              <div className="mt-8 bg-white rounded-xl shadow-lg p-4 md:p-6 font-calibri">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Upcoming sessions</h2>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {allEvents
+                    .filter((e) => e.status === "available" || e.status === "full")
+                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                    .slice(0, 12)
+                    .map((e) => (
+                      <div
+                        key={e.id}
+                        className="border border-gray-200 rounded-lg p-4 hover:border-rose-200 transition-colors"
+                      >
+                        <p className="font-semibold text-gray-900">{e.title}</p>
+                        <p className="text-sm text-gray-600 mt-0.5">
+                          {new Date(e.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} • {e.time}
+                        </p>
+                        <p className="text-sm text-gray-600">{e.location}</p>
+                        <p className="text-sm text-gray-700 mt-1">
+                          {e.maxCapacity - e.currentAttendees} / {e.maxCapacity} spots
+                        </p>
+                        <a
+                          href={`/play/session/${e.id}/registrations`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 mt-2 text-rose-600 hover:text-rose-700 text-sm font-medium"
+                        >
+                          View registered players
+                          <span className="text-xs">↗</span>
+                        </a>
+                      </div>
+                    ))}
                 </div>
-                <p className="text-gray-800 whitespace-pre-line font-calibri">
-                  {selectedEvent.description}
-                </p>
-                {selectedEvent.status === "available" && (
-                  <button
-                    onClick={() => {
-                      setIsDetailsModalOpen(false);
-                      handleRegister(selectedEvent);
-                    }}
-                    className="mt-6 w-full bg-rose-500 text-white text-xl py-3 px-4 rounded-lg hover:bg-rose-600 transition-colors font-calibri"
-                  >
-                    <div className="flex items-center justify-center gap-4">
-                      <FaPaperPlane size={18} />
-                      <span className="font-calibri text-md font-bold">Register Now</span>
-                    </div>
-                  </button>
-                )}
               </div>
-            </div>
-          </div>
+            )} */}
+          </>
         )}
+
+        <SessionDetailModal
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          onAddToCart={handleSelectEvent}
+          onProceedToCheckout={handleProceedToCheckout}
+          isInCart={selectedEvent ? selectedEventIds.includes(selectedEvent.id) : false}
+          selectedCount={selectedEventIds.length}
+        />
       </div>
     </div>
   );

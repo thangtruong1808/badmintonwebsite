@@ -10,9 +10,6 @@ import {
 import { getUserById } from './userService.js';
 import pool from '../db/connection.js';
 
-// In-memory storage (replace with database later)
-let registrations: Registration[] = [];
-
 export interface RegistrationRow {
   id: string;
   event_id: number;
@@ -31,6 +28,11 @@ export interface RegistrationRow {
   updated_at?: string;
 }
 
+export interface PublicRegistrationPlayer {
+  name: string;
+  email?: string;
+}
+
 interface RegRow extends RowDataPacket {
   id: string;
   event_id: number;
@@ -47,6 +49,27 @@ interface RegRow extends RowDataPacket {
   points_used: number;
   created_at: Date | string | null;
   updated_at: Date | string | null;
+}
+
+function rowToRegistration(r: RegRow): Registration {
+  const regDate = r.registration_date instanceof Date
+    ? r.registration_date.toISOString()
+    : String(r.registration_date);
+  return {
+    id: r.id,
+    eventId: r.event_id,
+    userId: r.user_id ?? undefined,
+    name: r.name,
+    email: r.email,
+    phone: r.phone,
+    registrationDate: regDate,
+    status: r.status as Registration['status'],
+    attendanceStatus: (r.attendance_status ?? 'upcoming') as Registration['attendanceStatus'],
+    pointsEarned: r.points_earned ?? 0,
+    pointsClaimed: Boolean(r.points_claimed),
+    paymentMethod: (r.payment_method ?? 'stripe') as Registration['paymentMethod'],
+    pointsUsed: r.points_used ?? 0,
+  };
 }
 
 export const getAllRegistrations = async (): Promise<RegistrationRow[]> => {
@@ -73,11 +96,28 @@ export const getAllRegistrations = async (): Promise<RegistrationRow[]> => {
 };
 
 export const getUserRegistrations = async (userId: string): Promise<Registration[]> => {
-  return registrations.filter((reg) => reg.userId === userId && reg.status !== 'cancelled');
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations WHERE user_id = ? AND status != ? ORDER BY registration_date DESC',
+    [userId, 'cancelled']
+  );
+  return rows.map(rowToRegistration);
 };
 
 export const getEventRegistrations = async (eventId: number): Promise<Registration[]> => {
-  return registrations.filter((reg) => reg.eventId === eventId && reg.status !== 'cancelled');
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations WHERE event_id = ? AND status != ? ORDER BY registration_date ASC',
+    [eventId, 'cancelled']
+  );
+  return rows.map(rowToRegistration);
+};
+
+/** Public: returns list of registered players (name, email) for displaying on play page. No auth required. */
+export const getEventRegistrationsPublic = async (eventId: number): Promise<PublicRegistrationPlayer[]> => {
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT name, email FROM registrations WHERE event_id = ? AND status != ? ORDER BY registration_date ASC',
+    [eventId, 'cancelled']
+  );
+  return rows.map((r) => ({ name: r.name, email: r.email }));
 };
 
 export const registerForEvents = async (
@@ -85,7 +125,6 @@ export const registerForEvents = async (
   eventIds: number[],
   formData: RegistrationFormData
 ): Promise<{ success: boolean; message: string; registrations: Registration[] }> => {
-  // Verify user exists
   const user = await getUserById(userId);
   if (!user) {
     throw createError('User not found', 404);
@@ -93,34 +132,34 @@ export const registerForEvents = async (
 
   const newRegistrations: Registration[] = [];
 
-  // Register for each event
   for (const eventId of eventIds) {
-    // Check if event exists
     const event = await getEventById(eventId);
     if (!event) {
       throw createError(`Event with ID ${eventId} not found`, 404);
     }
 
-    // Check if user is already registered
-    const existingRegistration = registrations.find(
-      (reg) =>
-        reg.userId === userId &&
-        reg.eventId === eventId &&
-        reg.status === 'confirmed'
+    const [existing] = await pool.execute<RegRow[]>(
+      'SELECT * FROM registrations WHERE user_id = ? AND event_id = ? AND status = ?',
+      [userId, eventId, 'confirmed']
     );
 
-    if (existingRegistration) {
-      continue; // Skip if already registered
-    }
+    if (existing.length > 0) continue;
 
-    // Check capacity
     if (event.currentAttendees >= event.maxCapacity) {
       throw createError(`Event '${event.title}' is full`, 400);
     }
 
-    // Create registration
-    const registration: Registration = {
-      id: uuidv4(),
+    const id = uuidv4();
+    const registrationDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+    await pool.execute(
+      `INSERT INTO registrations (id, event_id, user_id, name, email, phone, registration_date, status, attendance_status, payment_method)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'confirmed', 'upcoming', 'stripe')`,
+      [id, eventId, userId, formData.name, formData.email, formData.phone, registrationDate]
+    );
+
+    newRegistrations.push({
+      id,
       eventId,
       userId,
       name: formData.name,
@@ -129,12 +168,8 @@ export const registerForEvents = async (
       registrationDate: new Date().toISOString(),
       status: 'confirmed',
       attendanceStatus: 'upcoming',
-    };
+    });
 
-    registrations.push(registration);
-    newRegistrations.push(registration);
-
-    // Increment event attendees
     await incrementEventAttendees(eventId);
   }
 
@@ -149,49 +184,47 @@ export const cancelRegistration = async (
   userId: string,
   registrationId: string
 ): Promise<boolean> => {
-  const registrationIndex = registrations.findIndex(
-    (reg) => reg.id === registrationId && reg.userId === userId
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations WHERE id = ? AND user_id = ?',
+    [registrationId, userId]
   );
 
-  if (registrationIndex === -1) {
-    return false;
-  }
+  if (rows.length === 0) return false;
 
-  const registration = registrations[registrationIndex];
-
-  // Decrement event attendees
-  await decrementEventAttendees(registration.eventId);
-
-  // Cancel registration
-  registration.status = 'cancelled';
-  registrations[registrationIndex] = registration;
-
+  const reg = rows[0];
+  await pool.execute(
+    'UPDATE registrations SET status = ? WHERE id = ?',
+    ['cancelled', registrationId]
+  );
+  await decrementEventAttendees(reg.event_id);
   return true;
 };
 
 export const getRegistrationById = async (registrationId: string): Promise<Registration | null> => {
-  const registration = registrations.find((reg) => reg.id === registrationId);
-  return registration || null;
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations WHERE id = ?',
+    [registrationId]
+  );
+  if (!rows.length) return null;
+  return rowToRegistration(rows[0]);
 };
 
 export const getRegistrationByEventAndUser = async (
   eventId: number,
   userId: string
 ): Promise<Registration | null> => {
-  const registration = registrations.find(
-    (reg) => reg.eventId === eventId && reg.userId === userId && reg.status === 'confirmed'
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations WHERE event_id = ? AND user_id = ? AND status = ?',
+    [eventId, userId, 'confirmed']
   );
-  return registration || null;
+  if (!rows.length) return null;
+  return rowToRegistration(rows[0]);
 };
 
 export const getRegistrationsCount = async (): Promise<number> => {
-  try {
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      'SELECT COUNT(*) AS count FROM registrations WHERE status != ?',
-      ['cancelled']
-    );
-    return Number(rows[0]?.count ?? 0);
-  } catch {
-    return registrations.filter((reg) => reg.status !== 'cancelled').length;
-  }
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    'SELECT COUNT(*) AS count FROM registrations WHERE status != ?',
+    ['cancelled']
+  );
+  return Number(rows[0]?.count ?? 0);
 };

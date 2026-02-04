@@ -5,6 +5,8 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
+  generateEvents,
+  getEventRegistrationsPublic,
 } from '../controllers/eventsController.js';
 import { authenticateToken } from '../middleware/auth.js';
 
@@ -12,10 +14,24 @@ const router = Router();
 
 /**
  * @route   GET /api/events
- * @desc    Get all events
+ * @desc    Get all events (optional ?from=DATE&to=DATE to generate from play_slots)
  * @access  Public
  */
 router.get('/', getAllEvents);
+
+/**
+ * @route   GET /api/events/generate
+ * @desc    Generate events from play_slots for date range (?from=YYYY-MM-DD&to=YYYY-MM-DD)
+ * @access  Public
+ */
+router.get('/generate', generateEvents);
+
+/**
+ * @route   GET /api/events/:id/registrations
+ * @desc    Get registered players for event (public, no auth)
+ * @access  Public
+ */
+router.get('/:id/registrations', getEventRegistrationsPublic);
 
 /**
  * @route   GET /api/events/:id

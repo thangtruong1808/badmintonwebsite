@@ -30,6 +30,7 @@ import { AUTH_REQUEST_REFRESH } from "../hooks/useTokenValidation";
 import {
   UsersSection,
   EventsSection,
+  PlaySlotsSection,
   RegistrationsSection,
   RewardTransactionsSection,
   ProductsSection,
@@ -56,6 +57,7 @@ type DashboardSection =
   | "overview"
   | "users"
   | "events"
+  | "play-slots"
   | "registrations"
   | "reward-transactions"
   | "products"
@@ -73,6 +75,7 @@ const SIDEBAR_ITEMS: { id: DashboardSection; label: string; icon: React.ReactNod
   { id: "overview", label: "Overview", icon: <FaChartLine size={SIDEBAR_ICON_SIZE} /> },
   { id: "users", label: "Users", icon: <FaUsers size={SIDEBAR_ICON_SIZE} /> },
   { id: "events", label: "Events", icon: <FaCalendarAlt size={SIDEBAR_ICON_SIZE} /> },
+  { id: "play-slots", label: "Play Slots", icon: <FaCalendarAlt size={SIDEBAR_ICON_SIZE} /> },
   { id: "registrations", label: "Registrations", icon: <FaClipboardList size={SIDEBAR_ICON_SIZE} /> },
   { id: "reward-transactions", label: "Reward Transactions", icon: <FaCoins size={SIDEBAR_ICON_SIZE} /> },
   { id: "products", label: "Products", icon: <FaBox size={SIDEBAR_ICON_SIZE} /> },
@@ -353,6 +356,7 @@ const DashboardPage = () => {
 
           {activeSection === "users" && <UsersSection />}
           {activeSection === "events" && <EventsSection />}
+          {activeSection === "play-slots" && <PlaySlotsSection />}
           {activeSection === "registrations" && <RegistrationsSection />}
           {activeSection === "reward-transactions" && <RewardTransactionsSection />}
           {activeSection === "products" && <ProductsSection />}

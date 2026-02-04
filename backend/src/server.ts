@@ -6,6 +6,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { getFrontendBaseUrl } from './utils/appUrl.js';
 import authRoutes from './routes/auth.js';
 import eventsRoutes from './routes/events.js';
+import playSlotsRoutes from './routes/playSlots.js';
 import registrationsRoutes from './routes/registrations.js';
 import usersRoutes from './routes/users.js';
 import rewardsRoutes from './routes/rewards.js';
@@ -14,7 +15,10 @@ import newsletterRoutes from './routes/newsletter.js';
 import galleryRoutes from './routes/gallery.js';
 import newsRoutes from './routes/news.js';
 import uploadRoutes from './routes/upload.js';
-import './utils/initializeData.js'; // Initialize events data
+import { seedPlaySlotsIfEmpty } from './utils/initializeData.js';
+
+// Seed play_slots on startup if empty
+seedPlaySlotsIfEmpty().catch(() => {});
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +53,7 @@ app.get('/favicon.ico', (_req, res) => res.status(204).end());
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
+app.use('/api/play-slots', playSlotsRoutes);
 app.use('/api/registrations', registrationsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/rewards', rewardsRoutes);

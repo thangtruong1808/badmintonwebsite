@@ -23,6 +23,7 @@ DROP TABLE IF EXISTS user_event_history;
 DROP TABLE IF EXISTS reward_point_transactions;
 DROP TABLE IF EXISTS registrations;
 DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS play_slots;
 DROP TABLE IF EXISTS users;
 
 -- =====================================================

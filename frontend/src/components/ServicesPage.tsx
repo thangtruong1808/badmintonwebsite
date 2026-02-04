@@ -7,9 +7,11 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
   FaArrowLeft,
+  FaTimes,
 } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
 import { useNavigate } from "react-router-dom";
+import chibiServicesImage from "../assets/chibi-badminton-services.png";
 
 interface FormData {
   name: string;
@@ -20,9 +22,8 @@ interface FormData {
   string: string;
   colour: string;
   tension: string;
-  stencil: boolean;
-  grip: boolean;
-  grommetReplacement: string;
+  stencil: string;
+  grip: string;
   message: string;
 }
 
@@ -68,6 +69,20 @@ const tensionOptions = [
   "32 lbs",
 ];
 
+const stencilOptions = [
+  { value: "", label: "None" },
+  { value: "Yonex (+$2)", label: "Yonex (+$2)" },
+  { value: "Victor (+$2)", label: "Victor (+$2)" },
+  { value: "Li-Ning (+$2)", label: "Li-Ning (+$2)" },
+  { value: "Lin Dan (+$2)", label: "Lin Dan (+$2)" },
+];
+
+const gripOptions = [
+  { value: "", label: "None" },
+  { value: "Lingmei thin grip (+$3)", label: "Lingmei thin grip (+$3)" },
+  { value: "Lingmei thick ripple grip (+$3)", label: "Lingmei thick ripple grip (+$3)" },
+];
+
 const ServicesPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
@@ -79,13 +94,13 @@ const ServicesPage = () => {
     string: "",
     colour: "",
     tension: "",
-    stencil: false,
-    grip: false,
-    grommetReplacement: "",
+    stencil: "",
+    grip: "",
     message: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showImageLightbox, setShowImageLightbox] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     type: "success" | "error" | null;
     message: string;
@@ -102,6 +117,20 @@ const ServicesPage = () => {
   useEffect(() => {
     document.title = "ChibiBadminton - Stringing Services";
   }, []);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowImageLightbox(false);
+    };
+    if (showImageLightbox) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleEsc);
+    }
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [showImageLightbox]);
 
 
   const validateForm = (): boolean => {
@@ -178,15 +207,12 @@ const ServicesPage = () => {
     }
     details += `Tension: ${formData.tension}\n\n`;
 
-    details += "Additional Services:\n";
+    details += "Extras:\n";
     if (formData.stencil) {
-      details += "- Stencil: Yes\n";
+      details += `- Stencil: ${formData.stencil}\n`;
     }
     if (formData.grip) {
-      details += "- Grip: Yes\n";
-    }
-    if (formData.grommetReplacement) {
-      details += `- Grommet Replacement: ${formData.grommetReplacement}\n`;
+      details += `- Grip: ${formData.grip}\n`;
     }
 
     if (formData.message.trim()) {
@@ -243,9 +269,8 @@ const ServicesPage = () => {
             string: "",
             colour: "",
             tension: "",
-            stencil: false,
-            grip: false,
-            grommetReplacement: "",
+            stencil: "",
+            grip: "",
             message: "",
           });
         }, 2000);
@@ -284,9 +309,8 @@ const ServicesPage = () => {
           string: "",
           colour: "",
           tension: "",
-          stencil: false,
-          grip: false,
-          grommetReplacement: "",
+          stencil: "",
+          grip: "",
           message: "",
         });
         setSubmitStatus({ type: null, message: "" });
@@ -316,18 +340,17 @@ const ServicesPage = () => {
           <span>Back to Home</span>
         </button>
 
-        {/* Header */}
-        <div className="text-center mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 md:mb-4 font-huglove">
+        {/* Header - compact on all screens */}
+        <div className="text-center mb-4 md:mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-1 md:mb-2 font-huglove">
             Stringing Services
           </h1>
-          <p className="text-gray-700 text-base md:text-lg lg:text-xl max-w-7xl mx-auto font-calibri">
-            Book your racket stringing service. Fill out the form below with your
-            racket and string preferences.
+          <p className="text-gray-700 text-sm md:text-base max-w-3xl mx-auto font-calibri">
+            Book your racket stringing service. Fill out the form with your racket and string preferences.
           </p>
         </div>
 
-        {/* Form Card */}
+        {/* Form Card - single column */}
         <div className="bg-gradient-to-t from-rose-50 to-rose-100 rounded-xl shadow-2xl overflow-hidden max-w-7xl mx-auto">
           <div className="p-4 md:p-6 lg:p-8">
             <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
@@ -423,11 +446,28 @@ const ServicesPage = () => {
                 </div>
               </div>
 
-              {/* Racket & String Information Section - Combined */}
+              {/* Racket & String Information Section */}
               <div className="border-b border-gray-200 pb-4 md:pb-5">
-                <h2 className="text-xl md:text-2xl font-medium text-gray-900 mb-3 md:mb-4 font-calibri">
-                  Racket & String Information
-                </h2>
+                <div className="flex flex-wrap items-center gap-2 mb-3 md:mb-4">
+                  <h2 className="text-xl md:text-2xl font-medium text-gray-900 font-calibri">
+                    Racket & String Information
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowImageLightbox(true)}
+                    className="inline-flex items-center gap-1.5 px-2 py-1 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1 font-calibri text-sm"
+                    aria-label="View stringing services image"
+                    title="Click to view full size"
+                  >
+                    <img
+                      src={chibiServicesImage}
+                      alt=""
+                      className="w-8 h-8 rounded object-cover border border-rose-200"
+                      loading="lazy"
+                    />
+                    <span className="text-gray-600">(Click to view image)</span>
+                  </button>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                   {/* Racket Brand */}
                   <div>
@@ -589,68 +629,56 @@ const ServicesPage = () => {
                 </div>
               </div>
 
-              {/* Additional Services Section - More Compact */}
+              {/* Extras Section */}
               <div className="border-b border-gray-200 pb-4 md:pb-5">
                 <h2 className="text-xl md:text-2xl font-medium text-gray-900 mb-3 md:mb-4 font-calibri">
-                  Additional Services
+                  Extras
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   {/* Stencil */}
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="stencil"
-                      name="stencil"
-                      checked={formData.stencil}
-                      onChange={handleChange}
-                      className="w-5 h-5 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
-                    />
+                  <div>
                     <label
                       htmlFor="stencil"
-                      className="ml-3 text-sm md:text-lg font-medium text-gray-700 font-calibri"
+                      className="block text-sm md:text-lg font-medium text-gray-700 mb-1.5 md:mb-2 font-calibri"
                     >
                       Stencil
                     </label>
+                    <select
+                      id="stencil"
+                      name="stencil"
+                      value={formData.stencil}
+                      onChange={handleChange}
+                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm md:text-lg"
+                    >
+                      {stencilOptions.map((opt) => (
+                        <option key={opt.value || "none"} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Grip */}
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="grip"
-                      name="grip"
-                      checked={formData.grip}
-                      onChange={handleChange}
-                      className="w-5 h-5 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
-                    />
+                  <div>
                     <label
                       htmlFor="grip"
-                      className="ml-3 text-sm md:text-lg font-medium text-gray-700 font-calibri"
+                      className="block text-sm md:text-lg font-medium text-gray-700 mb-1.5 md:mb-2 font-calibri"
                     >
                       Grip
                     </label>
-                  </div>
-
-                  {/* Grommet Replacement */}
-                  <div className="sm:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="grommetReplacement"
-                      className="block text-sm md:text-lg font-medium text-gray-700 mb-1.5 md:mb-2 font-calibri"
-                    >
-                      Grommet Replacement (10+)
-                    </label>
-                    <input
-                      type="text"
-                      id="grommetReplacement"
-                      name="grommetReplacement"
-                      value={formData.grommetReplacement}
+                    <select
+                      id="grip"
+                      name="grip"
+                      value={formData.grip}
                       onChange={handleChange}
                       className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm md:text-lg"
-                      placeholder="e.g., 10, 12, 15"
-                    />
-                    <p className="mt-1 text-md text-justify text-gray-500 font-calibri">
-                      More info coming soon
-                    </p>
+                    >
+                      {gripOptions.map((opt) => (
+                        <option key={opt.value || "none"} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -728,6 +756,33 @@ const ServicesPage = () => {
             </form>
           </div>
         </div>
+
+        {/* Image lightbox - click to view full size */}
+        {showImageLightbox && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setShowImageLightbox(false)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && setShowImageLightbox(false)}
+            aria-label="Close image viewer"
+          >
+            <button
+              type="button"
+              onClick={() => setShowImageLightbox(false)}
+              className="absolute top-4 right-4 p-2 text-white hover:bg-white/20 rounded-full transition-colors"
+              aria-label="Close"
+            >
+              <FaTimes size={24} />
+            </button>
+            <img
+              src={chibiServicesImage}
+              alt="Chibi Badminton Stringing Services - Full size"
+              className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

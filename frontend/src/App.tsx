@@ -21,6 +21,9 @@ import RegisterPage from "./components/RegisterPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import FeaturedNewsPage from "./components/FeaturedNewsPage";
 import PlayPage from "./components/PlayPage";
+import PlayCheckoutPage from "./components/PlayPage/PlayCheckoutPage";
+import SessionRegistrationsPage from "./components/PlayPage/SessionRegistrationsPage";
+import PlayPaymentPage from "./components/PlayPage/PlayPaymentPage";
 import NewsDetailPage from "./components/NewsDetailPage";
 import UserProfilePage from "./components/UserProfilePage/UserProfilePage";
 import DashboardPage from "./components/DashboardPage";
@@ -74,6 +77,16 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/play" element={<PlayPage />} />
+          <Route path="/play/session/:eventId/registrations" element={<SessionRegistrationsPage />} />
+          <Route path="/play/checkout" element={<PlayCheckoutPage />} />
+          <Route
+            path="/play/payment"
+            element={
+              <ProtectedRoute>
+                <PlayPaymentPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/shop" element={<ShopPage />} />

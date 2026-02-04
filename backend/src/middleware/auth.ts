@@ -27,7 +27,7 @@ const getJwtSecret = (): string => {
 
 /** Get access token expiry at runtime */
 const getAccessTokenExpiry = (): string => {
-  return process.env.ACCESS_TOKEN_EXPIRY || "1m";
+  return process.env.ACCESS_TOKEN_EXPIRY || "15m";
 };
 
 export const authenticateToken = (
@@ -104,13 +104,11 @@ export const generateToken = (userId: string, email: string): string => {
 export const getAccessTokenExpiresInSeconds = (): number => {
   const expiry = getAccessTokenExpiry();
   const match = expiry.match(/^(\d+)([smh])$/);
-  // Set to 1 minute for testing
-  if (!match) return 1 * 60;
+  if (!match) return 15 * 60;
   const [, num, unit] = match;
   const n = parseInt(num!, 10);
   if (unit === "s") return n;
   if (unit === "m") return n * 60;
   if (unit === "h") return n * 3600;
-  // Set to 1 minute for testing
-  return 1 * 60;
+  return 15 * 60;
 };

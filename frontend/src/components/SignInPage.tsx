@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import {
   FaEnvelope,
@@ -28,6 +28,8 @@ interface FormErrors {
 const SignInPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string })?.from;
 
   useEffect(() => {
     document.title = "ChibiBadminton - Sign In";
@@ -103,7 +105,7 @@ const SignInPage = () => {
           setUnclaimedEvents(unclaimed);
           setShowRewardModal(true);
         } else {
-          navigate("/profile");
+          navigate(from || "/profile", { state: (location.state as { checkoutState?: unknown })?.checkoutState ? location.state : undefined });
         }
       } else {
         setSubmitStatus({
@@ -284,7 +286,7 @@ const SignInPage = () => {
               <button
                 onClick={() => {
                   setShowRewardModal(false);
-                  navigate("/profile");
+                  navigate(from || "/profile", { state: (location.state as { checkoutState?: unknown })?.checkoutState ? location.state : undefined });
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -331,7 +333,7 @@ const SignInPage = () => {
                 <button
                   onClick={() => {
                     setShowRewardModal(false);
-                    navigate("/profile");
+                    navigate(from || "/profile", { state: (location.state as { checkoutState?: unknown })?.checkoutState ? location.state : undefined });
                   }}
                   className="flex-1 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors font-semibold font-calibri"
                 >
