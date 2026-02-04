@@ -72,11 +72,11 @@ const PlayPage: React.FC = () => {
     <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="container mx-auto px-4 pt-12">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-10 p-6 rounded-lg shadow-xl bg-gradient-to-r from-rose-50 to-rose-100">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 font-huglove">
             Play Sessions
           </h1>
-          <p className="text-gray-600 text-base md:text-lg lg:text-xl max-w-3xl mx-auto font-calibri">
+          <p className="text-gray-700 text-base md:text-lg lg:text-xl max-w-3xl mx-auto font-calibri">
             Join our social badminton sessions! We currently host sessions on Wednesdays and Fridays.
             You are welcome to register for one or multiple sessions in advance.
           </p>
@@ -122,43 +122,6 @@ const PlayPage: React.FC = () => {
               onSelectEvent={handleSelectEvent}
               onViewSession={handleViewSession}
             />
-
-            {/* Sessions list with View registered players links */}
-            {/* {allEvents.filter((e) => e.status === "available" || e.status === "full").length > 0 && (
-              <div className="mt-8 bg-white rounded-xl shadow-lg p-4 md:p-6 font-calibri">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Upcoming sessions</h2>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {allEvents
-                    .filter((e) => e.status === "available" || e.status === "full")
-                    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                    .slice(0, 12)
-                    .map((e) => (
-                      <div
-                        key={e.id}
-                        className="border border-gray-200 rounded-lg p-4 hover:border-rose-200 transition-colors"
-                      >
-                        <p className="font-semibold text-gray-900">{e.title}</p>
-                        <p className="text-sm text-gray-600 mt-0.5">
-                          {new Date(e.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} • {e.time}
-                        </p>
-                        <p className="text-sm text-gray-600">{e.location}</p>
-                        <p className="text-sm text-gray-700 mt-1">
-                          {e.maxCapacity - e.currentAttendees} / {e.maxCapacity} spots
-                        </p>
-                        <a
-                          href={`/play/session/${e.id}/registrations`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 mt-2 text-rose-600 hover:text-rose-700 text-sm font-medium"
-                        >
-                          View registered players
-                          <span className="text-xs">↗</span>
-                        </a>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )} */}
           </>
         )}
 

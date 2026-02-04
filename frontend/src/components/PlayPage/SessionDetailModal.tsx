@@ -1,6 +1,12 @@
-import React from "react";
-import { FaTimes } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import { FaTimes, FaUsers } from "react-icons/fa";
 import type { SocialEvent } from "../../types/socialEvent";
+import { API_BASE } from "../../utils/api";
+
+interface RegisteredPlayer {
+  name: string;
+  email?: string;
+}
 
 interface SessionDetailModalProps {
   event: SocialEvent | null;
@@ -19,6 +25,21 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   isInCart,
   selectedCount,
 }) => {
+  const [players, setPlayers] = useState<RegisteredPlayer[]>([]);
+  const [playersLoading, setPlayersLoading] = useState(false);
+
+  useEffect(() => {
+    if (!event?.id) {
+      setPlayers([]);
+      return;
+    }
+    setPlayersLoading(true);
+    fetch(`${API_BASE}/api/events/${event.id}/registrations`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : { registrations: [] }))
+      .then((data) => setPlayers(data.registrations || []))
+      .catch(() => setPlayers([]))
+      .finally(() => setPlayersLoading(false));
+  }, [event?.id]);
 
   if (!event) return null;
 
@@ -59,6 +80,27 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
           )}
 
           <p className="text-gray-600 text-sm">{event.description}</p>
+
+          <div className="border-t border-gray-200 pt-4">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-2">
+              <FaUsers className="text-rose-500" />
+              Registered players ({players.length})
+            </h3>
+            {playersLoading ? (
+              <p className="text-sm text-gray-500 py-2">Loading…</p>
+            ) : players.length === 0 ? (
+              <p className="text-sm text-gray-500 py-2">No players registered yet.</p>
+            ) : (
+              <ul className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                {players.map((p, i) => (
+                  <li key={i} className="text-sm text-gray-700 flex flex-wrap gap-x-2">
+                    <span className="font-medium">{p.name}</span>
+                    {p.email && <span className="text-gray-500">{p.email}</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           {event.status === "available" && (
             <div className="flex flex-col gap-2 pt-4">
