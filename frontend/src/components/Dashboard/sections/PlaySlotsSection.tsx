@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { FaPlus } from "react-icons/fa";
+import React, { useState, useEffect, useRef } from "react";
+import { FaPlus, FaImage, FaTimes, FaCloudUploadAlt } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
-import { apiFetch } from "../../../utils/api";
+import { apiFetch, API_BASE } from "../../../utils/api";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import { TextInput, NumberInput, Select, TextArea, FormActions } from "../Shared/inputs";
@@ -15,6 +15,7 @@ export interface PlaySlotRow {
   description: string | null;
   price: number;
   maxCapacity: number;
+  imageUrl?: string | null;
   isActive: boolean;
 }
 
@@ -34,6 +35,7 @@ const COLUMNS: Column<PlaySlotRow>[] = [
   { key: "time", label: "Time" },
   { key: "location", label: "Location" },
   { key: "title", label: "Title" },
+  { key: "imageUrl", label: "Image", render: (r) => (r.imageUrl ? <img src={r.imageUrl} alt="" className="w-12 h-12 object-contain rounded" /> : "—") },
   { key: "maxCapacity", label: "Total spots" },
   { key: "price", label: "Price", render: (r) => `$${r.price}` },
   { key: "isActive", label: "Active", render: (r) => (r.isActive ? "Yes" : "No") },
@@ -46,6 +48,9 @@ const PlaySlotsSection: React.FC = () => {
   const [editing, setEditing] = useState<PlaySlotRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PlaySlotRow | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     day_of_week: "Wednesday",
     time: "7:00 PM - 10:00 PM",
@@ -54,6 +59,7 @@ const PlaySlotsSection: React.FC = () => {
     description: "",
     price: 20,
     max_capacity: 45,
+    image_url: "",
     is_active: true,
   });
 
@@ -78,6 +84,7 @@ const PlaySlotsSection: React.FC = () => {
 
   const openCreate = () => {
     setEditing(null);
+    setImageUploadError(null);
     setForm({
       day_of_week: "Wednesday",
       time: "7:00 PM - 10:00 PM",
@@ -86,6 +93,7 @@ const PlaySlotsSection: React.FC = () => {
       description: "",
       price: 20,
       max_capacity: 45,
+      image_url: "",
       is_active: true,
     });
     setModalOpen(true);
@@ -93,6 +101,7 @@ const PlaySlotsSection: React.FC = () => {
 
   const openEdit = (row: PlaySlotRow) => {
     setEditing(row);
+    setImageUploadError(null);
     setForm({
       day_of_week: row.dayOfWeek,
       time: row.time,
@@ -101,6 +110,7 @@ const PlaySlotsSection: React.FC = () => {
       description: row.description ?? "",
       price: row.price,
       max_capacity: row.maxCapacity,
+      image_url: row.imageUrl ?? "",
       is_active: row.isActive,
     });
     setModalOpen(true);
@@ -117,6 +127,7 @@ const PlaySlotsSection: React.FC = () => {
       description: form.description || undefined,
       price: form.price,
       maxCapacity: form.max_capacity,
+      imageUrl: form.image_url || undefined,
       isActive: form.is_active,
     };
     try {
@@ -163,6 +174,44 @@ const PlaySlotsSection: React.FC = () => {
     setDeleteTarget(null);
   };
 
+  const uploadImageFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setImageUploadError("Please select an image file (JPEG, PNG, etc.).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setImageUploadError("Image size must be less than 5MB.");
+      return;
+    }
+    setImageUploadError(null);
+    setImageUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch(`${API_BASE}/api/upload/play-slot-image`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Upload failed");
+      }
+      const data = await res.json();
+      setForm((f) => ({ ...f, image_url: data.url }));
+    } catch (err) {
+      setImageUploadError(err instanceof Error ? err.message : "Failed to upload image");
+    } finally {
+      setImageUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) await uploadImageFile(file);
+  };
+
   return (
     <div className="space-y-4">
       <p className="font-calibri text-gray-600">
@@ -188,6 +237,9 @@ const PlaySlotsSection: React.FC = () => {
           onEdit={openEdit}
           onDelete={(r) => setDeleteTarget(r)}
           emptyMessage="No play slots yet. Add one to enable calendar session generation."
+          sortable
+          pageSize={10}
+          pageSizeOptions={[5, 10, 25, 50]}
         />
       )}
       <FormModal
@@ -195,70 +247,144 @@ const PlaySlotsSection: React.FC = () => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
+        maxWidth="4xl"
       >
         {formError && (
-          <p className="text-sm text-red-600 font-calibri mb-2">{formError}</p>
+          <p className="text-sm text-red-600 font-calibri mb-2 col-span-full">{formError}</p>
         )}
-        <Select
-          label="Day of week"
-          name="day_of_week"
-          value={form.day_of_week}
-          onChange={(e) => setForm((f) => ({ ...f, day_of_week: e.target.value }))}
-          options={DAY_OPTIONS}
-        />
-        <TextInput
-          label="Time"
-          name="time"
-          value={form.time}
-          onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))}
-        />
-        <TextInput
-          label="Location"
-          name="location"
-          value={form.location}
-          onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
-          required
-        />
-        <TextInput
-          label="Title"
-          name="title"
-          value={form.title}
-          onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-          required
-        />
-        <TextArea
-          label="Description"
-          name="description"
-          value={form.description}
-          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-        />
-        <NumberInput
-          label="Total spots (max capacity)"
-          name="max_capacity"
-          value={form.max_capacity}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, max_capacity: Number(e.target.value) || 0 }))
-          }
-        />
-        <NumberInput
-          label="Price"
-          name="price"
-          value={form.price}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, price: Number(e.target.value) || 0 }))
-          }
-        />
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="is_active"
-            checked={form.is_active}
-            onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
-            className="rounded border-gray-300"
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 col-span-full">
+          <Select
+            label="Day of week"
+            name="day_of_week"
+            value={form.day_of_week}
+            onChange={(e) => setForm((f) => ({ ...f, day_of_week: e.target.value }))}
+            options={DAY_OPTIONS}
           />
-          <label htmlFor="is_active" className="font-calibri text-gray-700">
-            Active
-          </label>
+          <TextInput
+            label="Time"
+            name="time"
+            value={form.time}
+            onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))}
+          />
+          <TextInput
+            label="Location"
+            name="location"
+            value={form.location}
+            onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+            required
+          />
+          <TextInput
+            label="Title"
+            name="title"
+            value={form.title}
+            onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            required
+          />
+          <div className="md:col-span-2">
+            <TextArea
+              label="Description"
+              name="description"
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            />
+          </div>
+          <NumberInput
+            label="Total spots (max capacity)"
+            name="max_capacity"
+            value={form.max_capacity}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, max_capacity: Number(e.target.value) || 0 }))
+            }
+          />
+          <NumberInput
+            label="Price"
+            name="price"
+            value={form.price}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, price: Number(e.target.value) || 0 }))
+            }
+          />
+          <div className="md:col-span-2 flex items-end">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="is_active"
+                checked={form.is_active}
+                onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
+                className="rounded border-gray-300"
+              />
+              <label htmlFor="is_active" className="font-calibri text-gray-700">
+                Active
+              </label>
+            </div>
+          </div>
+          <div className="md:col-span-2 space-y-2">
+            <label className="block font-calibri text-sm font-medium text-gray-700">
+              Slot Image
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              aria-label="Upload slot image"
+            />
+            {form.image_url ? (
+              <div className="relative rounded-lg border border-gray-300 overflow-hidden bg-gray-50">
+                <img
+                  src={form.image_url}
+                  alt="Slot preview"
+                  className="w-full h-40 sm:h-48 object-contain"
+                />
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, image_url: "" }))}
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+                  aria-label="Remove image"
+                >
+                  <FaTimes size={14} />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={imageUploading}
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (imageUploading) return;
+                  const file = e.dataTransfer.files?.[0];
+                  if (file && file.type.startsWith("image/")) uploadImageFile(file);
+                }}
+                className="w-full min-h-[120px] sm:min-h-[140px] rounded-lg border-2 border-dashed border-gray-300 hover:border-rose-400 hover:bg-rose-50/50 transition-colors flex flex-col items-center justify-center gap-2 p-4 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {imageUploading ? (
+                  <>
+                    <span className="animate-pulse text-rose-500">
+                      <FaCloudUploadAlt size={28} />
+                    </span>
+                    <span className="text-sm font-calibri text-gray-600">Uploading…</span>
+                  </>
+                ) : (
+                  <>
+                    <FaImage className="text-gray-400" size={28} />
+                    <span className="text-sm font-calibri text-gray-600">
+                      Click to upload or drag and drop
+                    </span>
+                    <span className="text-xs font-calibri text-gray-500">
+                      PNG, JPG up to 5MB
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
+            {imageUploadError && (
+              <p className="mt-1 text-sm text-red-600 font-calibri">{imageUploadError}</p>
+            )}
+          </div>
         </div>
         <FormActions onCancel={() => setModalOpen(false)} />
       </FormModal>

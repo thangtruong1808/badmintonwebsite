@@ -10,6 +10,7 @@ export interface PlaySlot {
   description: string | null;
   price: number;
   maxCapacity: number;
+  imageUrl?: string | null;
   isActive: boolean;
 }
 
@@ -22,6 +23,7 @@ interface PlaySlotRow extends RowDataPacket {
   description: string | null;
   price: number;
   max_capacity: number;
+  image_url?: string | null;
   is_active: boolean;
 }
 
@@ -35,6 +37,7 @@ function rowToPlaySlot(row: PlaySlotRow): PlaySlot {
     description: row.description,
     price: Number(row.price),
     maxCapacity: row.max_capacity,
+    imageUrl: row.image_url ?? null,
     isActive: Boolean(row.is_active),
   };
 }
@@ -58,8 +61,8 @@ export const getPlaySlotById = async (id: number): Promise<PlaySlot | null> => {
 
 export const createPlaySlot = async (data: Omit<PlaySlot, 'id'>): Promise<PlaySlot> => {
   const [result] = await pool.execute(
-    `INSERT INTO play_slots (day_of_week, time, location, title, description, price, max_capacity, is_active)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO play_slots (day_of_week, time, location, title, description, price, max_capacity, image_url, is_active)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.dayOfWeek,
       data.time,
@@ -68,6 +71,7 @@ export const createPlaySlot = async (data: Omit<PlaySlot, 'id'>): Promise<PlaySl
       data.description ?? null,
       data.price,
       data.maxCapacity,
+      data.imageUrl ?? null,
       data.isActive ? 1 : 0,
     ]
   );
@@ -113,6 +117,10 @@ export const updatePlaySlot = async (
   if (updates.maxCapacity !== undefined) {
     fields.push('max_capacity = ?');
     values.push(updates.maxCapacity);
+  }
+  if (updates.imageUrl !== undefined) {
+    fields.push('image_url = ?');
+    values.push(updates.imageUrl);
   }
   if (updates.isActive !== undefined) {
     fields.push('is_active = ?');
