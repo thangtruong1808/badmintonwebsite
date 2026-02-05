@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { FaPlus } from "react-icons/fa";
+import React, { useState, useEffect, useRef } from "react";
+import { FaPlus, FaImage, FaTimes, FaCloudUploadAlt } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import { TextInput, NumberInput, Select, FormActions } from "../Shared/inputs";
-import { apiFetch } from "../../../utils/api";
+import { apiFetch, API_BASE } from "../../../utils/api";
 
 type GalleryTab = "photos" | "videos";
 
@@ -30,7 +30,6 @@ export interface GalleryVideoRow {
 const PHOTO_TYPE_OPTIONS = [
   { value: "chibi-tournament", label: "Chibi Tournament" },
   { value: "veteran-tournament", label: "Veteran Tournament" },
-  { value: "social", label: "Social" },
 ];
 
 const VIDEO_CATEGORY_OPTIONS = [
@@ -68,10 +67,13 @@ const GallerySection: React.FC = () => {
   const [editingVideo, setEditingVideo] = useState<GalleryVideoRow | null>(null);
   const [deletePhoto, setDeletePhoto] = useState<GalleryPhotoRow | null>(null);
   const [deleteVideo, setDeleteVideo] = useState<GalleryVideoRow | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const photoFileInputRef = useRef<HTMLInputElement>(null);
   const [photoForm, setPhotoForm] = useState({
     src: "",
     alt: "",
-    type: "social",
+    type: "chibi-tournament",
     display_order: 0,
   });
   const [videoForm, setVideoForm] = useState({
@@ -119,21 +121,67 @@ const GallerySection: React.FC = () => {
 
   const openPhotoCreate = () => {
     setEditingPhoto(null);
-    setPhotoForm({ src: "", alt: "", type: "social", display_order: 0 });
+    setPhotoUploadError(null);
+    setPhotoForm({ src: "", alt: "", type: "chibi-tournament", display_order: 0 });
     setPhotoModalOpen(true);
+  };
+
+  const uploadGalleryPhoto = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setPhotoUploadError("Please select an image file (JPEG, PNG, etc.).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoUploadError("Image size must be less than 5MB.");
+      return;
+    }
+    setPhotoUploadError(null);
+    setPhotoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch(`${API_BASE}/api/upload/gallery-image`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Upload failed");
+      }
+      const data = await res.json();
+      setPhotoForm((f) => ({ ...f, src: data.url }));
+    } catch (err) {
+      setPhotoUploadError(err instanceof Error ? err.message : "Failed to upload image");
+    } finally {
+      setPhotoUploading(false);
+      if (photoFileInputRef.current) photoFileInputRef.current.value = "";
+    }
+  };
+
+  const handlePhotoFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadGalleryPhoto(file);
   };
   const openPhotoEdit = (row: GalleryPhotoRow) => {
     setEditingPhoto(row);
+    setPhotoUploadError(null);
+    const type = PHOTO_TYPE_OPTIONS.some((o) => o.value === row.type) ? row.type : "chibi-tournament";
     setPhotoForm({
       src: row.src,
       alt: row.alt,
-      type: row.type,
+      type,
       display_order: row.display_order,
     });
     setPhotoModalOpen(true);
   };
   const handlePhotoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!photoForm.src?.trim()) {
+      setPhotoUploadError("Please upload a photo.");
+      return;
+    }
+    setPhotoUploadError(null);
     try {
       if (editingPhoto) {
         const res = await apiFetch(`/api/dashboard/gallery/photos/${editingPhoto.id}`, {
@@ -317,14 +365,78 @@ const GallerySection: React.FC = () => {
         open={photoModalOpen}
         onClose={() => setPhotoModalOpen(false)}
         onSubmit={handlePhotoSubmit}
+        maxWidth="2xl"
       >
-        <TextInput
-          label="Src (URL)"
-          name="src"
-          value={photoForm.src}
-          onChange={(e) => setPhotoForm((f) => ({ ...f, src: e.target.value }))}
-          required
-        />
+        <div className="space-y-2">
+          <label className="block font-calibri text-sm font-medium text-gray-700">
+            Photo
+          </label>
+          <input
+            ref={photoFileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoFileSelect}
+            className="hidden"
+            aria-label="Upload gallery photo"
+          />
+          {photoForm.src ? (
+            <div className="relative rounded-lg border border-gray-300 overflow-hidden bg-gray-50">
+              <img
+                src={photoForm.src}
+                alt={photoForm.alt || "Preview"}
+                className="w-full h-40 sm:h-48 object-contain"
+              />
+              <button
+                type="button"
+                onClick={() => setPhotoForm((f) => ({ ...f, src: "" }))}
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+                aria-label="Remove photo"
+              >
+                <FaTimes size={14} />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => photoFileInputRef.current?.click()}
+              disabled={photoUploading}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (photoUploading) return;
+                const file = e.dataTransfer.files?.[0];
+                if (file && file.type.startsWith("image/")) uploadGalleryPhoto(file);
+              }}
+              className="w-full min-h-[120px] sm:min-h-[140px] rounded-lg border-2 border-dashed border-gray-300 hover:border-rose-400 hover:bg-rose-50/50 transition-colors flex flex-col items-center justify-center gap-2 p-4 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {photoUploading ? (
+                <>
+                  <span className="animate-pulse text-rose-500">
+                    <FaCloudUploadAlt size={28} />
+                  </span>
+                  <span className="text-sm font-calibri text-gray-600">Uploading…</span>
+                </>
+              ) : (
+                <>
+                  <FaImage className="text-gray-400" size={28} />
+                  <span className="text-sm font-calibri text-gray-600">
+                    Click to upload or drag and drop
+                  </span>
+                  <span className="text-xs font-calibri text-gray-500">
+                    PNG, JPG up to 5MB
+                  </span>
+                </>
+              )}
+            </button>
+          )}
+          {photoUploadError && (
+            <p className="text-sm text-red-600 font-calibri">{photoUploadError}</p>
+          )}
+        </div>
         <TextInput
           label="Alt"
           name="alt"

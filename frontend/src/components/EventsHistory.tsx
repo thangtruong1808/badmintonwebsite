@@ -40,7 +40,7 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
                     <img
                       src={event.imageUrl ?? ""}
                       alt={event.title}
-                      className="w-full h-full object-fill group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-fit"
                     />
                     <div className="absolute top-4 left-4 bg-gray-800/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg font-calibri">
                       Completed
