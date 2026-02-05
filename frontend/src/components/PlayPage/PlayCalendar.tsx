@@ -1,9 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
-import { format, parse, startOfWeek, getDay, isSameMonth, isSameWeek, isSameDay } from "date-fns";
+import { format, parse, startOfWeek, getDay, isSameMonth, isSameWeek, isSameDay, startOfDay, setHours, setMinutes } from "date-fns";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import type { SocialEvent } from "../../types/socialEvent";
 import { enAU } from "date-fns/locale";
+import { API_BASE } from "../../utils/api";
+
+interface RegisteredPlayer {
+  name: string;
+  email?: string;
+  avatar?: string | null;
+}
+
+const registrationsCache = new Map<number, RegisteredPlayer[]>();
 
 const DEFAULT_MESSAGES: Record<string, string> = { today: "Today", previous: "Back", next: "Next", month: "Month", week: "Week", day: "Day", agenda: "Agenda" };
 
@@ -95,27 +104,117 @@ interface CalendarEvent {
 
 function parseTime(dateStr: string, timeStr: string): { start: Date; end: Date } {
   const date = new Date(dateStr + "T00:00:00");
-  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/gi);
+  if (isNaN(date.getTime())) {
+    const fallback = new Date();
+    fallback.setHours(19, 0, 0, 0);
+    const end = new Date(fallback);
+    end.setHours(22, 0, 0, 0);
+    return { start: fallback, end };
+  }
+  const match = timeStr?.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/gi);
+  const parsePart = (s: string) => {
+    const m = String(s || "").trim().match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!m) return new Date(date);
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    if (m[3]?.toUpperCase() === "PM" && h < 12) h += 12;
+    if (m[3]?.toUpperCase() === "AM" && h === 12) h = 0;
+    const d = new Date(date);
+    d.setHours(h, min, 0, 0);
+    return d;
+  };
   if (match && match.length >= 2) {
-    const [startPart, endPart] = match;
-    const parsePart = (s: string) => {
-      const m = s.trim().match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-      if (!m) return date;
-      let h = parseInt(m[1], 10);
-      const min = parseInt(m[2], 10);
-      if (m[3]?.toUpperCase() === "PM" && h < 12) h += 12;
-      if (m[3]?.toUpperCase() === "AM" && h === 12) h = 0;
-      const d = new Date(date);
-      d.setHours(h, min, 0, 0);
-      return d;
-    };
-    return { start: parsePart(startPart), end: parsePart(endPart) };
+    return { start: parsePart(match[0]), end: parsePart(match[1]) };
+  }
+  if (match && match.length === 1) {
+    const start = parsePart(match[0]);
+    const end = new Date(start);
+    end.setHours(end.getHours() + 3, end.getMinutes(), 0, 0);
+    return { start, end };
   }
   const start = new Date(date);
   start.setHours(19, 0, 0, 0);
   const end = new Date(date);
   end.setHours(22, 0, 0, 0);
   return { start, end };
+}
+
+function getInitials(name: string): string {
+  const parts = (name || "").trim().split(/\s+/);
+  if (parts.length === 0 || !parts[0]) return "?";
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+function PlayCalendarEvent(props: {
+  event: { id: number; title: string; resource: SocialEvent };
+  view?: string;
+  [key: string]: unknown;
+}) {
+  const { event, view } = props;
+  const socialEvent = event.resource;
+  const showPlayers = view === "week" || view === "day" || view === "work_week";
+  const [players, setPlayers] = useState<RegisteredPlayer[]>(() =>
+    registrationsCache.get(socialEvent.id) ?? []
+  );
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!showPlayers || !socialEvent?.id) return;
+    const cached = registrationsCache.get(socialEvent.id);
+    if (cached) {
+      setPlayers(cached);
+      return;
+    }
+    setLoading(true);
+    fetch(`${API_BASE}/api/events/${socialEvent.id}/registrations`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : { registrations: [] }))
+      .then((data) => {
+        const list = Array.isArray(data?.registrations) ? data.registrations : [];
+        registrationsCache.set(socialEvent.id, list);
+        setPlayers(list);
+      })
+      .catch(() => {
+        setPlayers([]);
+      })
+      .finally(() => setLoading(false));
+  }, [showPlayers, socialEvent?.id]);
+
+  if (!showPlayers) {
+    return <span className="rbc-event-label">{event.title}</span>;
+  }
+
+  return (
+    <div className="rbc-event-content flex flex-col gap-1 overflow-hidden h-full">
+      <span className="rbc-event-label font-medium truncate flex-shrink-0">{event.title}</span>
+      {(loading || players.length > 0) && (
+        <div className="flex flex-wrap gap-1 items-center flex-1 min-h-0 overflow-hidden">
+          {loading ? (
+            <span className="text-xs opacity-90">Loading…</span>
+          ) : (
+            players.slice(0, 8).map((p, i) => (
+              <span key={i} title={p.name} className="flex-shrink-0">
+                {p.avatar && String(p.avatar).trim() ? (
+                  <img
+                    src={p.avatar}
+                    alt={p.name}
+                    className="w-5 h-5 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center text-[10px] font-bold">
+                    {getInitials(p.name)}
+                  </span>
+                )}
+              </span>
+            ))
+          )}
+          {!loading && players.length > 8 && (
+            <span className="text-[10px] opacity-90">+{players.length - 8}</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 interface PlayCalendarProps {
@@ -135,18 +234,52 @@ const PlayCalendar: React.FC<PlayCalendarProps> = ({
   const [date, setDate] = useState(() => new Date());
   const [view, setView] = useState<CalendarView>("month");
 
-  const calendarEvents: CalendarEvent[] = events
-    .filter((e) => e.status === "available" || e.status === "full")
-    .map((e) => {
-      const { start, end } = parseTime(e.date, e.time);
-      return {
-        id: e.id,
-        title: `${e.title} (${e.currentAttendees}/${e.maxCapacity})`,
-        start,
-        end,
-        resource: e,
-      };
-    });
+  const calendarEvents: CalendarEvent[] = React.useMemo(
+    () =>
+      events
+        .filter((e) => e.status === "available" || e.status === "full")
+        .map((e) => {
+          const { start, end } = parseTime(e.date, e.time);
+          return {
+            id: e.id,
+            title: `${e.title} (${e.currentAttendees}/${e.maxCapacity})`,
+            start,
+            end,
+            resource: e,
+          };
+        }),
+    [events]
+  );
+
+  const handleViewChange = (newView: CalendarView) => {
+    setView(newView);
+    if ((newView === "week" || newView === "day") && calendarEvents.length > 0) {
+      const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+      const rangeStart = newView === "week" ? weekStart : startOfDay(date);
+      const rangeEnd = new Date(rangeStart);
+      rangeEnd.setDate(rangeEnd.getDate() + (newView === "week" ? 7 : 1));
+      const hasEventInRange = calendarEvents.some(
+        (ev) => ev.start >= rangeStart && ev.start < rangeEnd
+      );
+      if (!hasEventInRange) {
+        setDate(calendarEvents[0].start);
+      }
+    }
+  };
+
+  const timeMin = React.useMemo(() => setMinutes(setHours(startOfDay(new Date()), 6), 0), []);
+  const timeMax = React.useMemo(() => setMinutes(setHours(startOfDay(new Date()), 23), 0), []);
+  const scrollToTime = React.useMemo(() => {
+    if ((view !== "week" && view !== "day") || calendarEvents.length === 0) return timeMin;
+    const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+    const rangeStart = view === "week" ? weekStart : startOfDay(date);
+    const rangeEnd = new Date(rangeStart);
+    rangeEnd.setDate(rangeEnd.getDate() + (view === "week" ? 7 : 1));
+    const eventsInRange = calendarEvents
+      .filter((ev) => ev.start >= rangeStart && ev.start < rangeEnd)
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+    return eventsInRange.length > 0 ? eventsInRange[0].start : timeMin;
+  }, [view, date, calendarEvents, timeMin]);
 
   return (
     <div className="play-calendar-wrapper bg-white rounded-xl shadow-lg p-4 md:p-6 font-calibri">
@@ -157,6 +290,12 @@ const PlayCalendar: React.FC<PlayCalendarProps> = ({
         .play-calendar-wrapper .rbc-off-range {
           color: #9ca3af;
         }
+        .play-calendar-wrapper .rbc-event .rbc-event-content {
+          padding: 2px 4px;
+        }
+        .play-calendar-wrapper .rbc-day-slot .rbc-event .rbc-event-content {
+          padding: 4px 6px;
+        }
       `}</style>
       <Calendar
         localizer={localizer}
@@ -165,9 +304,32 @@ const PlayCalendar: React.FC<PlayCalendarProps> = ({
         endAccessor="end"
         date={date}
         view={view}
+        min={timeMin}
+        max={timeMax}
+        scrollToTime={scrollToTime}
         onNavigate={(_newDate: Date) => setDate(_newDate)}
-        onView={(newView: CalendarView) => setView(newView)}
-        components={{ toolbar: PlayCalendarToolbar as React.ComponentType<unknown> }}
+        onView={(newView: CalendarView) => handleViewChange(newView)}
+        components={{
+          toolbar: PlayCalendarToolbar as React.ComponentType<unknown>,
+          event: ((props: unknown) => (
+            <PlayCalendarEvent {...(props as { event: { id: number; title: string; resource: SocialEvent }; [key: string]: unknown })} view={view} />
+          )) as React.ComponentType<unknown>,
+          week: {
+            event: ((props: unknown) => (
+              <PlayCalendarEvent {...(props as { event: { id: number; title: string; resource: SocialEvent }; [key: string]: unknown })} view="week" />
+            )) as React.ComponentType<unknown>,
+          },
+          day: {
+            event: ((props: unknown) => (
+              <PlayCalendarEvent {...(props as { event: { id: number; title: string; resource: SocialEvent }; [key: string]: unknown })} view="day" />
+            )) as React.ComponentType<unknown>,
+          },
+          work_week: {
+            event: ((props: unknown) => (
+              <PlayCalendarEvent {...(props as { event: { id: number; title: string; resource: SocialEvent }; [key: string]: unknown })} view="work_week" />
+            )) as React.ComponentType<unknown>,
+          },
+        }}
         style={{ height: "min(560px, 100vh)", minHeight: 800 }}
         onSelectEvent={(evt: unknown) => onViewSession((evt as { resource: SocialEvent }).resource)}
         eventPropGetter={(evt: unknown) => {

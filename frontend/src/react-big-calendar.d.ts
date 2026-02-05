@@ -8,9 +8,18 @@ declare module "react-big-calendar" {
     endAccessor: string;
     date?: Date;
     view?: View;
+    min?: Date;
+    max?: Date;
+    scrollToTime?: Date;
     onNavigate?: (date: Date, view?: View, action?: string) => void;
     onView?: (view: View) => void;
-    components?: { toolbar?: React.ComponentType<unknown> };
+    components?: {
+      toolbar?: React.ComponentType<unknown>;
+      event?: React.ComponentType<unknown>;
+      week?: { event?: React.ComponentType<unknown> };
+      day?: { event?: React.ComponentType<unknown> };
+      work_week?: { event?: React.ComponentType<unknown> };
+    };
     style?: React.CSSProperties;
     onSelectEvent?: (event: unknown) => void;
     eventPropGetter?: (event: unknown) => { style?: React.CSSProperties };

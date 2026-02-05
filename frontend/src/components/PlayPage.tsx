@@ -23,7 +23,7 @@ const PlayPage: React.FC = () => {
     try {
       const from = new Date();
       const to = new Date();
-      to.setFullYear(to.getFullYear() + 20);
+      to.setFullYear(to.getFullYear() + 1);
       const fromStr = from.toISOString().slice(0, 10);
       const toStr = to.toISOString().slice(0, 10);
       const res = await fetch(

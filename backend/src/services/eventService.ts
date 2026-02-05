@@ -56,30 +56,45 @@ function getNextDateForDay(dayName: string, fromDate: Date): Date {
   return current;
 }
 
-/** Generate events from play_slots for the given date range */
+const MAX_GENERATION_DAYS = 365;
+
+/** Generate events from play_slots for the given date range (capped at 1 year). */
 export const generateEventsFromSlots = async (
   fromDateStr: string,
   toDateStr: string
 ): Promise<SocialEvent[]> => {
   const fromDate = new Date(fromDateStr);
-  const toDate = new Date(toDateStr);
+  let toDate = new Date(toDateStr);
+  const capDate = new Date(fromDate);
+  capDate.setDate(capDate.getDate() + MAX_GENERATION_DAYS);
+  if (toDate > capDate) toDate = capDate;
+
   const slots = await getAllPlaySlots(true);
+  if (slots.length === 0) return [];
+
+  const [existingRows] = await pool.execute<EventRow[]>(
+    'SELECT date, title, location FROM events WHERE date >= ? AND date <= ?',
+    [fromDate.toISOString().slice(0, 10), toDate.toISOString().slice(0, 10)]
+  );
+  const existingKeys = new Set(
+    existingRows.map((r) => {
+      const d = r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10);
+      return `${d}|${r.title}|${r.location}`;
+    })
+  );
 
   const generated: SocialEvent[] = [];
+  const now = new Date();
 
   for (const slot of slots) {
-    let cursor = getNextDateForDay(slot.dayOfWeek, fromDate);
+    let cursor = new Date(getNextDateForDay(slot.dayOfWeek, fromDate));
 
     while (cursor <= toDate) {
       const dateStr = cursor.toISOString().slice(0, 10);
+      const key = `${dateStr}|${slot.title}|${slot.location}`;
 
-      const [existing] = await pool.execute<EventRow[]>(
-        'SELECT * FROM events WHERE date = ? AND title = ? AND location = ? LIMIT 1',
-        [dateStr, slot.title, slot.location]
-      );
-
-      if (existing.length === 0) {
-        const status = cursor < new Date() ? 'completed' : 'available';
+      if (!existingKeys.has(key)) {
+        const status = cursor < now ? 'completed' : 'available';
         const [result] = await pool.execute(
           `INSERT INTO events (title, date, time, day_of_week, location, description, max_capacity, current_attendees, price, status, category, recurring)
            VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 'regular', TRUE)`,
@@ -101,6 +116,7 @@ export const generateEventsFromSlots = async (
           [insertId]
         );
         if (rows.length) generated.push(rowToSocialEvent(rows[0]));
+        existingKeys.add(key);
       }
 
       cursor.setDate(cursor.getDate() + 7);
@@ -118,10 +134,18 @@ export const getAllEvents = async (
     await generateEventsFromSlots(fromDate, toDate);
   }
 
-  const [rows] = await pool.execute<EventRow[]>(
-    'SELECT * FROM events ORDER BY date ASC, time ASC'
-  );
-  return rows.map(rowToSocialEvent);
+  let query = 'SELECT * FROM events';
+  const params: string[] = [];
+  if (fromDate && toDate) {
+    query += ' WHERE date >= ? AND date <= ?';
+    params.push(fromDate, toDate);
+  }
+  query += ' ORDER BY date ASC, time ASC';
+
+  const [rows] = params.length
+    ? await pool.execute<EventRow[]>(query, params)
+    : await pool.execute<EventRow[]>(query);
+  return (rows as EventRow[]).map(rowToSocialEvent);
 };
 
 export const getEventById = async (eventId: number): Promise<SocialEvent | null> => {
