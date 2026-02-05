@@ -40,6 +40,9 @@ export const PhotosTabPanel: React.FC<PhotosTabProps> = ({
         onEdit={onEdit}
         onDelete={onDelete}
         emptyMessage="No photos yet. Click Add Photo to create one."
+        sortable
+        pageSize={10}
+        pageSizeOptions={[5, 10, 25, 50]}
       />
     )}
   </>
@@ -81,6 +84,9 @@ export const VideosTabPanel: React.FC<VideosTabProps> = ({
         onEdit={onEdit}
         onDelete={onDelete}
         emptyMessage="No videos yet. Click Add Video to create one."
+        sortable
+        pageSize={10}
+        pageSizeOptions={[5, 10, 25, 50]}
       />
     )}
   </>
