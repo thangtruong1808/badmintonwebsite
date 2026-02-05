@@ -23,10 +23,10 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
                 PAST EVENTS
               </div>
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-black drop-shadow-lg">
-                Events History
+                Battle Royale History
               </h2>
               <p className="text-black text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md font-calibri">
-                Take a look back at our amazing past events and gatherings
+                Take a look back at our amazing past Battle Royale tournaments
               </p>
             </div>
 

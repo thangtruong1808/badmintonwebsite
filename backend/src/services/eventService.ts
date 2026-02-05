@@ -128,18 +128,26 @@ export const generateEventsFromSlots = async (
 
 export const getAllEvents = async (
   fromDate?: string,
-  toDate?: string
+  toDate?: string,
+  category?: string
 ): Promise<SocialEvent[]> => {
-  if (fromDate && toDate) {
+  if (fromDate && toDate && category !== 'tournament') {
     await generateEventsFromSlots(fromDate, toDate);
   }
 
   let query = 'SELECT * FROM events';
-  const params: string[] = [];
-  if (fromDate && toDate) {
-    query += ' WHERE date >= ? AND date <= ?';
+  const params: (string | number)[] = [];
+  const conditions: string[] = [];
+
+  if (fromDate && toDate && category !== 'tournament') {
+    conditions.push('date >= ? AND date <= ?');
     params.push(fromDate, toDate);
   }
+  if (category === 'tournament') {
+    conditions.push('category = ?');
+    params.push('tournament');
+  }
+  if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
   query += ' ORDER BY date ASC, time ASC';
 
   const [rows] = params.length

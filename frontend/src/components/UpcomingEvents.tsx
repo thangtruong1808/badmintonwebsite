@@ -23,10 +23,10 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                   UPCOMING
                 </div>
                 <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-black drop-shadow-lg">
-                  Upcoming Events
+                  Upcoming Battle Royale Events
                 </h2>
                 <p className="text-black text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md font-calibri">
-                  Don't miss out on these exciting upcoming events!
+                  Don't miss out on these exciting Battle Royale tournaments!
                 </p>
               </div>
               <div className="w-full space-y-8">

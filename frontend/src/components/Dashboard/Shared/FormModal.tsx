@@ -7,7 +7,17 @@ interface FormModalProps {
   onClose: () => void;
   children: React.ReactNode;
   onSubmit?: (e: React.FormEvent) => void;
+  /** Optional wider modal (e.g. "xl" for max-w-4xl). Default: "lg" (max-w-lg). */
+  maxWidth?: "lg" | "xl" | "2xl" | "4xl" | "5xl";
 }
+
+const WIDTH_CLASS = {
+  lg: "max-w-lg",
+  xl: "max-w-xl",
+  "2xl": "max-w-2xl",
+  "4xl": "max-w-4xl",
+  "5xl": "max-w-5xl",
+} as const;
 
 const FormModal: React.FC<FormModalProps> = ({
   title,
@@ -15,6 +25,7 @@ const FormModal: React.FC<FormModalProps> = ({
   onClose,
   children,
   onSubmit,
+  maxWidth = "lg",
 }) => {
   if (!open) return null;
 
@@ -37,7 +48,7 @@ const FormModal: React.FC<FormModalProps> = ({
         onClick={onClose}
         aria-hidden
       />
-      <div className="relative w-full max-w-lg rounded-xl bg-white shadow-xl">
+      <div className={`relative w-full ${WIDTH_CLASS[maxWidth]} rounded-xl bg-white shadow-xl`}>
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <h2 className="font-huglove text-xl text-gray-800">{title}</h2>
           <button

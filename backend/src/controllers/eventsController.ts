@@ -12,13 +12,13 @@ import { createError } from '../middleware/errorHandler.js';
 import type { SocialEvent } from '../types/index.js';
 
 export const getAllEvents = async (
-  req: Request<{}, {}, {}, { from?: string; to?: string }>,
+  req: Request<{}, {}, {}, { from?: string; to?: string; category?: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { from, to } = req.query;
-    const events = await getAllEventsService(from, to);
+    const { from, to, category } = req.query;
+    const events = await getAllEventsService(from, to, category);
     res.json(events);
   } catch (error) {
     next(error);

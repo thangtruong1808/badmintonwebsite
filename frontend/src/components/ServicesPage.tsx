@@ -41,15 +41,17 @@ interface FormErrors {
 
 // String options with their available colors
 const stringOptions: Record<string, string[]> = {
-  "Yonex Exbolt 65": ["Black", "White"],
-  "Yonex Exbolt 63": ["White", "Red", "Light Pink", "Mint"],
-  "Yonex BG80": ["Yellow", "Sky Blue", "Neon Pink", "White"],
-  "Yonex Exbolt 68": ["White"],
-  "Yonex BG66 Ultimax": ["Yellow", "White"],
-  "Yonex BG65": ["White", "Yellow"],
-  "Victor VBS-66N": ["White", "Yellow"],
-  "Victor VBS-68": ["White"],
-  "Li-Ning No.1": ["White", "Yellow"],
+  "Yonex Exbolt 63": ["yellow", "white", "red"],
+  "Yonex Exbolt 65": ["Purple", "Black", "Blue", "Green", "White"],
+  "Yonex Exbolt 68": ["Red", "Yellow", "Black"],
+  "Yonex BG66 Ultimax": ["White", "Pink", "Blue"],
+  "Yonex BG80": ["Blue", "Black", "White"],
+  "Yonex BG80 Power": ["White"],
+  "Yonex Aerobite": ["white", "red"],
+  "Yonex Aerosonic": ["purple"],
+  "Yonex Nanogy 98": ["yellow"],
+  "Yonex BG65 Titanium": ["White", "red"],
+  "Yonex BG65": ["White"],
   Other: ["Please specify in message"],
 };
 

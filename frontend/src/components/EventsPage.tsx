@@ -49,7 +49,7 @@ const EventsPage = () => {
       setEventsLoading(true);
       setEventsError(null);
       try {
-        const res = await apiFetch("/api/events", { skipAuth: true });
+        const res = await apiFetch("/api/events?category=tournament", { skipAuth: true });
         if (res.ok) {
           const list = await res.json();
           setEvents(Array.isArray(list) ? list : []);
@@ -256,10 +256,10 @@ const EventsPage = () => {
                 <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-12 md:p-16 max-w-2xl mx-auto">
                   <FaCalendarAlt className="mx-auto text-gray-400 mb-6" size={64} />
                   <h3 className="text-3xl font-bold mb-3 text-gray-800">
-                    No Events Yet
+                    No Battle Royale Events Yet
                   </h3>
                   <p className="text-gray-600 text-lg">
-                    Check back soon for upcoming events and gatherings!
+                    Check back soon for upcoming Battle Royale tournaments!
                   </p>
                 </div>
               </div>
