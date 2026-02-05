@@ -59,7 +59,7 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { firstName, lastName, email, password, phone } = req.body;
 
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
@@ -69,7 +69,8 @@ export const register = async (
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await createUser({
-      name,
+      firstName,
+      lastName,
       email,
       password: hashedPassword,
       phone,

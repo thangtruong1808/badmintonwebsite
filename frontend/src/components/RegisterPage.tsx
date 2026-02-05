@@ -16,7 +16,8 @@ import type { User } from "../types/user";
 import { API_BASE } from "../utils/api";
 
 interface RegisterFormData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   password: string;
@@ -37,7 +38,8 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [registerData, setRegisterData] = useState<RegisterFormData>({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     password: "",
@@ -52,8 +54,11 @@ const RegisterPage = () => {
 
   const validateRegister = (): boolean => {
     const errors: FormErrors = {};
-    if (!registerData.name.trim()) {
-      errors.name = "Name is required";
+    if (!registerData.firstName.trim()) {
+      errors.firstName = "First name is required";
+    }
+    if (!registerData.lastName.trim()) {
+      errors.lastName = "Last name is required";
     }
     if (!registerData.email.trim()) {
       errors.email = "Email is required";
@@ -98,7 +103,8 @@ const RegisterPage = () => {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: registerData.name.trim(),
+          firstName: registerData.firstName.trim(),
+          lastName: registerData.lastName.trim(),
           email: registerData.email.trim(),
           phone: registerData.phone.trim() || undefined,
           password: registerData.password,
@@ -115,7 +121,8 @@ const RegisterPage = () => {
           message: "Account created successfully! You can now sign in.",
         });
         setRegisterData({
-          name: "",
+          firstName: "",
+          lastName: "",
           email: "",
           phone: "",
           password: "",
@@ -155,32 +162,62 @@ const RegisterPage = () => {
         <div className="w-full rounded-lg shadow-xl overflow-hidden bg-gradient-to-r from-rose-50 to-rose-100">
           <div className="p-8 md:p-10">
             <form onSubmit={handleRegisterSubmit} className="space-y-6">
-              {/* Name Field */}
+              {/* First Name Field */}
               <div>
                 <label
-                  htmlFor="register-name"
+                  htmlFor="register-firstName"
                   className="block text-lg font-semibold text-gray-700 mb-2 font-calibri"
                 >
                   <FaUser className="inline mr-2" size={14} />
-                  Full Name <span className="text-red-500 font-calibri">*</span>
+                  First Name <span className="text-red-500 font-calibri">*</span>
                 </label>
                 <input
                   type="text"
-                  id="register-name"
-                  name="name"
-                  autoComplete="name"
-                  value={registerData.name}
+                  id="register-firstName"
+                  name="firstName"
+                  autoComplete="given-name"
+                  value={registerData.firstName}
                   onChange={handleRegisterChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.name
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.firstName
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-300 focus:ring-green-500"
                     }`}
-                  placeholder="Enter your full name"
+                  placeholder="Enter your first name"
                 />
-                {registerErrors.name && (
+                {registerErrors.firstName && (
                   <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-lg">
                     <FaExclamationCircle className="mr-1" size={12} />
-                    {registerErrors.name}
+                    {registerErrors.firstName}
+                  </p>
+                )}
+              </div>
+
+              {/* Last Name Field */}
+              <div>
+                <label
+                  htmlFor="register-lastName"
+                  className="block text-lg font-semibold text-gray-700 mb-2 font-calibri"
+                >
+                  <FaUser className="inline mr-2" size={14} />
+                  Last Name <span className="text-red-500 font-calibri">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="register-lastName"
+                  name="lastName"
+                  autoComplete="family-name"
+                  value={registerData.lastName}
+                  onChange={handleRegisterChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition duration-300 font-calibri text-lg ${registerErrors.lastName
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-green-500"
+                    }`}
+                  placeholder="Enter your last name"
+                />
+                {registerErrors.lastName && (
+                  <p className="mt-1 text-sm text-red-500 flex items-center font-calibri text-lg">
+                    <FaExclamationCircle className="mr-1" size={12} />
+                    {registerErrors.lastName}
                   </p>
                 )}
               </div>

@@ -163,10 +163,21 @@ const Navbar: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="font-huglove text-xl lg:text-2xl inline-flex items-center gap-2 px-2 2xl:px-4 py-1 rounded-full bg-rose-500 text-white hover:bg-rose-600 transition-colors"
+                  className="font-huglove text-xl lg:text-2xl inline-flex items-center p-0.5 rounded-full hover:ring-2 hover:ring-rose-400 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  aria-label={`${user.firstName} ${user.lastName} - account menu`}
+                  title={`${user.firstName} ${user.lastName}`}
                 >
-                  <FaUser size={16} />
-                  <span className="hidden md:inline">{user.name.split(" ")[0]}</span>
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={`${user.firstName} ${user.lastName}`}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <span className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      {`${user.firstName?.charAt(0) ?? ""}${user.lastName?.charAt(0) ?? ""}`.toUpperCase() || "?"}
+                    </span>
+                  )}
                 </button>
                 {showUserMenu && (
                   <>
@@ -290,10 +301,21 @@ const Navbar: React.FC = () => {
                   onClick={() => {
                     setIsOpen(false);
                   }}
-                  className="font-huglove text-xl block py-3 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
+                  className="font-huglove text-xl flex items-center py-3 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
+                  aria-label={`${user.firstName} ${user.lastName} - My Profile`}
+                  title={`${user.firstName} ${user.lastName}`}
                 >
-                  <FaUser className="inline mr-2" size={14} />
-                  Profile
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={`${user.firstName} ${user.lastName}`}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <span className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      {`${user.firstName?.charAt(0) ?? ""}${user.lastName?.charAt(0) ?? ""}`.toUpperCase() || "?"}
+                    </span>
+                  )}
                 </Link>
                 {(user.role === "admin" || user.role === "super_admin") && (
                   <Link

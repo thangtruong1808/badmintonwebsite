@@ -9,11 +9,14 @@ export const getCartItems = (): number[] => {
   }
 };
 
+const notifyCartUpdated = (): void => {
+  queueMicrotask(() => window.dispatchEvent(new CustomEvent("cartUpdated")));
+};
+
 export const setCartItems = (eventIds: number[]): void => {
   try {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(eventIds));
-    // Dispatch custom event to notify navbar
-    window.dispatchEvent(new CustomEvent("cartUpdated"));
+    notifyCartUpdated();
   } catch {
     // Ignore storage errors
   }
@@ -22,7 +25,7 @@ export const setCartItems = (eventIds: number[]): void => {
 export const clearCart = (): void => {
   try {
     localStorage.removeItem(CART_STORAGE_KEY);
-    window.dispatchEvent(new CustomEvent("cartUpdated"));
+    notifyCartUpdated();
   } catch {
     // Ignore storage errors
   }

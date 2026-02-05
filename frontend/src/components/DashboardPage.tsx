@@ -290,7 +290,7 @@ const DashboardPage = () => {
             <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
               <FaUser className="text-gray-500" size={16} />
               <span className="font-calibri text-sm text-gray-700 truncate max-w-[120px]">
-                {user?.name || "User"}
+                {user ? `${user.firstName} ${user.lastName}`.trim() || "User" : "User"}
               </span>
             </div>
           </div>

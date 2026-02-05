@@ -10,7 +10,7 @@ const PlayCheckoutPage: React.FC = () => {
   const events: SocialEvent[] = state?.events ?? state?.checkoutState?.events ?? [];
   const user = getCurrentUser();
 
-  const totalPrice = events.reduce((sum, e) => sum + (e.price ?? 0), 0);
+  const totalPrice = events.reduce((sum, e) => sum + Number(e.price ?? 0), 0);
 
   const handleContinueToPayment = () => {
     if (!user) {
@@ -79,7 +79,7 @@ const PlayCheckoutPage: React.FC = () => {
 
             <div className="pt-4 border-t-2 border-gray-200">
               <p className="text-lg font-bold text-gray-900 font-calibri">
-                Total: ${totalPrice.toFixed(2)}
+                Total: ${Number(totalPrice).toFixed(2)}
               </p>
             </div>
           </div>

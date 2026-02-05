@@ -31,6 +31,7 @@ export interface RegistrationRow {
 export interface PublicRegistrationPlayer {
   name: string;
   email?: string;
+  avatar?: string | null;
 }
 
 interface RegRow extends RowDataPacket {
@@ -111,13 +112,17 @@ export const getEventRegistrations = async (eventId: number): Promise<Registrati
   return rows.map(rowToRegistration);
 };
 
-/** Public: returns list of registered players (name, email) for displaying on play page. No auth required. */
+/** Public: returns list of registered players (name, avatar) for displaying on play page. No auth required. */
 export const getEventRegistrationsPublic = async (eventId: number): Promise<PublicRegistrationPlayer[]> => {
-  const [rows] = await pool.execute<RegRow[]>(
-    'SELECT name, email FROM registrations WHERE event_id = ? AND status != ? ORDER BY registration_date ASC',
+  const [rows] = await pool.execute<(RegRow & { avatar?: string | null })[]>(
+    `SELECT r.name, r.email, u.avatar
+     FROM registrations r
+     LEFT JOIN users u ON r.user_id = u.id
+     WHERE r.event_id = ? AND r.status != ?
+     ORDER BY r.registration_date ASC`,
     [eventId, 'cancelled']
   );
-  return rows.map((r) => ({ name: r.name, email: r.email }));
+  return rows.map((r) => ({ name: r.name, email: r.email, avatar: r.avatar ?? null }));
 };
 
 export const registerForEvents = async (

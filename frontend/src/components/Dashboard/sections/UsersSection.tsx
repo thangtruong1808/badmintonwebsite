@@ -12,7 +12,8 @@ import { apiFetch } from "../../../utils/api";
 
 export interface UserRow {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone?: string;
   role: string;
@@ -36,17 +37,18 @@ const PAYMENT_METHOD_OPTIONS = [
 
 const COLUMNS: Column<UserRow>[] = [
   { key: "id", label: "ID", render: (r) => r.id.slice(0, 12) + "…" },
-  { key: "name", label: "Name" },
+  { key: "firstName", label: "Name", render: (r) => `${r.firstName} ${r.lastName}`.trim() },
   { key: "email", label: "Email" },
   { key: "role", label: "Role" },
   { key: "reward_points", label: "Points" },
   { key: "member_since", label: "Member Since" },
 ];
 
-function toUserRow(u: { id: string; name: string; email: string; phone?: string; role: string; rewardPoints: number; memberSince: string; created_at?: string }): UserRow {
+function toUserRow(u: { id: string; firstName: string; lastName: string; email: string; phone?: string; role: string; rewardPoints: number; memberSince: string; created_at?: string }): UserRow {
   return {
     id: u.id,
-    name: u.name,
+    firstName: u.firstName ?? "",
+    lastName: u.lastName ?? "",
     email: u.email,
     phone: u.phone,
     role: u.role,
@@ -64,7 +66,8 @@ const UsersSection: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     role: "user",
@@ -100,7 +103,8 @@ const UsersSection: React.FC = () => {
     setFormError(null);
     setEditing(row);
     setForm({
-      name: row.name,
+      firstName: row.firstName,
+      lastName: row.lastName,
       email: row.email,
       phone: row.phone ?? "",
       role: row.role,
@@ -123,7 +127,8 @@ const UsersSection: React.FC = () => {
       const res = await apiFetch(`/api/dashboard/users/${editing.id}`, {
         method: "PUT",
         body: JSON.stringify({
-          name: form.name,
+          firstName: form.firstName,
+          lastName: form.lastName,
           phone: form.phone || undefined,
           role: form.role,
           rewardPoints: form.reward_points,
@@ -168,10 +173,17 @@ const UsersSection: React.FC = () => {
           <p className="text-sm text-red-600 font-calibri mb-2">{formError}</p>
         )}
         <TextInput
-          label="Name"
-          name="name"
-          value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          label="First name"
+          name="firstName"
+          value={form.firstName}
+          onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
+          required
+        />
+        <TextInput
+          label="Last name"
+          name="lastName"
+          value={form.lastName}
+          onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
           required
         />
         <TextInput

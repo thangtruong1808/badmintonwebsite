@@ -6,7 +6,8 @@ import pool from '../db/connection.js';
 
 interface UserRow extends RowDataPacket {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   phone: string | null;
   password: string;
@@ -25,7 +26,8 @@ function rowToUser(row: UserRow): User {
     : String(row.member_since).slice(0, 10);
   return {
     id: row.id,
-    name: row.name,
+    firstName: row.first_name,
+    lastName: row.last_name,
     email: row.email,
     phone: row.phone ?? undefined,
     password: row.password,
@@ -62,12 +64,13 @@ export const createUser = async (userData: Omit<User, 'id'>): Promise<User> => {
   const memberSince = userData.memberSince?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
   await pool.execute(
     `INSERT INTO users (
-      id, name, email, phone, password, role,
+      id, first_name, last_name, email, phone, password, role,
       reward_points, total_points_earned, total_points_spent, member_since
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
-      userData.name,
+      userData.firstName,
+      userData.lastName,
       userData.email,
       userData.phone ?? null,
       userData.password!,
@@ -92,7 +95,7 @@ export const getAllUsersCount = async (): Promise<number> => {
 
 export const getAllUsers = async (): Promise<Omit<User, 'password'>[]> => {
   const [rows] = await pool.execute<UserRow[]>(
-    'SELECT id, name, email, phone, role, reward_points, total_points_earned, total_points_spent, member_since, avatar, created_at, updated_at FROM users ORDER BY created_at DESC'
+    'SELECT id, first_name, last_name, email, phone, role, reward_points, total_points_earned, total_points_spent, member_since, avatar, created_at, updated_at FROM users ORDER BY created_at DESC'
   );
   return rows.map((row) => {
     const memberSince = row.member_since instanceof Date
@@ -100,7 +103,8 @@ export const getAllUsers = async (): Promise<Omit<User, 'password'>[]> => {
       : String(row.member_since).slice(0, 10);
     return {
       id: row.id,
-      name: row.name,
+      firstName: row.first_name,
+      lastName: row.last_name,
       email: row.email,
       phone: row.phone ?? undefined,
       role: row.role as User['role'],
@@ -122,9 +126,13 @@ export const updateUser = async (
 
   const fields: string[] = [];
   const values: unknown[] = [];
-  if (updates.name !== undefined) {
-    fields.push('name = ?');
-    values.push(updates.name);
+  if (updates.firstName !== undefined) {
+    fields.push('first_name = ?');
+    values.push(updates.firstName);
+  }
+  if (updates.lastName !== undefined) {
+    fields.push('last_name = ?');
+    values.push(updates.lastName);
   }
   if (updates.phone !== undefined) {
     fields.push('phone = ?');

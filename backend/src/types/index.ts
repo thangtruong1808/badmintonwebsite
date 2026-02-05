@@ -3,7 +3,8 @@ export type UserRole = 'user' | 'admin' | 'super_admin';
 
 export interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone?: string;
   password?: string; // Hashed password, should not be returned in responses
@@ -17,7 +18,8 @@ export interface User {
 
 export interface UserResponse {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone?: string;
   role: UserRole;
@@ -105,7 +107,8 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   phone?: string;

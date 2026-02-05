@@ -51,7 +51,7 @@ export const getUserById = async (
 };
 
 export const updateUserProfile = async (
-  req: AuthRequest<{}, {}, { name?: string; phone?: string; avatar?: string }>,
+  req: AuthRequest<{}, {}, { firstName?: string; lastName?: string; phone?: string; avatar?: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {

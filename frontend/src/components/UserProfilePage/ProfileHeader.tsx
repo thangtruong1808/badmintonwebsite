@@ -111,11 +111,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate }) =
             {user.avatar ? (
               <img
                 src={user.avatar}
-                alt={user.name}
+                alt={`${user.firstName} ${user.lastName}`}
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span>{user.name.charAt(0).toUpperCase()}</span>
+              <span>{user.firstName.charAt(0).toUpperCase()}</span>
             )}
 
             {/* Upload overlay */}
@@ -152,7 +152,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate }) =
         {/* User Info */}
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 font-huglove">
-            {user.name}
+            {user.firstName} {user.lastName}
           </h1>
 
           {/* Upload error message */}

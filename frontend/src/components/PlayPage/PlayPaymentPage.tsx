@@ -15,7 +15,7 @@ const PlayPaymentPage: React.FC = () => {
   const user = getCurrentUser();
 
   const [formData, setFormData] = useState({
-    name: user?.name ?? "",
+    name: user ? `${user.firstName} ${user.lastName}`.trim() : "",
     email: user?.email ?? "",
     phone: user?.phone ?? "",
   });
@@ -29,14 +29,14 @@ const PlayPaymentPage: React.FC = () => {
     if (user) {
       setFormData((prev) => ({
         ...prev,
-        name: user.name ?? prev.name,
+        name: `${user.firstName} ${user.lastName}`.trim() || prev.name,
         email: user.email ?? prev.email,
         phone: user.phone ?? prev.phone,
       }));
     }
   }, [user]);
 
-  const totalPrice = events.reduce((sum, e) => sum + (e.price ?? 0), 0);
+  const totalPrice = events.reduce((sum, e) => sum + Number(e.price ?? 0), 0);
   const userPoints = user?.rewardPoints ?? 0;
   const canPayWithPoints = canUsePointsForBooking(totalPrice, userPoints);
 
@@ -126,7 +126,7 @@ const PlayPaymentPage: React.FC = () => {
                 {e.price != null && <p className="text-rose-600 font-semibold">${e.price}</p>}
               </div>
             ))}
-            <p className="text-lg font-bold text-gray-900">Total: ${totalPrice.toFixed(2)}</p>
+            <p className="text-lg font-bold text-gray-900">Total: ${Number(totalPrice).toFixed(2)}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4 font-calibri">
@@ -180,7 +180,7 @@ const PlayPaymentPage: React.FC = () => {
                     className={`w-full flex items-center gap-3 p-3 border-2 rounded-lg text-left ${paymentMethod === "stripe" ? "border-rose-500 bg-rose-50" : "border-gray-300"}`}
                   >
                     <FaMoneyBillWave className="text-rose-500" size={20} />
-                    <span>Card (Stripe) - ${totalPrice.toFixed(2)}</span>
+                    <span>Card (Stripe) - ${Number(totalPrice).toFixed(2)}</span>
                   </button>
                   {canPayWithPoints && (
                     <button
@@ -199,7 +199,7 @@ const PlayPaymentPage: React.FC = () => {
                       className={`w-full flex items-center gap-3 p-3 border-2 rounded-lg text-left ${paymentMethod === "mixed" ? "border-rose-500 bg-rose-50" : "border-gray-300"}`}
                     >
                       <FaExchangeAlt className="text-rose-500" size={20} />
-                      <span>Mixed - {formatPoints(userPoints)} pts + ${(totalPrice - userPoints).toFixed(2)} card</span>
+                      <span>Mixed - {formatPoints(userPoints)} pts + ${Number(totalPrice - userPoints).toFixed(2)} card</span>
                     </button>
                   )}
                 </div>
