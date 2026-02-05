@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes, FaUsers } from "react-icons/fa";
+import { FaTimes, FaUsers, FaCheckCircle } from "react-icons/fa";
 import type { SocialEvent } from "../../types/socialEvent";
 import { API_BASE } from "../../utils/api";
+import { getCurrentUser } from "../../utils/mockAuth";
 
 interface RegisteredPlayer {
   name: string;
@@ -28,6 +29,11 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
 }) => {
   const [players, setPlayers] = useState<RegisteredPlayer[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
+
+  const user = getCurrentUser();
+  const isAlreadyRegistered =
+    !!user?.email &&
+    players.some((p) => p.email?.toLowerCase() === user.email.toLowerCase());
 
   useEffect(() => {
     if (!event?.id) {
@@ -122,27 +128,49 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
           </div>
 
           {event.status === "available" && (
-            <div className="flex flex-wrap gap-2 pt-4">
-              <button
-                onClick={() => onAddToCart(event.id)}
-                className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-rose-500 text-rose-600 hover:bg-rose-50 font-medium transition-colors font-calibri text-sm sm:text-base"
-              >
-                {isInCart ? "Remove from selection" : "Add to selection"}
-              </button>
-              <button
-                onClick={onClose}
-                className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-100 font-medium transition-colors font-calibri text-sm sm:text-base"
-              >
-                Continue to shop
-              </button>
-              {selectedCount > 0 && (
-                <button
-                  onClick={onProceedToCheckout}
-                  className="flex-1 min-w-[120px] py-2.5 px-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-bold transition-colors font-calibri text-sm sm:text-base"
+            <div className="flex flex-col gap-3 pt-4">
+              {isAlreadyRegistered && (
+                <div
+                  className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200 text-green-800 font-calibri text-sm"
+                  role="status"
+                  aria-live="polite"
                 >
-                  Checkout ({selectedCount})
-                </button>
+                  <FaCheckCircle size={18} className="flex-shrink-0 text-green-600" />
+                  <span>You&apos;re already registered for this session.</span>
+                </div>
               )}
+              <div className="flex flex-wrap gap-2">
+                {!isAlreadyRegistered && (
+                  <button
+                    onClick={() => onAddToCart(event.id)}
+                    className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-rose-500 text-rose-600 hover:bg-rose-50 font-medium transition-colors font-calibri text-sm sm:text-base"
+                  >
+                    {isInCart ? "Remove from selection" : "Add to selection"}
+                  </button>
+                )}
+                {isAlreadyRegistered && isInCart && (
+                  <button
+                    onClick={() => onAddToCart(event.id)}
+                    className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-gray-300 text-gray-600 hover:bg-gray-50 font-medium transition-colors font-calibri text-sm sm:text-base"
+                  >
+                    Remove from selection
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-100 font-medium transition-colors font-calibri text-sm sm:text-base"
+                >
+                  Continue to shop
+                </button>
+                {selectedCount > 0 && (
+                  <button
+                    onClick={onProceedToCheckout}
+                    className="flex-1 min-w-[120px] py-2.5 px-3 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-bold transition-colors font-calibri text-sm sm:text-base"
+                  >
+                    Checkout ({selectedCount})
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
