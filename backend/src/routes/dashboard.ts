@@ -9,6 +9,7 @@ import {
   getDashboardRegistrations,
   getDashboardRewardTransactions,
   getDashboardProducts,
+  getDashboardProductById,
   createDashboardProduct,
   updateDashboardProduct,
   deleteDashboardProduct,
@@ -56,6 +57,7 @@ router.get('/registrations', authenticateToken, requireAdmin, getDashboardRegist
 router.get('/reward-transactions', authenticateToken, requireAdmin, getDashboardRewardTransactions);
 
 router.get('/products', authenticateToken, requireAdmin, getDashboardProducts);
+router.get('/products/:id', authenticateToken, requireAdmin, getDashboardProductById);
 router.post('/products', authenticateToken, requireAdmin, createDashboardProduct);
 router.put('/products/:id', authenticateToken, requireAdmin, updateDashboardProduct);
 router.delete('/products/:id', authenticateToken, requireAdmin, deleteDashboardProduct);

@@ -333,6 +333,26 @@ CREATE INDEX idx_product_images_product_id ON product_images(product_id);
 CREATE INDEX idx_product_images_display_order ON product_images(product_id, display_order);
 
 -- =====================================================
+-- Table: product_quantity_tiers
+-- Stores quantity-based pricing per product (e.g. 1 tube $42, 3 tubes $41 each)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS product_quantity_tiers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(10, 2) NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_product_quantity (product_id, quantity),
+    CHECK (quantity > 0),
+    CHECK (unit_price >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_product_quantity_tiers_product_id ON product_quantity_tiers(product_id);
+
+-- =====================================================
 -- Table: gallery_photos
 -- Stores gallery photos
 -- =====================================================

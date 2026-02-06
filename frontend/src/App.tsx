@@ -11,6 +11,8 @@ import HomePage from "./components/HomePage";
 import EventsPage from "./components/EventsPage";
 import GalleryPage from "./components/GalleryPage";
 import ShopPage from "./components/ShopPage";
+import ShopCheckoutPage from "./components/ShopPage/ShopCheckoutPage";
+import ShopPaymentPage from "./components/ShopPage/ShopPaymentPage";
 import ProductDetailPage from "./components/ProductDetailPage";
 import ServicesPage from "./components/ServicesPage";
 import ContactUsPage from "./components/ContactUsPage";
@@ -94,6 +96,8 @@ function App() {
           <Route path="/events" element={<EventsPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/shop" element={<ShopPage />} />
+          <Route path="/shop/checkout" element={<ShopCheckoutPage />} />
+          <Route path="/shop/payment" element={<ShopPaymentPage />} />
           <Route path="/shop/product/:id" element={<ProductDetailPage />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />

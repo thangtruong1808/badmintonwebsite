@@ -5,6 +5,8 @@ import { getAllEvents } from '../services/eventService.js';
 import { getRegistrationsCount, getAllRegistrations } from '../services/registrationService.js';
 import { getRewardTransactionsCount, getAllRewardTransactions } from '../services/rewardService.js';
 import * as productService from '../services/productService.js';
+import * as productImageService from '../services/productImageService.js';
+import * as productQuantityTierService from '../services/productQuantityTierService.js';
 import * as galleryService from '../services/galleryService.js';
 import * as newsService from '../services/newsService.js';
 import * as reviewService from '../services/reviewService.js';
@@ -93,8 +95,31 @@ export const getDashboardProducts = async (req: Request, res: Response, next: Ne
   }
 };
 
+export const getDashboardProductById = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid product ID', 400);
+    const product = await productService.findById(id);
+    if (!product) throw createError('Product not found', 404);
+    const [images, tiers] = await Promise.all([
+      productImageService.findByProductId(id),
+      productQuantityTierService.findByProductId(id),
+    ]);
+    const imageUrls = images.map((img) => img.image_url);
+    const imagesList = imageUrls.length > 0 ? imageUrls : (product.image ? [product.image] : []);
+    const quantityTiers = tiers.map((t) => ({ quantity: t.quantity, unit_price: t.unit_price }));
+    res.json({ ...product, images: imagesList, quantity_tiers: quantityTiers });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createDashboardProduct = async (
-  req: Request<{}, {}, { name: string; price: number; original_price?: number; image: string; category: string; in_stock?: boolean; description?: string }>,
+  req: Request<{}, {}, { name: string; price: number; original_price?: number; image?: string; images?: string[]; category: string; in_stock?: boolean; description?: string; quantity_tiers?: { quantity: number; unit_price: number }[] }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -103,32 +128,86 @@ export const createDashboardProduct = async (
     if (!body.name || body.price == null) {
       throw createError('Name and price are required', 400);
     }
+    const images = Array.isArray(body.images) ? body.images : (body.image ? [body.image] : []);
+    if (images.length === 0) {
+      throw createError('At least one product image is required', 400);
+    }
+    const primaryImage = images[0];
     const created = await productService.create({
       name: body.name,
       price: Number(body.price),
       original_price: body.original_price ?? null,
-      image: body.image || '',
+      image: primaryImage,
       category: body.category || '',
       in_stock: body.in_stock,
       description: body.description ?? null,
     });
-    res.status(201).json(created);
+    if (images.length > 1) {
+      await productImageService.replaceForProduct(created.id, images);
+    } else {
+      await productImageService.replaceForProduct(created.id, [primaryImage]);
+    }
+    const tiers = Array.isArray(body.quantity_tiers)
+      ? body.quantity_tiers.filter((t) => t && t.quantity > 0 && t.unit_price >= 0)
+      : [];
+    if (tiers.length > 0) {
+      await productQuantityTierService.replaceForProduct(created.id, tiers);
+    }
+    const [fullImages, fullTiers] = await Promise.all([
+      productImageService.findByProductId(created.id),
+      productQuantityTierService.findByProductId(created.id),
+    ]);
+    res.status(201).json({
+      ...created,
+      images: fullImages.map((i) => i.image_url),
+      quantity_tiers: fullTiers.map((t) => ({ quantity: t.quantity, unit_price: t.unit_price })),
+    });
   } catch (error) {
     next(error);
   }
 };
 
 export const updateDashboardProduct = async (
-  req: Request<{ id: string }, {}, { name?: string; price?: number; original_price?: number; image?: string; category?: string; in_stock?: boolean; description?: string }>,
+  req: Request<{ id: string }, {}, { name?: string; price?: number; original_price?: number; image?: string; images?: string[]; category?: string; in_stock?: boolean; description?: string; quantity_tiers?: { quantity: number; unit_price: number }[] }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id)) throw createError('Invalid product ID', 400);
-    const updated = await productService.update(id, req.body as Parameters<typeof productService.update>[1]);
+    const body = req.body;
+    const images = Array.isArray(body.images) ? body.images : undefined;
+    const updateData: Parameters<typeof productService.update>[1] = {};
+    if (body.name !== undefined) updateData.name = body.name;
+    if (body.price !== undefined) updateData.price = body.price;
+    if (body.original_price !== undefined) updateData.original_price = body.original_price;
+    if (body.category !== undefined) updateData.category = body.category;
+    if (body.in_stock !== undefined) updateData.in_stock = body.in_stock;
+    if (body.description !== undefined) updateData.description = body.description;
+    if (images !== undefined) {
+      if (images.length === 0) throw createError('At least one product image is required', 400);
+      updateData.image = images[0];
+    }
+    const updated = await productService.update(id, updateData);
     if (!updated) throw createError('Product not found', 404);
-    res.json(updated);
+    if (images !== undefined) {
+      await productImageService.replaceForProduct(id, images);
+    }
+    if (body.quantity_tiers !== undefined) {
+      const tiers = Array.isArray(body.quantity_tiers)
+        ? body.quantity_tiers.filter((t) => t && t.quantity > 0 && t.unit_price >= 0)
+        : [];
+      await productQuantityTierService.replaceForProduct(id, tiers);
+    }
+    const [fullImages, fullTiers] = await Promise.all([
+      productImageService.findByProductId(id),
+      productQuantityTierService.findByProductId(id),
+    ]);
+    res.json({
+      ...updated,
+      images: fullImages.map((i) => i.image_url),
+      quantity_tiers: fullTiers.map((t) => ({ quantity: t.quantity, unit_price: t.unit_price })),
+    });
   } catch (error) {
     next(error);
   }
