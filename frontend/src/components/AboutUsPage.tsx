@@ -69,7 +69,7 @@ const AboutUsPage = () => {
               events to foster skill development and camaraderie among our
               members. Whether you're looking to improve your game, meet new
               people, or simply have fun, you'll find a welcoming home at
-              ChibiBadminton.
+              Chibi.
             </p>
           </div>
         </section>
