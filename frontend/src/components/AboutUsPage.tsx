@@ -209,7 +209,7 @@ const AboutUsPage = () => {
                   Community Events
                 </h3>
                 <p className="text-gray-800 font-calibri  ">
-                  Social gatherings, late night food runs and plenty of snacks to continue bringing our community together!
+                  Social gatherings and late night food runs to undo our hard work hah! :D
                 </p>
               </div>
             </div>
