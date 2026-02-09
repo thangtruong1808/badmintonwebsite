@@ -34,7 +34,6 @@ function getThumbnailUrl(video: GalleryVideoFromApi): string {
     return video.thumbnail;
   }
   const videoId = parseYouTubeId(video.embed_id, "video");
-  const playlistId = parseYouTubeId(video.embed_id, "playlist");
   if (isPlaylistCategory(video.category)) {
     return videoId
       ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
