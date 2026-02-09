@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { FaPlay, FaImages, FaVideo } from "react-icons/fa";
 import type { Photo } from "../types/gallery";
 import { apiFetch } from "../utils/api";
+import { parseYouTubeId } from "../utils/youtube";
+import playlistPlaceholder from "../assets/WednesdayPlaytime.png";
 
 export interface GalleryVideoFromApi {
   id: number;
@@ -10,6 +12,54 @@ export interface GalleryVideoFromApi {
   thumbnail: string | null;
   category: string;
   display_order?: number;
+  created_at?: string;
+}
+
+/**
+ * Business rules:
+ * - Wednesday, Friday: single videos per entry. embed_id = video ID. Link opens one video.
+ * - Tournament, Playlists: playlists per entry. embed_id = playlist ID. Link opens playlist.
+ */
+function isPlaylistCategory(category: string): boolean {
+  return category === "tournament" || category === "playlists";
+}
+
+/**
+ * Thumbnail: Prefer stored thumbnail when valid.
+ * Wednesday/Friday: derive from video ID.
+ * Tournament/Playlists: derive from video ID (when embed_id has v=), else use custom or placeholder.
+ */
+function getThumbnailUrl(video: GalleryVideoFromApi): string {
+  if (video.thumbnail && /^https?:\/\//.test(video.thumbnail)) {
+    return video.thumbnail;
+  }
+  const videoId = parseYouTubeId(video.embed_id, "video");
+  const playlistId = parseYouTubeId(video.embed_id, "playlist");
+  if (isPlaylistCategory(video.category)) {
+    return videoId
+      ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+      : playlistPlaceholder;
+  }
+  return videoId
+    ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+    : playlistPlaceholder;
+}
+
+/**
+ * Link: Wed/Fri = single video (watch?v=). Tournament/Playlists = playlist (playlist?list=).
+ */
+function getVideoUrl(video: GalleryVideoFromApi): string | null {
+  const isPlaylistCat = isPlaylistCategory(video.category);
+  const videoId = parseYouTubeId(video.embed_id, "video");
+  const playlistId = parseYouTubeId(video.embed_id, "playlist");
+  if (isPlaylistCat) {
+    return playlistId
+      ? `https://www.youtube.com/playlist?list=${playlistId}`
+      : null;
+  }
+  return videoId
+    ? `https://www.youtube.com/watch?v=${videoId}`
+    : null;
 }
 
 const GalleryPage = () => {
@@ -70,31 +120,25 @@ const GalleryPage = () => {
   });
 
   const filteredVideos = (() => {
-    if (selectedVideoCategory === "all") return allVideos;
-
-    if (selectedVideoCategory === "Wednesday") {
-      const wedVideos = allVideos
-        .filter((video) => video.category === "Wednesday")
-        .slice(-3);
-      return wedVideos;
+    let videos: GalleryVideoFromApi[];
+    if (selectedVideoCategory === "all") {
+      videos = allVideos;
+    } else if (selectedVideoCategory === "Wednesday") {
+      videos = allVideos.filter((video) => video.category === "Wednesday");
+    } else if (selectedVideoCategory === "Friday") {
+      videos = allVideos.filter((video) => video.category === "Friday");
+    } else if (selectedVideoCategory === "tournament") {
+      videos = allVideos.filter((video) => video.category === "tournament");
+    } else if (selectedVideoCategory === "playlists") {
+      videos = allVideos.filter((video) => video.category === "playlists");
+    } else {
+      videos = [];
     }
-
-    if (selectedVideoCategory === "Friday") {
-      const friVideos = allVideos
-        .filter((video) => video.category === "Friday")
-        .slice(-3);
-      return friVideos;
-    }
-
-    if (selectedVideoCategory === "tournament") {
-      return allVideos.filter((video) => video.category === "tournament");
-    }
-
-    if (selectedVideoCategory === "playlists") {
-      return allVideos.filter((video) => video.category === "playlists");
-    }
-
-    return [];
+    return [...videos].sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA;
+    });
   })();
 
   const photoFilterOptions: Array<{
@@ -241,45 +285,66 @@ const GalleryPage = () => {
                   ))}
                 </div>
 
-                <div className="overflow-y-auto max-h-[calc(3*(200px+1.5rem))] pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+                <div className="gallery-videos-scroll pr-2 overflow-y-auto max-h-[calc(3*(200px+1.5rem))]">
                   <div className="space-y-6">
-                    {filteredVideos.map((video) => (
-                      <div
-                        key={video.id}
-                        className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-                      >
-                        <div className="relative aspect-video bg-gray-200 flex items-center justify-center">
-                          <img
-                            src={video.thumbnail || `https://img.youtube.com/vi/${video.embed_id}/0.jpg`}
-                            alt={video.title}
-                            className="w-full h-full object-cover font-calibri"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = `https://img.youtube.com/vi/${video.embed_id}/0.jpg`;
-                            }}
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-all duration-300">
-                            <a
-                              href={
-                                video.category === "playlists"
-                                  ? `https://www.youtube.com/playlist?list=${video.embed_id}`
-                                  : `https://www.youtube.com/watch?v=${video.embed_id}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center hover:bg-rose-600 transition-colors duration-300 transform hover:scale-110 font-calibri"
-                            >
-                              <FaPlay className="text-white ml-1" size={20} />
-                            </a>
+                    {filteredVideos.map((video) => {
+                      const thumbnailUrl = getThumbnailUrl(video);
+                      const videoUrl = getVideoUrl(video);
+                      const videoIdForFallback = parseYouTubeId(
+                        video.embed_id,
+                        "video"
+                      );
+                      return (
+                        <div
+                          key={video.id}
+                          className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                        >
+                          <div className="relative aspect-video bg-gray-200 flex items-center justify-center">
+                            <img
+                              src={thumbnailUrl}
+                              alt={video.title}
+                              className="w-full h-full object-cover font-calibri"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (
+                                  videoIdForFallback &&
+                                  target.src.includes("hqdefault")
+                                ) {
+                                  target.src = `https://img.youtube.com/vi/${videoIdForFallback}/mqdefault.jpg`;
+                                } else {
+                                  target.src = playlistPlaceholder;
+                                }
+                              }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-all duration-300">
+                              {videoUrl ? (
+                                <a
+                                  href={videoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={`Watch ${video.title}`}
+                                  className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center hover:bg-rose-600 transition-colors duration-300 transform hover:scale-110 cursor-pointer font-calibri"
+                                >
+                                  <FaPlay className="text-white ml-1" size={20} />
+                                </a>
+                              ) : (
+                                <div
+                                  className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center font-calibri"
+                                  aria-hidden
+                                >
+                                  <FaPlay className="text-white ml-1" size={20} />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="p-3 bg-white">
+                            <h3 className="font-semibold text-sm md:text-base text-black line-clamp-2 font-calibri">
+                              {video.title}
+                            </h3>
                           </div>
                         </div>
-                        <div className="p-3 bg-white">
-                          <h3 className="font-semibold text-sm md:text-base text-black line-clamp-2 font-calibri">
-                            {video.title}
-                          </h3>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
                 <p className="text-xs md:text-sm text-gray-500 text-center mt-6 italic font-calibri">

@@ -137,7 +137,7 @@ export const removePhoto = async (id: number): Promise<boolean> => {
 // Videos (YouTube embed_id only)
 export const findAllVideos = async (): Promise<GalleryVideoRow[]> => {
   const [rows] = await pool.execute<VideoDbRow[]>(
-    'SELECT * FROM gallery_videos ORDER BY category, display_order, id'
+    'SELECT * FROM gallery_videos ORDER BY created_at DESC, id DESC'
   );
   return rows.map(rowToVideo);
 };

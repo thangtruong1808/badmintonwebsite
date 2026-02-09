@@ -2,32 +2,13 @@ import React, { useEffect } from "react";
 import FormModal from "../../Shared/FormModal";
 import { TextInput, NumberInput, Select, FormActions } from "../../Shared/inputs";
 import { apiFetch } from "../../../../utils/api";
+import {
+  parseYouTubeId,
+  parseVideoId,
+  parsePlaylistIdFromUrl,
+} from "../../../../utils/youtube";
 import type { GalleryVideoRow, VideoFormData } from "./types";
 import { VIDEO_CATEGORY_OPTIONS } from "./types";
-
-/** Extract YouTube video ID or playlist ID from URL, or return as-is if already an ID. */
-function parseYouTubeId(input: string): string {
-  const trimmed = input.trim();
-  if (!trimmed) return "";
-  // Already a short ID (video ~11 chars, playlist PLxxx...)
-  if (/^[\w-]{10,40}$/.test(trimmed)) return trimmed;
-  // youtube.com/playlist?list=ID
-  const list = trimmed.match(/[?&]list=([\w-]+)/);
-  if (list) return list[1];
-  // youtube.com/watch?v=ID
-  const watch = trimmed.match(/[?&]v=([\w-]{10,12})/);
-  if (watch) return watch[1];
-  // youtu.be/ID
-  const short = trimmed.match(/youtu\.be\/([\w-]{10,12})/);
-  if (short) return short[1];
-  // youtube.com/embed/ID
-  const embed = trimmed.match(/youtube\.com\/embed\/([\w-]{10,12})/);
-  if (embed) return embed[1];
-  // youtube.com/v/ID
-  const v = trimmed.match(/youtube\.com\/v\/([\w-]{10,12})/);
-  if (v) return v[1];
-  return trimmed;
-}
 
 interface VideoFormModalProps {
   open: boolean;
@@ -55,10 +36,26 @@ export const VideoFormModal: React.FC<VideoFormModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUrlError(null);
-    const embedId = parseYouTubeId(form.embed_id);
-    if (!embedId) {
-      setUrlError("Please enter a valid YouTube video or playlist URL.");
-      return;
+    const isPlaylistCat =
+      form.category === "tournament" || form.category === "playlists";
+    let embedId: string;
+    if (isPlaylistCat) {
+      const playlistId = parsePlaylistIdFromUrl(form.embed_id);
+      if (!playlistId) {
+        setUrlError("Please enter a valid YouTube playlist URL.");
+        return;
+      }
+      const videoId = parseVideoId(form.embed_id);
+      embedId =
+        videoId && form.embed_id.includes("list=")
+          ? form.embed_id.trim()
+          : playlistId;
+    } else {
+      embedId = parseYouTubeId(form.embed_id, "video");
+      if (!embedId) {
+        setUrlError("Please enter a valid YouTube video URL.");
+        return;
+      }
     }
     try {
       const payload = {
@@ -118,7 +115,11 @@ export const VideoFormModal: React.FC<VideoFormModalProps> = ({
           error={urlError ?? undefined}
         />
         <p className="text-xs font-calibri text-gray-500">
-          Paste a YouTube video or playlist link. No upload needed.
+          {form.category === "Wednesday" || form.category === "Friday"
+            ? "Use a single video link (youtube.com/watch?v=...). Each entry opens one video."
+            : form.category === "tournament" || form.category === "playlists"
+              ? "Use a playlist link or a video link from within a playlist (with list=). Thumbnail is derived from the video."
+              : "Use a single video link for Wednesday/Friday, or a playlist link for Tournament/Playlists."}
         </p>
       </div>
       <TextInput

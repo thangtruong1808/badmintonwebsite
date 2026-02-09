@@ -104,10 +104,14 @@ const GallerySection: React.FC = () => {
 
   const openVideoEdit = (row: GalleryVideoRow) => {
     setEditingVideo(row);
+    const isPlaylistCat =
+      row.category === "tournament" || row.category === "playlists";
     const youtubeUrl =
       /^https?:\/\//.test(row.embed_id)
         ? row.embed_id
-        : `https://www.youtube.com/watch?v=${row.embed_id}`;
+        : isPlaylistCat
+          ? `https://www.youtube.com/playlist?list=${row.embed_id}`
+          : `https://www.youtube.com/watch?v=${row.embed_id}`;
     setVideoForm({
       title: row.title,
       embed_id: youtubeUrl,
