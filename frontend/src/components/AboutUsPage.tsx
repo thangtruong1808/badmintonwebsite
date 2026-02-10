@@ -49,7 +49,7 @@ const AboutUsPage = () => {
   ];
   // bg-gradient-to-b from-gray-100 to-gray-200
   return (
-    <div className="w-full overflow-x-hidden min-h-screen pt-20 bg-stone-200">
+    <div className="w-full overflow-x-hidden min-h-screen pt-20 bg-gradient-to-r from-rose-50 to-rose-100">
 
       <div className="px-4 md:px-8  max-w-7xl mx-auto min-h-full">
         {/* Introduction Section */}
@@ -82,7 +82,7 @@ const AboutUsPage = () => {
               return (
                 <div
                   key={index}
-                  className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
                   <div className="flex justify-center mb-4">
                     <div className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center">
@@ -105,7 +105,7 @@ const AboutUsPage = () => {
         <section className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {/* Mission */}
-            <div className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-lg p-8 md:p-10">
+            <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg shadow-lg p-8 md:p-10">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
                   <FaBullseye className="text-white" size={24} />
@@ -121,7 +121,7 @@ const AboutUsPage = () => {
             </div>
 
             {/* Vision */}
-            <div className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-lg p-8 md:p-10">
+            <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg shadow-lg p-8 md:p-10">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
                   <FaTrophy className="text-white" size={24} />
@@ -154,7 +154,7 @@ const AboutUsPage = () => {
               return (
                 <div
                   key={index}
-                  className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
                   <div className="w-14 h-14 bg-rose-500 rounded-full flex items-center justify-center mb-4">
                     <IconComponent className="text-white" size={28} />
@@ -173,7 +173,7 @@ const AboutUsPage = () => {
 
         {/* What We Offer Section */}
         <section className="mb-16">
-          <div className="bg-gradient-to-b from-pink-100 to-pink-200 rounded-lg shadow-lg p-8 md:p-12">
+          <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg shadow-lg p-8 md:p-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-gray-800">
               What We Offer
             </h2>

@@ -61,7 +61,7 @@ export const VideoFormModal: React.FC<VideoFormModalProps> = ({
       const payload = {
         ...form,
         embed_id: embedId,
-        thumbnail: form.thumbnail || undefined,
+        thumbnail: form.thumbnail ?? "",
       };
       if (editing) {
         const res = await apiFetch(`/api/dashboard/gallery/videos/${editing.id}`, {
@@ -122,14 +122,36 @@ export const VideoFormModal: React.FC<VideoFormModalProps> = ({
               : "Use a single video link for Wednesday/Friday, or a playlist link for Tournament/Playlists."}
         </p>
       </div>
-      <TextInput
-        label="Thumbnail URL (optional)"
-        name="thumbnail"
-        value={form.thumbnail}
-        onChange={(e) =>
-          onFormChange((f) => ({ ...f, thumbnail: e.target.value }))
-        }
-      />
+      <div className="space-y-1">
+        <TextInput
+          label="Thumbnail URL (optional)"
+          name="thumbnail"
+          value={form.thumbnail}
+          onChange={(e) =>
+            onFormChange((f) => ({ ...f, thumbnail: e.target.value }))
+          }
+          placeholder="Paste image URL or leave empty to use YouTube thumbnail"
+        />
+        <p className="text-xs font-calibri text-gray-500">
+          Thumbnails are stored on Cloudinary. Leave empty to use the video/playlist thumbnail from YouTube.
+        </p>
+        {form.thumbnail ? (
+          <div className="mt-2 flex flex-wrap items-start gap-2">
+            <img
+              src={form.thumbnail}
+              alt="Thumbnail preview"
+              className="h-20 w-auto rounded border border-gray-200 object-fill"
+            />
+            <button
+              type="button"
+              onClick={() => onFormChange((f) => ({ ...f, thumbnail: "" }))}
+              className="rounded border border-gray-300 bg-white px-2 py-1 text-sm font-calibri text-gray-700 hover:bg-gray-50"
+            >
+              Clear thumbnail
+            </button>
+          </div>
+        ) : null}
+      </div>
       <Select
         label="Category"
         name="category"

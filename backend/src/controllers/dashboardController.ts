@@ -8,6 +8,7 @@ import * as productService from '../services/productService.js';
 import * as productImageService from '../services/productImageService.js';
 import * as productQuantityTierService from '../services/productQuantityTierService.js';
 import * as galleryService from '../services/galleryService.js';
+import { resolveVideoThumbnail } from '../services/galleryVideoThumbnailService.js';
 import * as newsService from '../services/newsService.js';
 import * as reviewService from '../services/reviewService.js';
 import * as contactMessageService from '../services/contactMessageService.js';
@@ -304,7 +305,14 @@ export const createDashboardGalleryVideo = async (
   try {
     const { title, embed_id, thumbnail, category, display_order } = req.body;
     if (!title || !embed_id || !category) throw createError('title, embed_id and category are required', 400);
-    const created = await galleryService.createVideo({ title, embed_id, thumbnail: thumbnail ?? null, category, display_order });
+    const thumbnailResolved = await resolveVideoThumbnail(embed_id, category, thumbnail);
+    const created = await galleryService.createVideo({
+      title,
+      embed_id,
+      thumbnail: thumbnailResolved ?? null,
+      category,
+      display_order,
+    });
     res.status(201).json(created);
   } catch (error) {
     next(error);
@@ -319,7 +327,17 @@ export const updateDashboardGalleryVideo = async (
   try {
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id)) throw createError('Invalid video ID', 400);
-    const updated = await galleryService.updateVideo(id, req.body);
+    const existing = await galleryService.findVideoById(id);
+    if (!existing) throw createError('Video not found', 404);
+    const body = req.body;
+    const embedId = body.embed_id ?? existing.embed_id;
+    const category = body.category ?? existing.category;
+    let updateData: Parameters<typeof galleryService.updateVideo>[1] = { ...body };
+    if (body.thumbnail !== undefined) {
+      const thumbnailResolved = await resolveVideoThumbnail(embedId, category, body.thumbnail);
+      updateData = { ...updateData, thumbnail: thumbnailResolved ?? null };
+    }
+    const updated = await galleryService.updateVideo(id, updateData);
     if (!updated) throw createError('Video not found', 404);
     res.json(updated);
   } catch (error) {
