@@ -15,6 +15,7 @@ import {
   FaEnvelope,
   FaComments,
   FaTools,
+  FaListAlt,
   FaCreditCard,
   FaFileInvoice,
   FaHome,
@@ -40,6 +41,7 @@ import {
   NewsletterSection,
   ContactMessagesSection,
   ServiceRequestsSection,
+  ServiceOptionsSection,
   PaymentsSection,
   InvoicesSection,
 } from "./Dashboard";
@@ -67,6 +69,7 @@ type DashboardSection =
   | "newsletter"
   | "contact-messages"
   | "service-requests"
+  | "service-options"
   | "payments"
   | "invoices";
 
@@ -85,6 +88,7 @@ const SIDEBAR_ITEMS: { id: DashboardSection; label: string; icon: React.ReactNod
   { id: "newsletter", label: "Newsletter", icon: <FaEnvelope size={SIDEBAR_ICON_SIZE} /> },
   { id: "contact-messages", label: "Contact Messages", icon: <FaComments size={SIDEBAR_ICON_SIZE} /> },
   { id: "service-requests", label: "Service Requests", icon: <FaTools size={SIDEBAR_ICON_SIZE} /> },
+  { id: "service-options", label: "Service Options", icon: <FaListAlt size={SIDEBAR_ICON_SIZE} /> },
   { id: "payments", label: "Payments", icon: <FaCreditCard size={SIDEBAR_ICON_SIZE} /> },
   { id: "invoices", label: "Invoices", icon: <FaFileInvoice size={SIDEBAR_ICON_SIZE} /> },
 ];
@@ -366,6 +370,7 @@ const DashboardPage = () => {
           {activeSection === "newsletter" && <NewsletterSection />}
           {activeSection === "contact-messages" && <ContactMessagesSection />}
           {activeSection === "service-requests" && <ServiceRequestsSection />}
+          {activeSection === "service-options" && <ServiceOptionsSection />}
           {activeSection === "payments" && <PaymentsSection />}
           {activeSection === "invoices" && <InvoicesSection />}
         </main>

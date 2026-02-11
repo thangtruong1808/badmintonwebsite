@@ -16,6 +16,7 @@ import newsletterRoutes from './routes/newsletter.js';
 import galleryRoutes from './routes/gallery.js';
 import newsRoutes from './routes/news.js';
 import uploadRoutes from './routes/upload.js';
+import serviceOptionsRoutes from './routes/serviceOptions.js';
 import { seedPlaySlotsIfEmpty } from './utils/initializeData.js';
 
 // Seed play_slots on startup if empty
@@ -68,6 +69,7 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/service-options', serviceOptionsRoutes);
 
 // 404 handler
 app.use((req, res) => {

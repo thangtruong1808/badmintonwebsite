@@ -43,6 +43,28 @@ import {
   updateNewsletterSubscription,
   deleteNewsletterSubscription,
 } from '../controllers/newsletterController.js';
+import {
+  getDashboardServiceOptionsStrings,
+  createDashboardServiceOptionsString,
+  updateDashboardServiceOptionsString,
+  deleteDashboardServiceOptionsString,
+  getDashboardServiceOptionsColours,
+  createDashboardServiceOptionsColour,
+  updateDashboardServiceOptionsColour,
+  deleteDashboardServiceOptionsColour,
+  getDashboardServiceOptionsTensions,
+  createDashboardServiceOptionsTension,
+  updateDashboardServiceOptionsTension,
+  deleteDashboardServiceOptionsTension,
+  getDashboardServiceOptionsStencils,
+  createDashboardServiceOptionsStencil,
+  updateDashboardServiceOptionsStencil,
+  deleteDashboardServiceOptionsStencil,
+  getDashboardServiceOptionsGrips,
+  createDashboardServiceOptionsGrip,
+  updateDashboardServiceOptionsGrip,
+  deleteDashboardServiceOptionsGrip,
+} from '../controllers/dashboardServiceOptionsController.js';
 
 const router = Router();
 
@@ -87,6 +109,30 @@ router.put('/contact-messages/:id', authenticateToken, requireAdmin, updateDashb
 
 router.get('/service-requests', authenticateToken, requireAdmin, getDashboardServiceRequests);
 router.put('/service-requests/:id', authenticateToken, requireAdmin, updateDashboardServiceRequest);
+
+router.get('/service-options/strings', authenticateToken, requireAdmin, getDashboardServiceOptionsStrings);
+router.post('/service-options/strings', authenticateToken, requireAdmin, createDashboardServiceOptionsString);
+router.put('/service-options/strings/:id', authenticateToken, requireAdmin, updateDashboardServiceOptionsString);
+router.delete('/service-options/strings/:id', authenticateToken, requireAdmin, deleteDashboardServiceOptionsString);
+router.get('/service-options/strings/:stringId/colours', authenticateToken, requireAdmin, getDashboardServiceOptionsColours);
+router.post('/service-options/strings/:stringId/colours', authenticateToken, requireAdmin, createDashboardServiceOptionsColour);
+router.put('/service-options/colours/:colourId', authenticateToken, requireAdmin, updateDashboardServiceOptionsColour);
+router.delete('/service-options/colours/:colourId', authenticateToken, requireAdmin, deleteDashboardServiceOptionsColour);
+
+router.get('/service-options/tensions', authenticateToken, requireAdmin, getDashboardServiceOptionsTensions);
+router.post('/service-options/tensions', authenticateToken, requireAdmin, createDashboardServiceOptionsTension);
+router.put('/service-options/tensions/:id', authenticateToken, requireAdmin, updateDashboardServiceOptionsTension);
+router.delete('/service-options/tensions/:id', authenticateToken, requireAdmin, deleteDashboardServiceOptionsTension);
+
+router.get('/service-options/stencils', authenticateToken, requireAdmin, getDashboardServiceOptionsStencils);
+router.post('/service-options/stencils', authenticateToken, requireAdmin, createDashboardServiceOptionsStencil);
+router.put('/service-options/stencils/:id', authenticateToken, requireAdmin, updateDashboardServiceOptionsStencil);
+router.delete('/service-options/stencils/:id', authenticateToken, requireAdmin, deleteDashboardServiceOptionsStencil);
+
+router.get('/service-options/grips', authenticateToken, requireAdmin, getDashboardServiceOptionsGrips);
+router.post('/service-options/grips', authenticateToken, requireAdmin, createDashboardServiceOptionsGrip);
+router.put('/service-options/grips/:id', authenticateToken, requireAdmin, updateDashboardServiceOptionsGrip);
+router.delete('/service-options/grips/:id', authenticateToken, requireAdmin, deleteDashboardServiceOptionsGrip);
 
 router.get('/payments', authenticateToken, requireAdmin, getDashboardPayments);
 

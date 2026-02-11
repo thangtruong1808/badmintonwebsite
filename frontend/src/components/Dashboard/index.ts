@@ -10,5 +10,6 @@ export { default as ReviewsSection } from "./sections/ReviewsSection";
 export { default as NewsletterSection } from "./sections/NewsletterSection";
 export { default as ContactMessagesSection } from "./sections/ContactMessagesSection";
 export { default as ServiceRequestsSection } from "./sections/ServiceRequestsSection";
+export { default as ServiceOptionsSection } from "./sections/ServiceOptionsSection";
 export { default as PaymentsSection } from "./sections/PaymentsSection";
 export { default as InvoicesSection } from "./sections/InvoicesSection";

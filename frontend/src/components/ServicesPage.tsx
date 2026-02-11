@@ -12,6 +12,7 @@ import {
 import emailjs from "@emailjs/browser";
 import { useNavigate } from "react-router-dom";
 import chibiServicesImage from "../assets/chibi-badminton-services.png";
+import { API_BASE } from "../utils/api";
 
 interface FormData {
   name: string;
@@ -39,54 +40,25 @@ interface FormErrors {
 }
 
 
-// String options with their available colors
-const stringOptions: Record<string, string[]> = {
-  "Yonex Exbolt 63": ["yellow", "white", "red"],
-  "Yonex Exbolt 65": ["Purple", "Black", "Blue", "Green", "White"],
-  "Yonex Exbolt 68": ["Red", "Yellow", "Black"],
-  "Yonex BG66 Ultimax": ["White", "Pink", "Blue"],
-  "Yonex BG80": ["Blue", "Black", "White"],
-  "Yonex BG80 Power": ["White"],
-  "Yonex Aerobite": ["white", "red"],
-  "Yonex Aerosonic": ["purple"],
-  "Yonex Nanogy 98": ["yellow"],
-  "Yonex BG65 Titanium": ["White", "red"],
-  "Yonex BG65": ["White"],
-  Other: ["Please specify in message"],
-};
+interface ServiceString {
+  id: number;
+  name: string;
+  image_url: string | null;
+  display_order: number;
+  colours: { id: number; colour: string; display_order: number }[];
+}
 
-const tensionOptions = [
-  "20 lbs",
-  "21 lbs",
-  "22 lbs",
-  "23 lbs",
-  "24 lbs",
-  "25 lbs",
-  "26 lbs",
-  "27 lbs",
-  "28 lbs",
-  "29 lbs",
-  "30 lbs",
-  "31 lbs",
-  "32 lbs",
-];
-
-const stencilOptions = [
-  { value: "", label: "None" },
-  { value: "Yonex (+$2)", label: "Yonex (+$2)" },
-  { value: "Victor (+$2)", label: "Victor (+$2)" },
-  { value: "Li-Ning (+$2)", label: "Li-Ning (+$2)" },
-  { value: "Lin Dan (+$2)", label: "Lin Dan (+$2)" },
-];
-
-const gripOptions = [
-  { value: "", label: "None" },
-  { value: "Lingmei thin grip (+$3)", label: "Lingmei thin grip (+$3)" },
-  { value: "Lingmei thick ripple grip (+$3)", label: "Lingmei thick ripple grip (+$3)" },
-];
+interface ServiceOption {
+  strings: ServiceString[];
+  tensions: { id: number; label: string; display_order: number }[];
+  stencils: { id: number; value: string; label: string; display_order: number }[];
+  grips: { id: number; value: string; label: string; display_order: number }[];
+}
 
 const ServicesPage = () => {
   const navigate = useNavigate();
+  const [serviceOptions, setServiceOptions] = useState<ServiceOption | null>(null);
+  const [optionsLoading, setOptionsLoading] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -107,6 +79,40 @@ const ServicesPage = () => {
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
+
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/service-options`);
+        if (res.ok) {
+          const data = await res.json();
+          setServiceOptions(data);
+        }
+      } catch {
+        // Keep null, form will show empty selects
+      } finally {
+        setOptionsLoading(false);
+      }
+    };
+    fetchOptions();
+  }, []);
+
+  const stringOptions: Record<string, string[]> = serviceOptions
+    ? Object.fromEntries(
+        serviceOptions.strings.map((s) => [
+          s.name,
+          s.colours?.map((c) => c.colour) ?? [],
+        ])
+      )
+    : {};
+  const tensionOptions = serviceOptions?.tensions?.map((t) => t.label) ?? [];
+  const stencilOptions =
+    serviceOptions?.stencils?.map((s) => ({ value: s.value, label: s.label })) ?? [];
+  const gripOptions =
+    serviceOptions?.grips?.map((g) => ({ value: g.value, label: g.label })) ?? [];
+  const selectedStringData = serviceOptions?.strings.find(
+    (s) => s.name === formData.string
+  );
 
   // Initialize EmailJS
   useEffect(() => {
@@ -450,6 +456,11 @@ const ServicesPage = () => {
 
               {/* Racket & String Information Section */}
               <div className="border-b border-gray-200 pb-4 md:pb-5">
+                {!optionsLoading && !serviceOptions && (
+                  <p className="mb-3 text-amber-700 font-calibri text-sm bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    Unable to load string options. Please refresh the page or try again later.
+                  </p>
+                )}
                 <div className="flex flex-wrap items-center gap-2 mb-3 md:mb-4">
                   <h2 className="text-xl md:text-2xl font-medium text-gray-900 font-calibri">
                     Racket & String Information
@@ -537,13 +548,25 @@ const ServicesPage = () => {
                       id="string"
                       name="string"
                       value={formData.string}
-                      onChange={handleChange}
-                      className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${errors.string
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-rose-500"
-                        }`}
+                      disabled={optionsLoading}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormData((prev) => ({
+                          ...prev,
+                          string: val,
+                          colour: "",
+                        }));
+                        if (errors.string) setErrors((prev) => ({ ...prev, string: undefined }));
+                      }}
+                      className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${
+                        errors.string
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-rose-500"
+                      } ${optionsLoading ? "bg-gray-100 cursor-wait" : ""}`}
                     >
-                      <option value="">Select string</option>
+                      <option value="">
+                        {optionsLoading ? "Loading..." : "Select string"}
+                      </option>
                       {Object.keys(stringOptions).map((string) => (
                         <option key={string} value={string}>
                           {string}
@@ -568,32 +591,74 @@ const ServicesPage = () => {
                         <span className="text-red-500">*</span>
                       )}
                     </label>
-                    <input
-                      type="text"
-                      id="colour"
-                      name="colour"
-                      value={formData.colour}
-                      onChange={handleChange}
-                      disabled={!formData.string || formData.string === "Other"}
-                      className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${errors.colour
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-rose-500"
-                        } ${!formData.string || formData.string === "Other"
-                          ? "bg-gray-100 cursor-not-allowed"
-                          : ""
+                    {formData.string &&
+                    formData.string !== "Other" &&
+                    (stringOptions[formData.string]?.length ?? 0) > 0 ? (
+                      <select
+                        id="colour"
+                        name="colour"
+                        value={formData.colour}
+                        onChange={handleChange}
+                        className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${
+                          errors.colour
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300 focus:ring-rose-500"
                         }`}
-                      placeholder={
-                        !formData.string
-                          ? "Select string first"
-                          : formData.string === "Other"
-                            ? "N/A for Other"
-                            : "Enter colour (e.g., White, Red, Yellow)"
-                      }
-                    />
+                      >
+                        <option value="">Select colour</option>
+                        {stringOptions[formData.string]?.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        id="colour"
+                        name="colour"
+                        value={formData.colour}
+                        onChange={handleChange}
+                        disabled={!formData.string || formData.string === "Other"}
+                        className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${
+                          errors.colour
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300 focus:ring-rose-500"
+                        } ${
+                          !formData.string || formData.string === "Other"
+                            ? "bg-gray-100 cursor-not-allowed"
+                            : ""
+                        }`}
+                        placeholder={
+                          !formData.string
+                            ? "Select string first"
+                            : formData.string === "Other"
+                              ? "N/A for Other"
+                              : "Enter colour"
+                        }
+                      />
+                    )}
                     {errors.colour && (
                       <p className="mt-1 text-xs md:text-sm text-red-600 font-calibri">
                         {errors.colour}
                       </p>
+                    )}
+                    {selectedStringData?.image_url && (
+                      <div className="mt-2">
+                        <a
+                          href={selectedStringData.image_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-rose-600 hover:text-rose-700 font-calibri text-sm"
+                        >
+                          <img
+                            src={selectedStringData.image_url}
+                            alt={`${formData.string} flyer`}
+                            className="h-16 w-auto rounded border border-gray-200 object-cover"
+                          />
+                          <span>View flyer</span>
+                        </a>
+                      </div>
                     )}
                   </div>
 
@@ -609,13 +674,17 @@ const ServicesPage = () => {
                       id="tension"
                       name="tension"
                       value={formData.tension}
+                      disabled={optionsLoading}
                       onChange={handleChange}
-                      className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${errors.tension
-                        ? "border-red-500 focus:ring-red-500"
-                        : "border-gray-300 focus:ring-rose-500"
-                        }`}
+                      className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${
+                        errors.tension
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-rose-500"
+                      } ${optionsLoading ? "bg-gray-100 cursor-wait" : ""}`}
                     >
-                      <option value="">Select tension</option>
+                      <option value="">
+                        {optionsLoading ? "Loading..." : "Select tension"}
+                      </option>
                       {tensionOptions.map((tension) => (
                         <option key={tension} value={tension}>
                           {tension}
@@ -649,8 +718,11 @@ const ServicesPage = () => {
                       id="stencil"
                       name="stencil"
                       value={formData.stencil}
+                      disabled={optionsLoading}
                       onChange={handleChange}
-                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm md:text-lg"
+                      className={`w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm md:text-lg ${
+                        optionsLoading ? "bg-gray-100 cursor-wait" : ""
+                      }`}
                     >
                       {stencilOptions.map((opt) => (
                         <option key={opt.value || "none"} value={opt.value}>
@@ -672,8 +744,11 @@ const ServicesPage = () => {
                       id="grip"
                       name="grip"
                       value={formData.grip}
+                      disabled={optionsLoading}
                       onChange={handleChange}
-                      className="w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm md:text-lg"
+                      className={`w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm md:text-lg ${
+                        optionsLoading ? "bg-gray-100 cursor-wait" : ""
+                      }`}
                     >
                       {gripOptions.map((opt) => (
                         <option key={opt.value || "none"} value={opt.value}>
