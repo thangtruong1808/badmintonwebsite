@@ -111,8 +111,8 @@ const HomepageBannersSection: React.FC = () => {
       setUploadError("Please select an image file (JPEG, PNG, etc.).");
       return;
     }
-    if (file.size > 50 * 1024 * 1024) { // 50MB limit
-      setUploadError("Image must be less than 50MB.");
+    if (file.size > 4 * 1024 * 1024) { // 4MB limit
+      setUploadError("Image must be less than 4MB.");
       return;
     }
     setUploadError(null);
