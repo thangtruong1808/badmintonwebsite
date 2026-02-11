@@ -11,7 +11,6 @@ import {
 } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
 import { useNavigate } from "react-router-dom";
-import chibiServicesImage from "../assets/chibi-badminton-services.png";
 import { API_BASE } from "../utils/api";
 
 interface FormData {
@@ -43,7 +42,6 @@ interface FormErrors {
 interface ServiceString {
   id: number;
   name: string;
-  image_url: string | null;
   display_order: number;
   colours: { id: number; colour: string; display_order: number }[];
 }
@@ -53,6 +51,7 @@ interface ServiceOption {
   tensions: { id: number; label: string; display_order: number }[];
   stencils: { id: number; value: string; label: string; display_order: number }[];
   grips: { id: number; value: string; label: string; display_order: number }[];
+  flyer_image_url: string | null;
 }
 
 const ServicesPage = () => {
@@ -110,9 +109,6 @@ const ServicesPage = () => {
     serviceOptions?.stencils?.map((s) => ({ value: s.value, label: s.label })) ?? [];
   const gripOptions =
     serviceOptions?.grips?.map((g) => ({ value: g.value, label: g.label })) ?? [];
-  const selectedStringData = serviceOptions?.strings.find(
-    (s) => s.name === formData.string
-  );
 
   // Initialize EmailJS
   useEffect(() => {
@@ -465,21 +461,23 @@ const ServicesPage = () => {
                   <h2 className="text-xl md:text-2xl font-medium text-gray-900 font-calibri">
                     Racket & String Information
                   </h2>
-                  <button
-                    type="button"
-                    onClick={() => setShowImageLightbox(true)}
-                    className="inline-flex items-center gap-1.5 px-2 py-1 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1 font-calibri text-sm"
-                    aria-label="View stringing services image"
-                    title="Click to view full size"
-                  >
-                    <img
-                      src={chibiServicesImage}
-                      alt=""
-                      className="w-8 h-8 rounded object-cover border border-rose-200"
-                      loading="lazy"
-                    />
-                    <span className="text-gray-600">(Click to view image)</span>
-                  </button>
+                  {serviceOptions?.flyer_image_url && (
+                    <button
+                      type="button"
+                      onClick={() => setShowImageLightbox(true)}
+                      className="inline-flex items-center gap-1.5 px-2 py-1 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-1 font-calibri text-sm"
+                      aria-label="View stringing services flyer"
+                      title="Click to view full size"
+                    >
+                      <img
+                        src={serviceOptions.flyer_image_url}
+                        alt=""
+                        className="w-8 h-8 rounded object-cover border border-rose-200"
+                        loading="lazy"
+                      />
+                      <span className="text-gray-600">(Click to view image)</span>
+                    </button>
+                  )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                   {/* Racket Brand */}
@@ -642,23 +640,6 @@ const ServicesPage = () => {
                       <p className="mt-1 text-xs md:text-sm text-red-600 font-calibri">
                         {errors.colour}
                       </p>
-                    )}
-                    {selectedStringData?.image_url && (
-                      <div className="mt-2">
-                        <a
-                          href={selectedStringData.image_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-rose-600 hover:text-rose-700 font-calibri text-sm"
-                        >
-                          <img
-                            src={selectedStringData.image_url}
-                            alt={`${formData.string} flyer`}
-                            className="h-16 w-auto rounded border border-gray-200 object-cover"
-                          />
-                          <span>View flyer</span>
-                        </a>
-                      </div>
                     )}
                   </div>
 
@@ -835,7 +816,7 @@ const ServicesPage = () => {
         </div>
 
         {/* Image lightbox - click to view full size */}
-        {showImageLightbox && (
+        {showImageLightbox && serviceOptions?.flyer_image_url && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
             onClick={() => setShowImageLightbox(false)}
@@ -853,7 +834,7 @@ const ServicesPage = () => {
               <FaTimes size={24} />
             </button>
             <img
-              src={chibiServicesImage}
+              src={serviceOptions?.flyer_image_url ?? ""}
               alt="Chibi Badminton Stringing Services - Full size"
               className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
               onClick={(e) => e.stopPropagation()}

@@ -11,11 +11,12 @@ export const getServiceOptions = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const [strings, tensions, stencils, grips] = await Promise.all([
+    const [strings, tensions, stencils, grips, flyer_image_url] = await Promise.all([
       serviceOptionsService.findAllStrings(),
       serviceOptionsService.findAllTensions(),
       serviceOptionsService.findAllStencils(),
       serviceOptionsService.findAllGrips(),
+      serviceOptionsService.getFlyerImageUrl(),
     ]);
 
     res.json({
@@ -23,6 +24,7 @@ export const getServiceOptions = async (
       tensions,
       stencils,
       grips,
+      flyer_image_url,
     });
   } catch (error) {
     next(error);

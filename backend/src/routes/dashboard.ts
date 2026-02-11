@@ -44,6 +44,8 @@ import {
   deleteNewsletterSubscription,
 } from '../controllers/newsletterController.js';
 import {
+  getDashboardServiceOptionsFlyer,
+  updateDashboardServiceOptionsFlyer,
   getDashboardServiceOptionsStrings,
   createDashboardServiceOptionsString,
   updateDashboardServiceOptionsString,
@@ -110,6 +112,8 @@ router.put('/contact-messages/:id', authenticateToken, requireAdmin, updateDashb
 router.get('/service-requests', authenticateToken, requireAdmin, getDashboardServiceRequests);
 router.put('/service-requests/:id', authenticateToken, requireAdmin, updateDashboardServiceRequest);
 
+router.get('/service-options/flyer', authenticateToken, requireAdmin, getDashboardServiceOptionsFlyer);
+router.put('/service-options/flyer', authenticateToken, requireAdmin, updateDashboardServiceOptionsFlyer);
 router.get('/service-options/strings', authenticateToken, requireAdmin, getDashboardServiceOptionsStrings);
 router.post('/service-options/strings', authenticateToken, requireAdmin, createDashboardServiceOptionsString);
 router.put('/service-options/strings/:id', authenticateToken, requireAdmin, updateDashboardServiceOptionsString);

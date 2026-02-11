@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS invoice_line_items;
 DROP TABLE IF EXISTS invoices;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS service_requests;
+DROP TABLE IF EXISTS service_config;
 DROP TABLE IF EXISTS service_string_colours;
 DROP TABLE IF EXISTS service_strings;
 DROP TABLE IF EXISTS service_tensions;

@@ -2,6 +2,35 @@ import type { Request, Response, NextFunction } from 'express';
 import * as serviceOptionsService from '../services/serviceOptionsService.js';
 import { createError } from '../middleware/errorHandler.js';
 
+// ---- Flyer ----
+export const getDashboardServiceOptionsFlyer = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const flyer_image_url = await serviceOptionsService.getFlyerImageUrl();
+    res.json({ flyer_image_url });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardServiceOptionsFlyer = async (
+  req: Request<{}, {}, { flyer_image_url?: string | null }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const flyer_image_url = await serviceOptionsService.updateFlyerImageUrl(
+      req.body.flyer_image_url ?? null
+    );
+    res.json({ flyer_image_url });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ---- Strings ----
 export const getDashboardServiceOptionsStrings = async (
   _req: Request,
@@ -17,16 +46,15 @@ export const getDashboardServiceOptionsStrings = async (
 };
 
 export const createDashboardServiceOptionsString = async (
-  req: Request<{}, {}, { name: string; image_url?: string | null; display_order?: number }>,
+  req: Request<{}, {}, { name: string; display_order?: number }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, image_url, display_order } = req.body;
+    const { name, display_order } = req.body;
     if (!name || !name.trim()) throw createError('name is required', 400);
     const created = await serviceOptionsService.createString({
       name: name.trim(),
-      image_url: image_url ?? null,
       display_order,
     });
     res.status(201).json(created);
@@ -36,11 +64,7 @@ export const createDashboardServiceOptionsString = async (
 };
 
 export const updateDashboardServiceOptionsString = async (
-  req: Request<
-    { id: string },
-    {},
-    { name?: string; image_url?: string | null; display_order?: number }
-  >,
+  req: Request<{ id: string }, {}, { name?: string; display_order?: number }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {

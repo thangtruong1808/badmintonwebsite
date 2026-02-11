@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { FaPlus } from "react-icons/fa";
+import React, { useState, useEffect, useRef } from "react";
+import { FaPlus, FaCloudUploadAlt } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import { TextInput, NumberInput, FormActions } from "../Shared/inputs";
-import { apiFetch } from "../../../utils/api";
+import { apiFetch, API_BASE } from "../../../utils/api";
 
-type TabId = "strings" | "tensions" | "stencils" | "grips";
+type TabId = "flyer" | "strings" | "tensions" | "stencils" | "grips";
 
 interface ServiceStringRow {
   id: number;
   name: string;
-  image_url: string | null;
   display_order: number;
   colours: { id: number; string_id: number; colour: string; display_order: number }[];
 }
@@ -46,11 +45,6 @@ interface ColourRow {
 const STRING_COLUMNS: Column<ServiceStringRow>[] = [
   { key: "id", label: "ID" },
   { key: "name", label: "Name" },
-  {
-    key: "image_url",
-    label: "Flyer",
-    render: (r) => (r.image_url ? "Yes" : "—"),
-  },
   { key: "display_order", label: "Order" },
   {
     key: "colours",
@@ -83,6 +77,7 @@ const GRIP_COLUMNS: Column<ServiceGripRow>[] = [
 ];
 
 const TABS: { id: TabId; label: string }[] = [
+  { id: "flyer", label: "Flyer" },
   { id: "strings", label: "Strings" },
   { id: "tensions", label: "Tensions" },
   { id: "stencils", label: "Stencils" },
@@ -90,7 +85,13 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 const ServiceOptionsSection: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabId>("strings");
+  const [activeTab, setActiveTab] = useState<TabId>("flyer");
+
+  const [flyerUrl, setFlyerUrl] = useState<string | null>(null);
+  const [flyerFormUrl, setFlyerFormUrl] = useState("");
+  const [flyerSaving, setFlyerSaving] = useState(false);
+  const [flyerError, setFlyerError] = useState<string | null>(null);
+  const flyerFileInputRef = useRef<HTMLInputElement>(null);
 
   const [strings, setStrings] = useState<ServiceStringRow[]>([]);
   const [tensions, setTensions] = useState<ServiceTensionRow[]>([]);
@@ -102,7 +103,6 @@ const ServiceOptionsSection: React.FC = () => {
   const [editingString, setEditingString] = useState<ServiceStringRow | null>(null);
   const [stringForm, setStringForm] = useState({
     name: "",
-    image_url: "",
     display_order: 0,
   });
   const [stringFormError, setStringFormError] = useState<string | null>(null);
@@ -128,6 +128,15 @@ const ServiceOptionsSection: React.FC = () => {
   const [gripFormError, setGripFormError] = useState<string | null>(null);
   const [gripDeleteTarget, setGripDeleteTarget] = useState<ServiceGripRow | null>(null);
 
+  const fetchFlyer = async () => {
+    const res = await apiFetch("/api/dashboard/service-options/flyer");
+    if (res.ok) {
+      const data = await res.json();
+      setFlyerUrl(data.flyer_image_url ?? null);
+      setFlyerFormUrl(data.flyer_image_url ?? "");
+    }
+  };
+
   const fetchStrings = async () => {
     const res = await apiFetch("/api/dashboard/service-options/strings");
     if (res.ok) setStrings((await res.json()) ?? []);
@@ -148,9 +157,77 @@ const ServiceOptionsSection: React.FC = () => {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      await Promise.all([fetchStrings(), fetchTensions(), fetchStencils(), fetchGrips()]);
+      await Promise.all([
+        fetchFlyer(),
+        fetchStrings(),
+        fetchTensions(),
+        fetchStencils(),
+        fetchGrips(),
+      ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFlyerSave = async () => {
+    setFlyerError(null);
+    setFlyerSaving(true);
+    try {
+      const res = await apiFetch("/api/dashboard/service-options/flyer", {
+        method: "PUT",
+        body: JSON.stringify({ flyer_image_url: flyerFormUrl.trim() || null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setFlyerError(data.message || "Failed to save.");
+        return;
+      }
+      const data = await res.json();
+      setFlyerUrl(data.flyer_image_url ?? null);
+      setFlyerFormUrl(data.flyer_image_url ?? "");
+    } catch {
+      setFlyerError("Something went wrong.");
+    } finally {
+      setFlyerSaving(false);
+    }
+  };
+
+  const handleFlyerFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFlyerError(null);
+    setFlyerSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch(`${API_BASE}/api/upload/service-flyer`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setFlyerError(data.message || "Upload failed.");
+        return;
+      }
+      if (data.url) {
+        setFlyerFormUrl(data.url);
+        setFlyerUrl(data.url);
+        const putRes = await apiFetch("/api/dashboard/service-options/flyer", {
+          method: "PUT",
+          body: JSON.stringify({ flyer_image_url: data.url }),
+        });
+        if (putRes.ok) {
+          const putData = await putRes.json();
+          setFlyerUrl(putData.flyer_image_url ?? null);
+          setFlyerFormUrl(putData.flyer_image_url ?? "");
+        }
+      }
+    } catch {
+      setFlyerError("Upload failed.");
+    } finally {
+      setFlyerSaving(false);
+      e.target.value = "";
     }
   };
 
@@ -160,7 +237,7 @@ const ServiceOptionsSection: React.FC = () => {
 
   const openStringCreate = () => {
     setEditingString(null);
-    setStringForm({ name: "", image_url: "", display_order: 0 });
+    setStringForm({ name: "", display_order: 0 });
     setColours([]);
     setNewColour("");
     setStringFormError(null);
@@ -171,7 +248,6 @@ const ServiceOptionsSection: React.FC = () => {
     setEditingString(row);
     setStringForm({
       name: row.name,
-      image_url: row.image_url ?? "",
       display_order: row.display_order,
     });
     setColours(row.colours ?? []);
@@ -198,7 +274,6 @@ const ServiceOptionsSection: React.FC = () => {
           method: "PUT",
           body: JSON.stringify({
             name: stringForm.name.trim(),
-            image_url: stringForm.image_url.trim() || null,
             display_order: stringForm.display_order,
           }),
         });
@@ -213,7 +288,6 @@ const ServiceOptionsSection: React.FC = () => {
           method: "POST",
           body: JSON.stringify({
             name: stringForm.name.trim(),
-            image_url: stringForm.image_url.trim() || null,
             display_order: stringForm.display_order,
           }),
         });
@@ -461,27 +535,89 @@ const ServiceOptionsSection: React.FC = () => {
             </button>
           ))}
         </div>
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => {
-              if (activeTab === "strings") openStringCreate();
-              else if (activeTab === "tensions") openTensionCreate();
-              else if (activeTab === "stencils") openStencilCreate();
-              else openGripCreate();
-            }}
-            className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
-          >
-            <FaPlus size={16} />
-            Add {TABS.find((t) => t.id === activeTab)?.label.slice(0, -1) ?? "Item"}
-          </button>
-        </div>
+        {activeTab !== "flyer" && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => {
+                if (activeTab === "strings") openStringCreate();
+                else if (activeTab === "tensions") openTensionCreate();
+                else if (activeTab === "stencils") openStencilCreate();
+                else openGripCreate();
+              }}
+              className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
+            >
+              <FaPlus size={16} />
+              Add {TABS.find((t) => t.id === activeTab)?.label.slice(0, -1) ?? "Item"}
+            </button>
+          </div>
+        )}
       </div>
 
       {loading ? (
         <p className="font-calibri text-gray-600">Loading...</p>
       ) : (
         <>
+          {activeTab === "flyer" && (
+            <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6 font-calibri">
+              <p className="text-sm text-gray-600 mb-4">
+                Upload one flyer image for all available strings (displayed on the Services page next to &quot;Racket &amp; String Information&quot;).
+              </p>
+              {flyerError && (
+                <p className="mb-3 text-sm text-red-600">{flyerError}</p>
+              )}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Flyer image URL
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      type="url"
+                      value={flyerFormUrl}
+                      onChange={(e) => setFlyerFormUrl(e.target.value)}
+                      placeholder="https://..."
+                      className="flex-1 min-w-[200px] rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                    />
+                    <input
+                      ref={flyerFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFlyerFileUpload}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => flyerFileInputRef.current?.click()}
+                      disabled={flyerSaving}
+                      className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      <FaCloudUploadAlt size={16} />
+                      Upload
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleFlyerSave}
+                      disabled={flyerSaving}
+                      className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-50"
+                    >
+                      {flyerSaving ? "Saving..." : "Save URL"}
+                    </button>
+                  </div>
+                </div>
+                {flyerUrl && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Current flyer</p>
+                    <img
+                      src={flyerUrl}
+                      alt="Service flyer"
+                      className="h-32 w-auto rounded border border-gray-200 object-contain"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           {activeTab === "strings" && (
             <DataTable
               columns={STRING_COLUMNS}
@@ -490,6 +626,9 @@ const ServiceOptionsSection: React.FC = () => {
               onEdit={openStringEdit}
               onDelete={(r) => setStringDeleteTarget(r)}
               emptyMessage="No strings yet."
+              sortable
+              pageSize={10}
+              pageSizeOptions={[5, 10, 25, 50]}
             />
           )}
           {activeTab === "tensions" && (
@@ -500,6 +639,9 @@ const ServiceOptionsSection: React.FC = () => {
               onEdit={openTensionEdit}
               onDelete={(r) => setTensionDeleteTarget(r)}
               emptyMessage="No tensions yet."
+              sortable
+              pageSize={10}
+              pageSizeOptions={[5, 10, 25, 50]}
             />
           )}
           {activeTab === "stencils" && (
@@ -510,6 +652,9 @@ const ServiceOptionsSection: React.FC = () => {
               onEdit={openStencilEdit}
               onDelete={(r) => setStencilDeleteTarget(r)}
               emptyMessage="No stencils yet."
+              sortable
+              pageSize={10}
+              pageSizeOptions={[5, 10, 25, 50]}
             />
           )}
           {activeTab === "grips" && (
@@ -520,6 +665,9 @@ const ServiceOptionsSection: React.FC = () => {
               onEdit={openGripEdit}
               onDelete={(r) => setGripDeleteTarget(r)}
               emptyMessage="No grips yet."
+              sortable
+              pageSize={10}
+              pageSizeOptions={[5, 10, 25, 50]}
             />
           )}
         </>
@@ -542,13 +690,6 @@ const ServiceOptionsSection: React.FC = () => {
           value={stringForm.name}
           onChange={(e) => setStringForm((f) => ({ ...f, name: e.target.value }))}
           required
-        />
-        <TextInput
-          label="Flyer (Image URL)"
-          name="image_url"
-          value={stringForm.image_url}
-          onChange={(e) => setStringForm((f) => ({ ...f, image_url: e.target.value }))}
-          placeholder="Optional: URL to flyer image"
         />
         <NumberInput
           label="Display order"

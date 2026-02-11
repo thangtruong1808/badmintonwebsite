@@ -4,7 +4,6 @@ import pool from '../db/connection.js';
 export interface ServiceStringRow {
   id: number;
   name: string;
-  image_url: string | null;
   display_order: number;
   created_at?: string;
   updated_at?: string;
@@ -55,7 +54,6 @@ export const findAllStrings = async (): Promise<ServiceStringWithColours[]> => {
   const strings = rows.map((r) => ({
     id: r.id,
     name: r.name,
-    image_url: r.image_url ?? null,
     display_order: r.display_order,
     created_at: r.created_at ? String(r.created_at) : undefined,
     updated_at: r.updated_at ? String(r.updated_at) : undefined,
@@ -88,7 +86,6 @@ export const findStringById = async (id: number): Promise<ServiceStringRow | nul
   return {
     id: r.id,
     name: r.name,
-    image_url: r.image_url ?? null,
     display_order: r.display_order,
     created_at: r.created_at ? String(r.created_at) : undefined,
     updated_at: r.updated_at ? String(r.updated_at) : undefined,
@@ -97,12 +94,11 @@ export const findStringById = async (id: number): Promise<ServiceStringRow | nul
 
 export const createString = async (data: {
   name: string;
-  image_url?: string | null;
   display_order?: number;
 }): Promise<ServiceStringRow> => {
   const [result] = await pool.execute(
-    'INSERT INTO service_strings (name, image_url, display_order) VALUES (?, ?, ?)',
-    [data.name, data.image_url ?? null, data.display_order ?? 0]
+    'INSERT INTO service_strings (name, display_order) VALUES (?, ?)',
+    [data.name, data.display_order ?? 0]
   );
   const header = result as { insertId: number };
   const created = await findStringById(header.insertId);
@@ -112,7 +108,7 @@ export const createString = async (data: {
 
 export const updateString = async (
   id: number,
-  data: Partial<{ name: string; image_url: string | null; display_order: number }>
+  data: Partial<{ name: string; display_order: number }>
 ): Promise<ServiceStringRow | null> => {
   const existing = await findStringById(id);
   if (!existing) return null;
@@ -121,10 +117,6 @@ export const updateString = async (
   if (data.name !== undefined) {
     updates.push('name = ?');
     values.push(data.name);
-  }
-  if (data.image_url !== undefined) {
-    updates.push('image_url = ?');
-    values.push(data.image_url);
   }
   if (data.display_order !== undefined) {
     updates.push('display_order = ?');
@@ -464,4 +456,23 @@ export const removeGrip = async (id: number): Promise<boolean> => {
   const [result] = await pool.execute('DELETE FROM service_grips WHERE id = ?', [id]);
   const header = result as { affectedRows: number };
   return header.affectedRows > 0;
+};
+
+// ---- Service config (single flyer) ----
+export const getFlyerImageUrl = async (): Promise<string | null> => {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    'SELECT flyer_image_url FROM service_config WHERE id = 1'
+  );
+  if (!rows.length) return null;
+  const url = rows[0].flyer_image_url;
+  return url != null && String(url).trim() !== '' ? String(url).trim() : null;
+};
+
+export const updateFlyerImageUrl = async (url: string | null): Promise<string | null> => {
+  const val = url != null && url.trim() !== '' ? url.trim() : null;
+  await pool.execute(
+    'INSERT INTO service_config (id, flyer_image_url) VALUES (1, ?) ON DUPLICATE KEY UPDATE flyer_image_url = ?',
+    [val, val]
+  );
+  return getFlyerImageUrl();
 };
