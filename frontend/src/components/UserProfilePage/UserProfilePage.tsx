@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { getCurrentUser } from "../../utils/mockAuth";
+import React, { useState, useEffect, useCallback } from "react";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../store/authSlice";
+import { apiFetch } from "../../utils/api";
 import {
   getUserTransactions,
   getUserEventHistory,
@@ -9,41 +11,71 @@ import ProfileHeader from "./ProfileHeader";
 import TransactionHistory from "./TransactionHistory";
 import EventHistoryList from "./EventHistoryList";
 
+/** Normalize API user to frontend User (handles camelCase from backend). */
+function normalizeUser(data: Record<string, unknown>): User {
+  return {
+    id: String(data.id ?? ""),
+    firstName: String(data.firstName ?? data.first_name ?? ""),
+    lastName: String(data.lastName ?? data.last_name ?? ""),
+    email: String(data.email ?? ""),
+    phone: data.phone != null ? String(data.phone) : undefined,
+    role: (data.role as User["role"]) ?? undefined,
+    rewardPoints: Number(data.rewardPoints ?? data.reward_points ?? 0),
+    totalPointsEarned: Number(data.totalPointsEarned ?? data.total_points_earned ?? 0),
+    totalPointsSpent: Number(data.totalPointsSpent ?? data.total_points_spent ?? 0),
+    memberSince: String(data.memberSince ?? data.member_since ?? ""),
+    avatar: data.avatar != null ? String(data.avatar) : undefined,
+  };
+}
+
 const UserProfilePage: React.FC = () => {
+  const dispatch = useDispatch();
   const [user, setUser] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<RewardPointTransaction[]>([]);
   const [eventHistory, setEventHistory] = useState<UserEventHistory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    document.title = "ChibiBadminton - My Profile";
+  const fetchProfile = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch("/api/users/me");
+      if (!res.ok) {
+        setUser(null);
+        if (res.status === 401) {
+          setError("Please sign in to view your profile.");
+        } else {
+          setError("Could not load profile.");
+        }
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      const profileUser = normalizeUser(data);
+      setUser(profileUser);
+      dispatch(setCredentials({ user: profileUser }));
 
-    const currentUser = getCurrentUser();
-    setUser(currentUser);
-    if (currentUser) {
-      Promise.all([
-        getUserTransactions(currentUser.id),
-        getUserEventHistory(currentUser.id),
-      ]).then(([txs, history]) => {
-        setTransactions(txs);
-        setEventHistory(history);
-      }).finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const handlePointsClaimed = async () => {
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
       const [txs, history] = await Promise.all([
-        getUserTransactions(currentUser.id),
-        getUserEventHistory(currentUser.id),
+        getUserTransactions(profileUser.id),
+        getUserEventHistory(profileUser.id),
       ]);
       setTransactions(txs);
       setEventHistory(history);
+    } catch {
+      setUser(null);
+      setError("Could not load profile.");
+    } finally {
+      setLoading(false);
     }
+  }, [dispatch]);
+
+  useEffect(() => {
+    document.title = "ChibiBadminton - My Profile";
+    fetchProfile();
+  }, [fetchProfile]);
+
+  const handlePointsClaimed = async () => {
+    await fetchProfile();
   };
 
   const handleAvatarUpdate = (newAvatarUrl: string) => {
@@ -66,9 +98,11 @@ const UserProfilePage: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="absolute inset-0 w-full bg-gradient-to-b from-pink-100 to-pink-200 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 font-calibri">No user data available.</p>
+      <div className="absolute inset-0 w-full bg-gradient-to-b from-pink-100 to-pink-200 flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <p className="text-gray-600 font-calibri">
+            {error || "No user data available."}
+          </p>
         </div>
       </div>
     );

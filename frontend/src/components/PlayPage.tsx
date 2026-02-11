@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import PlayCalendar from "./PlayPage/PlayCalendar";
 import SessionDetailModal from "./PlayPage/SessionDetailModal";
 import { setCartItems, getCartItems, clearCart } from "../utils/cartStorage";
-import type { SocialEvent } from "../types/socialEvent";
+import type { SocialEvent, Registration } from "../types/socialEvent";
+import { getCurrentUser } from "../utils/mockAuth";
+import { getUserRegistrations, cancelUserRegistration } from "../utils/registrationService";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -13,9 +15,24 @@ const PlayPage: React.FC = () => {
   const [eventsLoading, setEventsLoading] = useState(true);
   const [selectedEventIds, setSelectedEventIds] = useState<number[]>(() => getCartItems());
   const [selectedEvent, setSelectedEvent] = useState<SocialEvent | null>(null);
+  const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
+  const [cancellingRegistrationId, setCancellingRegistrationId] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "ChibiBadminton - Play Sessions";
+  }, []);
+
+  // Load current user's registrations so we can support cancel/unregister
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (!user?.id) {
+      setMyRegistrations([]);
+      return;
+    }
+    (async () => {
+      const regs = await getUserRegistrations(user.id);
+      setMyRegistrations(regs);
+    })();
   }, []);
 
   const fetchEvents = useCallback(async () => {
@@ -49,6 +66,17 @@ const PlayPage: React.FC = () => {
 
   const selectedEvents = allEvents.filter((e) => selectedEventIds.includes(e.id));
 
+  // Map eventId -> registration so we know if the current user is registered for a given session
+  const eventIdToRegistration = useMemo(() => {
+    const map = new Map<number, Registration & { id?: string }>();
+    (myRegistrations as (Registration & { id?: string })[]).forEach((reg) => {
+      if (reg.status === "confirmed" && reg.eventId && (reg as any).id) {
+        map.set(reg.eventId, reg);
+      }
+    });
+    return map;
+  }, [myRegistrations]);
+
   const handleSelectEvent = (eventId: number) => {
     setSelectedEventIds((prev) => {
       const newIds = prev.includes(eventId)
@@ -61,6 +89,31 @@ const PlayPage: React.FC = () => {
 
   const handleViewSession = (event: SocialEvent) => {
     setSelectedEvent(event);
+  };
+
+  const handleCancelRegistrationForEvent = async (eventId: number) => {
+    const reg = eventIdToRegistration.get(eventId) as (Registration & { id?: string }) | undefined;
+    if (!reg || !reg.id) return;
+
+    setCancellingRegistrationId(reg.id);
+    const ok = await cancelUserRegistration(reg.id);
+    if (ok) {
+      // Update local registrations state
+      setMyRegistrations((prev) =>
+        (prev as (Registration & { id?: string })[]).map((r) =>
+          r.id === reg.id ? { ...r, status: "cancelled" } : r
+        )
+      );
+      // Remove this event from local cart selection as well
+      setSelectedEventIds((prev) => {
+        const next = prev.filter((id) => id !== eventId);
+        setCartItems(next);
+        return next;
+      });
+      // Refresh events list so capacities/attendees update
+      fetchEvents();
+    }
+    setCancellingRegistrationId(null);
   };
 
   const handleProceedToCheckout = () => {
@@ -125,14 +178,29 @@ const PlayPage: React.FC = () => {
           </>
         )}
 
-        <SessionDetailModal
-          event={selectedEvent}
-          onClose={() => setSelectedEvent(null)}
-          onAddToCart={handleSelectEvent}
-          onProceedToCheckout={handleProceedToCheckout}
-          isInCart={selectedEvent ? selectedEventIds.includes(selectedEvent.id) : false}
-          selectedCount={selectedEventIds.length}
-        />
+        {(() => {
+          const regForSelected =
+            selectedEvent && eventIdToRegistration.get(selectedEvent.id as number);
+          const regId = (regForSelected as (Registration & { id?: string }) | undefined)?.id;
+
+          return (
+            <SessionDetailModal
+              event={selectedEvent}
+              onClose={() => setSelectedEvent(null)}
+              onAddToCart={handleSelectEvent}
+              onProceedToCheckout={handleProceedToCheckout}
+              isInCart={selectedEvent ? selectedEventIds.includes(selectedEvent.id) : false}
+              selectedCount={selectedEventIds.length}
+              canCancel={!!regId}
+              onCancelRegistration={
+                regId && selectedEvent
+                  ? () => handleCancelRegistrationForEvent(selectedEvent.id)
+                  : undefined
+              }
+              isCancelling={!!regId && regId === cancellingRegistrationId}
+            />
+          );
+        })()}
       </div>
     </div>
   );

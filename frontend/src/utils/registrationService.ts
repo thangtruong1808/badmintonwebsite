@@ -20,6 +20,21 @@ export async function getUserRegistrations(userId: string | undefined): Promise<
 }
 
 /**
+ * Cancel a single registration by ID (requires auth).
+ * Returns true on success, false on failure.
+ */
+export async function cancelUserRegistration(registrationId: string): Promise<boolean> {
+  try {
+    const res = await apiFetch(`/api/registrations/${registrationId}`, {
+      method: "DELETE",
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Register the current user for events via API (requires auth).
  * Returns { success, message }. On 401, message suggests signing in.
  */

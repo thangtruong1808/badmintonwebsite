@@ -56,7 +56,7 @@ function getNextDateForDay(dayName: string, fromDate: Date): Date {
   return current;
 }
 
-const MAX_GENERATION_DAYS = 365;
+const MAX_GENERATION_DAYS = 31;
 
 /** Generate events from play_slots for the given date range (capped at 1 year). */
 export const generateEventsFromSlots = async (
@@ -126,6 +126,25 @@ export const generateEventsFromSlots = async (
   return generated;
 };
 
+/**
+ * Deduplicate event rows by (date, title, location) so the play page shows one session per slot per date.
+ * Keeps the row with the smallest id so existing registrations (event_id) remain valid.
+ */
+function deduplicateEvents(rows: EventRow[]): EventRow[] {
+  const byKey = new Map<string, EventRow>();
+  for (const r of rows) {
+    const d = r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10);
+    const key = `${d}|${r.title}|${r.location}`;
+    const existing = byKey.get(key);
+    if (!existing || r.id < existing.id) byKey.set(key, r);
+  }
+  return Array.from(byKey.values()).sort((a, b) => {
+    const da = a.date instanceof Date ? a.date.toISOString().slice(0, 10) : String(a.date).slice(0, 10);
+    const db = b.date instanceof Date ? b.date.toISOString().slice(0, 10) : String(b.date).slice(0, 10);
+    return da.localeCompare(db) || (a.time || '').localeCompare(b.time || '');
+  });
+}
+
 export const getAllEvents = async (
   fromDate?: string,
   toDate?: string,
@@ -153,7 +172,8 @@ export const getAllEvents = async (
   const [rows] = params.length
     ? await pool.execute<EventRow[]>(query, params)
     : await pool.execute<EventRow[]>(query);
-  return (rows as EventRow[]).map(rowToSocialEvent);
+  const deduped = deduplicateEvents(rows as EventRow[]);
+  return deduped.map(rowToSocialEvent);
 };
 
 export const getEventById = async (eventId: number): Promise<SocialEvent | null> => {

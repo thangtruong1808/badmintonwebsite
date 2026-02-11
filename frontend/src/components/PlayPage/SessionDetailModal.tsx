@@ -17,6 +17,12 @@ interface SessionDetailModalProps {
   onProceedToCheckout: () => void;
   isInCart: boolean;
   selectedCount: number;
+  /** When true, current user has a registration for this session */
+  canCancel?: boolean;
+  /** Called when user clicks 'Cancel my registration' */
+  onCancelRegistration?: () => void;
+  /** Optional loading flag while cancellation is in progress */
+  isCancelling?: boolean;
 }
 
 const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
@@ -26,6 +32,9 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   onProceedToCheckout,
   isInCart,
   selectedCount,
+  canCancel,
+  onCancelRegistration,
+  isCancelling = false,
 }) => {
   const [players, setPlayers] = useState<RegisteredPlayer[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
@@ -138,6 +147,15 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                   <FaCheckCircle size={18} className="flex-shrink-0 text-green-600" />
                   <span>You&apos;re already registered for this session.</span>
                 </div>
+              )}
+              {isAlreadyRegistered && canCancel && onCancelRegistration && (
+                <button
+                  onClick={onCancelRegistration}
+                  disabled={isCancelling}
+                  className="w-full py-2.5 px-3 rounded-lg border-2 border-red-500 text-red-600 hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed font-medium transition-colors font-calibri text-sm sm:text-base"
+                >
+                  {isCancelling ? "Cancelling…" : "Cancel my registration"}
+                </button>
               )}
               <div className="flex flex-wrap gap-2">
                 {!isAlreadyRegistered && (
