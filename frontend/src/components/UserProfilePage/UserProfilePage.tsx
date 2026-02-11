@@ -6,7 +6,9 @@ import {
   getUserTransactions,
   getUserEventHistory,
 } from "../../utils/rewardPointsService";
+import { getUserRegistrations } from "../../utils/registrationService";
 import type { User, RewardPointTransaction, UserEventHistory } from "../../types/user";
+import type { RegistrationWithEventDetails } from "../../types/socialEvent";
 import ProfileHeader from "./ProfileHeader";
 import TransactionHistory from "./TransactionHistory";
 import EventHistoryList from "./EventHistoryList";
@@ -33,6 +35,8 @@ const UserProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<RewardPointTransaction[]>([]);
   const [eventHistory, setEventHistory] = useState<UserEventHistory[]>([]);
+  const [registrations, setRegistrations] = useState<RegistrationWithEventDetails[]>([]);
+  const [includeCancelled, setIncludeCancelled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,12 +59,14 @@ const UserProfilePage: React.FC = () => {
       setUser(profileUser);
       dispatch(setCredentials({ user: profileUser }));
 
-      const [txs, history] = await Promise.all([
+      const [txs, history, regs] = await Promise.all([
         getUserTransactions(profileUser.id),
         getUserEventHistory(profileUser.id),
+        getUserRegistrations(profileUser.id, { includeCancelled: true }),
       ]);
       setTransactions(txs);
       setEventHistory(history);
+      setRegistrations(regs);
     } catch {
       setUser(null);
       setError("Could not load profile.");
@@ -127,6 +133,10 @@ const UserProfilePage: React.FC = () => {
           <div>
             <EventHistoryList
               history={eventHistory}
+              registrations={registrations}
+              includeCancelled={includeCancelled}
+              onToggleIncludeCancelled={() => setIncludeCancelled((v) => !v)}
+              onRefetch={fetchProfile}
               onPointsClaimed={handlePointsClaimed}
             />
           </div>

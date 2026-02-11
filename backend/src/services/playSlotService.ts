@@ -1,5 +1,6 @@
 import type { RowDataPacket } from 'mysql2';
 import pool from '../db/connection.js';
+import { updateEventsForPlaySlot, deleteEventsForPlaySlot } from './eventSlotSyncService.js';
 
 export interface PlaySlot {
   id: number;
@@ -134,10 +135,35 @@ export const updatePlaySlot = async (
     `UPDATE play_slots SET ${fields.join(', ')} WHERE id = ?`,
     values
   );
-  return getPlaySlotById(id);
+  const updatedSlot = await getPlaySlotById(id);
+  if (updatedSlot) {
+    await updateEventsForPlaySlot(
+      { dayOfWeek: slot.dayOfWeek, time: slot.time, location: slot.location, title: slot.title },
+      {
+        dayOfWeek: updatedSlot.dayOfWeek,
+        time: updatedSlot.time,
+        location: updatedSlot.location,
+        title: updatedSlot.title,
+        description: updatedSlot.description,
+        maxCapacity: updatedSlot.maxCapacity,
+        price: updatedSlot.price,
+        imageUrl: updatedSlot.imageUrl,
+      }
+    );
+  }
+  return updatedSlot;
 };
 
 export const deletePlaySlot = async (id: number): Promise<boolean> => {
+  const slot = await getPlaySlotById(id);
+  if (slot) {
+    await deleteEventsForPlaySlot({
+      dayOfWeek: slot.dayOfWeek,
+      time: slot.time,
+      location: slot.location,
+      title: slot.title,
+    });
+  }
   const [result] = await pool.execute('DELETE FROM play_slots WHERE id = ?', [id]);
   return Number((result as { affectedRows?: number })?.affectedRows) > 0;
 };

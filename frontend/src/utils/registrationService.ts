@@ -1,14 +1,26 @@
-import type { SocialEvent, Registration, RegistrationFormData } from "../types/socialEvent";
+import type {
+  SocialEvent,
+  RegistrationFormData,
+  RegistrationWithEventDetails,
+} from "../types/socialEvent";
 import { apiFetch } from "./api";
 
 /**
- * Get user's registrations from API (requires auth).
+ * Get user's registrations from API with event details (requires auth).
+ * When includeCancelled is true, returns all registrations including cancelled.
  * Returns [] if not logged in or on error.
  */
-export async function getUserRegistrations(userId: string | undefined): Promise<Registration[]> {
+export async function getUserRegistrations(
+  userId: string | undefined,
+  options?: { includeCancelled?: boolean }
+): Promise<RegistrationWithEventDetails[]> {
   if (!userId) return [];
   try {
-    const res = await apiFetch("/api/registrations/my-registrations");
+    const url =
+      options?.includeCancelled === true
+        ? "/api/registrations/my-registrations?includeCancelled=true"
+        : "/api/registrations/my-registrations";
+    const res = await apiFetch(url);
     if (res.ok) {
       const list = await res.json();
       return Array.isArray(list) ? list : [];

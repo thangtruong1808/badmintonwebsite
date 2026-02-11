@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import {
   getUserRegistrations as getUserRegistrationsService,
+  getRegistrationsWithEventDetails,
   registerForEvents as registerForEventsService,
   cancelRegistration as cancelRegistrationService,
   getEventRegistrations as getEventRegistrationsService,
@@ -10,7 +11,7 @@ import { createError } from '../middleware/errorHandler.js';
 import type { RegistrationFormData } from '../types/index.js';
 
 export const getUserRegistrations = async (
-  req: AuthRequest,
+  req: AuthRequest<object, object, object, { includeCancelled?: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -19,7 +20,10 @@ export const getUserRegistrations = async (
       throw createError('User ID not found', 401);
     }
 
-    const registrations = await getUserRegistrationsService(req.userId);
+    const includeCancelled = req.query.includeCancelled === 'true';
+    const registrations = includeCancelled
+      ? await getRegistrationsWithEventDetails(req.userId, true)
+      : await getRegistrationsWithEventDetails(req.userId, false);
     res.json(registrations);
   } catch (error) {
     next(error);

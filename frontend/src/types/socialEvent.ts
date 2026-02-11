@@ -16,6 +16,7 @@ export interface SocialEvent {
 }
 
 export interface Registration {
+  id?: string;
   eventId: number;
   userId?: string;
   name: string;
@@ -28,6 +29,15 @@ export interface Registration {
   pointsClaimed?: boolean;
   paymentMethod?: "stripe" | "points" | "mixed";
   pointsUsed?: number;
+}
+
+/** Registration with event details from API (e.g. profile event list). */
+export interface RegistrationWithEventDetails extends Registration {
+  eventTitle?: string | null;
+  eventDate?: string | null;
+  eventTime?: string | null;
+  eventLocation?: string | null;
+  eventCategory?: string | null;
 }
 
 export interface RegistrationFormData {

@@ -104,6 +104,56 @@ export const getUserRegistrations = async (userId: string): Promise<Registration
   return rows.map(rowToRegistration);
 };
 
+/** Row shape when joining registrations with events for profile/event list. */
+interface RegWithEventRow extends RegRow {
+  event_title: string | null;
+  event_date: string | null;
+  event_time: string | null;
+  event_location: string | null;
+  event_category: string | null;
+}
+
+export interface RegistrationWithEventDetails extends Registration {
+  eventTitle?: string | null;
+  eventDate?: string | null;
+  eventTime?: string | null;
+  eventLocation?: string | null;
+  eventCategory?: string | null;
+}
+
+/**
+ * Get user registrations with event details (for profile event list).
+ * When includeCancelled is true, returns all registrations including cancelled.
+ */
+export const getRegistrationsWithEventDetails = async (
+  userId: string,
+  includeCancelled: boolean
+): Promise<RegistrationWithEventDetails[]> => {
+  const statusFilter = includeCancelled ? '' : "AND r.status != 'cancelled'";
+  const [rows] = await pool.execute<RegWithEventRow[]>(
+    `SELECT r.id, r.event_id, r.user_id, r.name, r.email, r.phone, r.registration_date,
+            r.status, r.attendance_status, r.points_earned, r.points_claimed, r.payment_method, r.points_used,
+            e.title AS event_title, e.date AS event_date, e.time AS event_time, e.location AS event_location, e.category AS event_category
+     FROM registrations r
+     LEFT JOIN events e ON r.event_id = e.id
+     WHERE r.user_id = ?
+     ${statusFilter}
+     ORDER BY e.date DESC, r.registration_date DESC`,
+    includeCancelled ? [userId] : [userId]
+  );
+  return rows.map((r) => {
+    const reg = rowToRegistration(r);
+    return {
+      ...reg,
+      eventTitle: r.event_title ?? null,
+      eventDate: r.event_date ?? null,
+      eventTime: r.event_time ?? null,
+      eventLocation: r.event_location ?? null,
+      eventCategory: r.event_category ?? null,
+    };
+  });
+};
+
 export const getEventRegistrations = async (eventId: number): Promise<Registration[]> => {
   const [rows] = await pool.execute<RegRow[]>(
     'SELECT * FROM registrations WHERE event_id = ? AND status != ? ORDER BY registration_date ASC',
@@ -143,12 +193,41 @@ export const registerForEvents = async (
       throw createError(`Event with ID ${eventId} not found`, 404);
     }
 
-    const [existing] = await pool.execute<RegRow[]>(
-      'SELECT * FROM registrations WHERE user_id = ? AND event_id = ? AND status = ?',
-      [userId, eventId, 'confirmed']
+    const [existingAny] = await pool.execute<RegRow[]>(
+      'SELECT * FROM registrations WHERE user_id = ? AND event_id = ?',
+      [userId, eventId]
     );
 
-    if (existing.length > 0) continue;
+    if (existingAny.length > 0) {
+      const existing = existingAny[0];
+      if (existing.status === 'confirmed') continue;
+
+      if (existing.status === 'cancelled') {
+        if (event.currentAttendees >= event.maxCapacity) {
+          throw createError(`Event '${event.title}' is full`, 400);
+        }
+        const registrationDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        await pool.execute(
+          `UPDATE registrations SET status = 'confirmed', attendance_status = 'upcoming',
+            name = ?, email = ?, phone = ?, registration_date = ?
+           WHERE id = ?`,
+          [formData.name, formData.email, formData.phone, registrationDate, existing.id]
+        );
+        newRegistrations.push({
+          id: existing.id,
+          eventId,
+          userId,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          registrationDate: new Date().toISOString(),
+          status: 'confirmed',
+          attendanceStatus: 'upcoming',
+        });
+        await incrementEventAttendees(eventId);
+      }
+      continue; // other statuses (e.g. pending): skip to avoid duplicate row
+    }
 
     if (event.currentAttendees >= event.maxCapacity) {
       throw createError(`Event '${event.title}' is full`, 400);
