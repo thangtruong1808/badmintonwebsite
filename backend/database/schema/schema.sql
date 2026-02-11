@@ -327,6 +327,29 @@ CREATE TABLE IF NOT EXISTS product_quantity_tiers (
 CREATE INDEX idx_product_quantity_tiers_product_id ON product_quantity_tiers(product_id);
 
 -- =====================================================
+-- Table: homepage_banners
+-- Stores homepage carousel banners (images from Cloudinary, 1920x600)
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS homepage_banners (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) DEFAULT NULL,
+    cloudinary_public_id VARCHAR(255) NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    alt_text VARCHAR(255) NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_homepage_banners_is_active ON homepage_banners(is_active);
+CREATE INDEX idx_homepage_banners_display_order ON homepage_banners(display_order);
+CREATE INDEX idx_homepage_banners_active_order ON homepage_banners(is_active, display_order);
+
+-- =====================================================
 -- Table: product_images
 -- Stores multiple images per product
 -- =====================================================
@@ -440,6 +463,29 @@ CREATE INDEX idx_news_articles_category ON news_articles(category);
 CREATE INDEX idx_news_articles_display_order ON news_articles(display_order);
 CREATE INDEX idx_news_articles_created_at ON news_articles(created_at);
 CREATE INDEX idx_news_articles_badge_order ON news_articles(badge, display_order);
+
+-- =====================================================
+-- Table: homepage_banners
+-- Stores homepage carousel banners (images from Cloudinary, 1920x600)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS homepage_banners (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) DEFAULT NULL,
+    cloudinary_public_id VARCHAR(255) NOT NULL,
+    image_url VARCHAR(500) NOT NULL,
+    alt_text VARCHAR(255) NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Indexes for homepage_banners table
+CREATE INDEX idx_homepage_banners_is_active ON homepage_banners(is_active);
+CREATE INDEX idx_homepage_banners_display_order ON homepage_banners(display_order);
+CREATE INDEX idx_homepage_banners_active_order ON homepage_banners(is_active, display_order);
 
 -- =====================================================
 -- Table: reviews
@@ -614,6 +660,107 @@ CREATE INDEX idx_invoices_status ON invoices(status);
 CREATE INDEX idx_invoices_created_at ON invoices(created_at);
 CREATE INDEX idx_invoices_due_date ON invoices(due_date);
 CREATE INDEX idx_invoices_user_status ON invoices(user_id, status);
+
+-- =====================================================
+-- Table: service_strings
+-- Stores string types with optional flyer image
+-- =====================================================
+CREATE TABLE IF NOT EXISTS service_strings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    image_url VARCHAR(500) DEFAULT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_service_strings_display_order ON service_strings(display_order);
+
+-- =====================================================
+-- Table: service_string_colours
+-- Stores available colours per string type
+-- =====================================================
+CREATE TABLE IF NOT EXISTS service_string_colours (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    string_id INT NOT NULL,
+    colour VARCHAR(50) NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (string_id) REFERENCES service_strings(id) ON DELETE CASCADE,
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_service_string_colours_string_id ON service_string_colours(string_id);
+
+-- =====================================================
+-- Table: service_tensions
+-- Stores tension options (e.g. 20 lbs, 21 lbs)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS service_tensions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    label VARCHAR(20) NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_service_tensions_display_order ON service_tensions(display_order);
+
+-- =====================================================
+-- Table: service_stencils
+-- Stores stencil options (value, label)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS service_stencils (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    value VARCHAR(100) NOT NULL DEFAULT '',
+    label VARCHAR(100) NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_service_stencils_display_order ON service_stencils(display_order);
+
+-- =====================================================
+-- Table: service_grips
+-- Stores grip options (value, label)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS service_grips (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    value VARCHAR(150) NOT NULL DEFAULT '',
+    label VARCHAR(150) NOT NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CHECK (display_order >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_service_grips_display_order ON service_grips(display_order);
+
+-- =====================================================
+-- Create service_config table (single row for flyer URL)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS service_config (
+    id INT PRIMARY KEY DEFAULT 1,
+    flyer_image_url VARCHAR(500) DEFAULT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CHECK (id = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO service_config (id, flyer_image_url) VALUES (1, NULL)
+ON DUPLICATE KEY UPDATE id = id;
+
+-- =====================================================
+-- Remove image_url from service_strings
+-- =====================================================
+ALTER TABLE service_strings DROP COLUMN image_url;
 
 -- =====================================================
 -- Table: invoice_line_items

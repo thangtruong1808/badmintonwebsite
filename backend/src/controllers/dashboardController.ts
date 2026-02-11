@@ -9,6 +9,7 @@ import * as productImageService from '../services/productImageService.js';
 import * as productQuantityTierService from '../services/productQuantityTierService.js';
 import * as galleryService from '../services/galleryService.js';
 import { resolveVideoThumbnail } from '../services/galleryVideoThumbnailService.js';
+import * as homepageBannersService from '../services/homepageBannersService.js';
 import * as newsService from '../services/newsService.js';
 import * as reviewService from '../services/reviewService.js';
 import * as contactMessageService from '../services/contactMessageService.js';
@@ -355,6 +356,87 @@ export const deleteDashboardGalleryVideo = async (
     if (Number.isNaN(id)) throw createError('Invalid video ID', 400);
     const deleted = await galleryService.removeVideo(id);
     if (!deleted) throw createError('Video not found', 404);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Homepage banners (dashboard)
+export const getDashboardHomepageBanners = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await homepageBannersService.findAll();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createDashboardHomepageBanner = async (
+  req: Request<
+    {},
+    {},
+    { title?: string; cloudinary_public_id: string; image_url: string; alt_text: string; display_order?: number; is_active?: boolean }
+  >,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { title, cloudinary_public_id, image_url, alt_text, display_order, is_active } = req.body;
+    if (!cloudinary_public_id || !image_url || !alt_text) {
+      throw createError('cloudinary_public_id, image_url and alt_text are required', 400);
+    }
+    const created = await homepageBannersService.create({
+      title: title ?? null,
+      cloudinary_public_id,
+      image_url,
+      alt_text,
+      display_order,
+      is_active,
+    });
+    res.status(201).json(created);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardHomepageBanner = async (
+  req: Request<
+    { id: string },
+    {},
+    {
+      title?: string | null;
+      cloudinary_public_id?: string;
+      image_url?: string;
+      alt_text?: string;
+      display_order?: number;
+      is_active?: boolean;
+    }
+  >,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid banner ID', 400);
+    const updated = await homepageBannersService.update(id, req.body);
+    if (!updated) throw createError('Banner not found', 404);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDashboardHomepageBanner = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid banner ID', 400);
+    const deleted = await homepageBannersService.remove(id);
+    if (!deleted) throw createError('Banner not found', 404);
     res.status(204).end();
   } catch (error) {
     next(error);

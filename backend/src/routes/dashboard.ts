@@ -21,6 +21,10 @@ import {
   createDashboardGalleryVideo,
   updateDashboardGalleryVideo,
   deleteDashboardGalleryVideo,
+  getDashboardHomepageBanners,
+  createDashboardHomepageBanner,
+  updateDashboardHomepageBanner,
+  deleteDashboardHomepageBanner,
   getDashboardNews,
   createDashboardNews,
   updateDashboardNews,
@@ -95,6 +99,11 @@ router.get('/gallery/videos', authenticateToken, requireAdmin, getDashboardGalle
 router.post('/gallery/videos', authenticateToken, requireAdmin, createDashboardGalleryVideo);
 router.put('/gallery/videos/:id', authenticateToken, requireAdmin, updateDashboardGalleryVideo);
 router.delete('/gallery/videos/:id', authenticateToken, requireAdmin, deleteDashboardGalleryVideo);
+
+router.get('/homepage-banners', authenticateToken, requireAdmin, getDashboardHomepageBanners);
+router.post('/homepage-banners', authenticateToken, requireAdmin, createDashboardHomepageBanner);
+router.put('/homepage-banners/:id', authenticateToken, requireAdmin, updateDashboardHomepageBanner);
+router.delete('/homepage-banners/:id', authenticateToken, requireAdmin, deleteDashboardHomepageBanner);
 
 router.get('/news', authenticateToken, requireAdmin, getDashboardNews);
 router.post('/news', authenticateToken, requireAdmin, createDashboardNews);

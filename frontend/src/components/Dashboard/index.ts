@@ -5,6 +5,7 @@ export { default as RegistrationsSection } from "./sections/RegistrationsSection
 export { default as RewardTransactionsSection } from "./sections/RewardTransactionsSection";
 export { default as ProductsSection } from "./sections/ProductsSection";
 export { default as GallerySection } from "./sections/GallerySection";
+export { default as HomepageBannersSection } from "./sections/HomepageBannersSection";
 export { default as NewsSection } from "./sections/NewsSection";
 export { default as ReviewsSection } from "./sections/ReviewsSection";
 export { default as NewsletterSection } from "./sections/NewsletterSection";
