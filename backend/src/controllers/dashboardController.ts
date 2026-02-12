@@ -10,6 +10,7 @@ import * as productQuantityTierService from '../services/productQuantityTierServ
 import * as galleryService from '../services/galleryService.js';
 import { resolveVideoThumbnail } from '../services/galleryVideoThumbnailService.js';
 import * as homepageBannersService from '../services/homepageBannersService.js';
+import * as keyPersonsService from '../services/keyPersonsService.js';
 import * as newsService from '../services/newsService.js';
 import * as reviewService from '../services/reviewService.js';
 import * as contactMessageService from '../services/contactMessageService.js';
@@ -437,6 +438,90 @@ export const deleteDashboardHomepageBanner = async (
     if (Number.isNaN(id)) throw createError('Invalid banner ID', 400);
     const deleted = await homepageBannersService.remove(id);
     if (!deleted) throw createError('Banner not found', 404);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Key persons (dashboard)
+export const getDashboardKeyPersons = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const list = await keyPersonsService.findAll();
+    res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createDashboardKeyPerson = async (
+  req: Request<
+    {},
+    {},
+    { firstName?: string; lastName?: string; role?: string; description?: string | null; imageUrl?: string | null; cloudinaryPublicId?: string | null; displayOrder?: number }
+  >,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { firstName, lastName, role, description, imageUrl, cloudinaryPublicId, displayOrder } = req.body;
+    if (!firstName || !lastName || !role) {
+      throw createError('firstName, lastName and role are required', 400);
+    }
+    const created = await keyPersonsService.create({
+      first_name: firstName,
+      last_name: lastName,
+      role,
+      description: description ?? null,
+      image_url: imageUrl ?? null,
+      cloudinary_public_id: cloudinaryPublicId ?? null,
+      display_order: displayOrder ?? 0,
+    });
+    res.status(201).json(created);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardKeyPerson = async (
+  req: Request<
+    { id: string },
+    {},
+    { firstName?: string; lastName?: string; role?: string; description?: string | null; imageUrl?: string | null; cloudinaryPublicId?: string | null; displayOrder?: number }
+  >,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid key person ID', 400);
+    const { firstName, lastName, role, description, imageUrl, cloudinaryPublicId, displayOrder } = req.body;
+    const updates: Parameters<typeof keyPersonsService.update>[1] = {};
+    if (firstName !== undefined) updates.first_name = firstName;
+    if (lastName !== undefined) updates.last_name = lastName;
+    if (role !== undefined) updates.role = role;
+    if (description !== undefined) updates.description = description;
+    if (imageUrl !== undefined) updates.image_url = imageUrl;
+    if (cloudinaryPublicId !== undefined) updates.cloudinary_public_id = cloudinaryPublicId;
+    if (displayOrder !== undefined) updates.display_order = displayOrder;
+    const updated = await keyPersonsService.update(id, updates);
+    if (!updated) throw createError('Key person not found', 404);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDashboardKeyPerson = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) throw createError('Invalid key person ID', 400);
+    const deleted = await keyPersonsService.remove(id);
+    if (!deleted) throw createError('Key person not found', 404);
     res.status(204).end();
   } catch (error) {
     next(error);

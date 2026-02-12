@@ -25,6 +25,10 @@ import {
   createDashboardHomepageBanner,
   updateDashboardHomepageBanner,
   deleteDashboardHomepageBanner,
+  getDashboardKeyPersons,
+  createDashboardKeyPerson,
+  updateDashboardKeyPerson,
+  deleteDashboardKeyPerson,
   getDashboardNews,
   createDashboardNews,
   updateDashboardNews,
@@ -104,6 +108,11 @@ router.get('/homepage-banners', authenticateToken, requireAdmin, getDashboardHom
 router.post('/homepage-banners', authenticateToken, requireAdmin, createDashboardHomepageBanner);
 router.put('/homepage-banners/:id', authenticateToken, requireAdmin, updateDashboardHomepageBanner);
 router.delete('/homepage-banners/:id', authenticateToken, requireAdmin, deleteDashboardHomepageBanner);
+
+router.get('/key-persons', authenticateToken, requireAdmin, getDashboardKeyPersons);
+router.post('/key-persons', authenticateToken, requireAdmin, createDashboardKeyPerson);
+router.put('/key-persons/:id', authenticateToken, requireAdmin, updateDashboardKeyPerson);
+router.delete('/key-persons/:id', authenticateToken, requireAdmin, deleteDashboardKeyPerson);
 
 router.get('/news', authenticateToken, requireAdmin, getDashboardNews);
 router.post('/news', authenticateToken, requireAdmin, createDashboardNews);

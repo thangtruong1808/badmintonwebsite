@@ -16,6 +16,7 @@ import newsletterRoutes from './routes/newsletter.js';
 import galleryRoutes from './routes/gallery.js';
 import newsRoutes from './routes/news.js';
 import homepageBannersRoutes from './routes/homepageBanners.js';
+import keyPersonsRoutes from './routes/keyPersons.js';
 import uploadRoutes from './routes/upload.js';
 import serviceOptionsRoutes from './routes/serviceOptions.js';
 import { seedPlaySlotsIfEmpty } from './utils/initializeData.js';
@@ -70,6 +71,7 @@ app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/homepage-banners', homepageBannersRoutes);
+app.use('/api/key-persons', keyPersonsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/service-options', serviceOptionsRoutes);
 

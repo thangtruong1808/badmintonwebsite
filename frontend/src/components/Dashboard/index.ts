@@ -6,6 +6,7 @@ export { default as RewardTransactionsSection } from "./sections/RewardTransacti
 export { default as ProductsSection } from "./sections/ProductsSection";
 export { default as GallerySection } from "./sections/GallerySection";
 export { default as HomepageBannersSection } from "./sections/HomepageBannersSection";
+export { default as KeyPersonsSection } from "./sections/KeyPersonsSection";
 export { default as NewsSection } from "./sections/NewsSection";
 export { default as ReviewsSection } from "./sections/ReviewsSection";
 export { default as NewsletterSection } from "./sections/NewsletterSection";

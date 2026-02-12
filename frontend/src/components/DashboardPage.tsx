@@ -21,6 +21,7 @@ import {
   FaHome,
   FaSignOutAlt,
   FaUser,
+  FaUserFriends,
   FaPhotoVideo,
 } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
@@ -38,6 +39,7 @@ import {
   ProductsSection,
   GallerySection,
   HomepageBannersSection,
+  KeyPersonsSection,
   NewsSection,
   ReviewsSection,
   NewsletterSection,
@@ -67,6 +69,7 @@ type DashboardSection =
   | "products"
   | "gallery"
   | "homepage-banners"
+  | "key-persons"
   | "news"
   | "reviews"
   | "newsletter"
@@ -87,6 +90,7 @@ const SIDEBAR_ITEMS: { id: DashboardSection; label: string; icon: React.ReactNod
   { id: "products", label: "Products", icon: <FaBox size={SIDEBAR_ICON_SIZE} /> },
   { id: "gallery", label: "Gallery", icon: <FaImages size={SIDEBAR_ICON_SIZE} /> },
   { id: "homepage-banners", label: "Homepage Banners", icon: <FaPhotoVideo size={SIDEBAR_ICON_SIZE} /> },
+  { id: "key-persons", label: "Key Persons", icon: <FaUserFriends size={SIDEBAR_ICON_SIZE} /> },
   { id: "news", label: "News", icon: <FaNewspaper size={SIDEBAR_ICON_SIZE} /> },
   { id: "reviews", label: "Reviews", icon: <FaStar size={SIDEBAR_ICON_SIZE} /> },
   { id: "newsletter", label: "Newsletter", icon: <FaEnvelope size={SIDEBAR_ICON_SIZE} /> },
@@ -370,6 +374,7 @@ const DashboardPage = () => {
           {activeSection === "products" && <ProductsSection />}
           {activeSection === "gallery" && <GallerySection />}
           {activeSection === "homepage-banners" && <HomepageBannersSection />}
+          {activeSection === "key-persons" && <KeyPersonsSection />}
           {activeSection === "news" && <NewsSection />}
           {activeSection === "reviews" && <ReviewsSection />}
           {activeSection === "newsletter" && <NewsletterSection />}

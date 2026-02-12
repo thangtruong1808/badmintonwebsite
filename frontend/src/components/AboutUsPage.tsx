@@ -1,25 +1,19 @@
 import {
-  FaUsers,
-  FaTrophy,
-  FaCalendarAlt,
-  FaHeart,
   FaBullseye,
+  FaCalendarAlt,
   FaHandshake,
+  FaTrophy,
+  FaUsers
 } from "react-icons/fa";
 // import { GiShuttlecock } from "react-icons/gi";
 import { useEffect } from "react";
+import KeyPersonsSection from "./AboutUsPage/KeyPersonsSection";
 
 const AboutUsPage = () => {
   useEffect(() => {
     document.title = "ChibiBadminton - About Us";
   }, []);
 
-  const stats = [
-    { icon: FaUsers, value: "100+", label: "Active Members" },
-    { icon: FaTrophy, value: "20+", label: "Tournaments" },
-    { icon: FaCalendarAlt, value: "3+", label: "Events Hosted" },
-    { icon: FaHeart, value: "4.7/5", label: "Member Rating" },
-  ];
 
   const values = [
     {
@@ -73,33 +67,8 @@ const AboutUsPage = () => {
             </p>
           </div>
         </section>
-
-        {/* Statistics Section */}
-        <section className="mb-16">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {stats.map((stat, index) => {
-              const IconComponent = stat.icon;
-              return (
-                <div
-                  key={index}
-                  className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg shadow-lg p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-                >
-                  <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center">
-                      <IconComponent className="text-white" size={32} />
-                    </div>
-                  </div>
-                  <div className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 font-calibri">
-                    {stat.value}
-                  </div>
-                  <div className="text-sm md:text-base text-gray-800 font-bold font-calibri">
-                    {stat.label}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+        {/* Key Persons / Meet Our Team */}
+        <KeyPersonsSection />
 
         {/* Mission & Vision Section */}
         <section className="mb-16">
@@ -171,6 +140,8 @@ const AboutUsPage = () => {
           </div>
         </section>
 
+
+
         {/* What We Offer Section */}
         <section className="mb-16">
           <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg shadow-lg p-8 md:p-12">
@@ -198,7 +169,7 @@ const AboutUsPage = () => {
                   Tournaments
                 </h3>
                 <p className="text-gray-800 font-calibri">
-                  We host a small number of tournaments each annual year. We refer to them as "Battle Royale" - A fun way to describe our competitions :)
+                  We host a small number of tournaments each annual year. We refer to them as "Battle Royale" - A fun way to describe our competitions :).
                 </p>
               </div>
               <div className="text-center">
@@ -216,24 +187,6 @@ const AboutUsPage = () => {
           </div>
         </section>
 
-        {/* Call to Action Section */}
-        {/* <section className="text-center">
-          <div className="bg-gradient-to-r from-green-500 to-green-700 rounded-lg shadow-xl p-8 md:p-12 text-white">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Join Our Community Today!
-            </h2>
-            <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto opacity-90">
-              Whether you're a beginner or a pro, there's a place for you in our
-              social groups. Come experience the ChibiBadminton difference!
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <span className="flex items-center justify-center gap-2 text-xl md:text-2xl lg:text-3xl  text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300">
-                <GiShuttlecock size={35} />
-                Let's Play!
-              </span>
-            </div>
-          </div>
-        </section> */}
       </div>
     </div>
   );
