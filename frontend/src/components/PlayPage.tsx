@@ -22,18 +22,25 @@ const PlayPage: React.FC = () => {
     document.title = "ChibiBadminton - Play Sessions";
   }, []);
 
-  // Load current user's registrations so we can support cancel/unregister
-  useEffect(() => {
+  const fetchMyRegistrations = useCallback(async () => {
     const user = getCurrentUser();
     if (!user?.id) {
       setMyRegistrations([]);
       return;
     }
-    (async () => {
-      const regs = await getUserRegistrations(user.id);
-      setMyRegistrations(regs);
-    })();
+    const regs = await getUserRegistrations(user.id);
+    setMyRegistrations(Array.isArray(regs) ? regs : []);
   }, []);
+
+  // Load current user's registrations so we can support cancel/unregister
+  useEffect(() => {
+    fetchMyRegistrations();
+  }, [fetchMyRegistrations]);
+
+  // Refetch my registrations when opening a session modal so cancel button is up to date
+  useEffect(() => {
+    if (selectedEvent) fetchMyRegistrations();
+  }, [selectedEvent?.id, fetchMyRegistrations]);
 
   const fetchEvents = useCallback(async () => {
     setEventsLoading(true);
@@ -69,9 +76,13 @@ const PlayPage: React.FC = () => {
   // Map eventId -> registration so we know if the current user is registered for a given session
   const eventIdToRegistration = useMemo(() => {
     const map = new Map<number, Registration & { id?: string }>();
-    (myRegistrations as (Registration & { id?: string })[]).forEach((reg) => {
-      if (reg.status === "confirmed" && reg.eventId && (reg as any).id) {
-        map.set(reg.eventId, reg);
+    (myRegistrations as (Registration & { id?: string; eventId?: number; event_id?: number })[]).forEach((reg) => {
+      const status = reg.status?.toLowerCase?.() ?? reg.status;
+      if (status !== "confirmed") return;
+      const eventId = reg.eventId ?? (reg as { event_id?: number }).event_id;
+      const id = reg.id ?? (reg as { id?: string }).id;
+      if (eventId != null && id != null) {
+        map.set(Number(eventId), { ...reg, eventId: Number(eventId), id: String(id) });
       }
     });
     return map;
@@ -179,8 +190,9 @@ const PlayPage: React.FC = () => {
         )}
 
         {(() => {
+          const eventId = selectedEvent?.id != null ? Number(selectedEvent.id) : null;
           const regForSelected =
-            selectedEvent && eventIdToRegistration.get(selectedEvent.id as number);
+            eventId != null ? eventIdToRegistration.get(eventId) : undefined;
           const regId = (regForSelected as (Registration & { id?: string }) | undefined)?.id;
 
           return (

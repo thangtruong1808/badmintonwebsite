@@ -217,13 +217,14 @@ const PlayPaymentPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate("/play/checkout")}
-                className="flex-1 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 font-bold"
+                disabled={submitStatus.type === "success"}
+                className="flex-1 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Back
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || submitStatus.type === "success"}
                 className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Processing…" : "Complete registration"}

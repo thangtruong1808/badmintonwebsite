@@ -3,6 +3,7 @@ import { FaTimes, FaUsers, FaCheckCircle } from "react-icons/fa";
 import type { SocialEvent } from "../../types/socialEvent";
 import { API_BASE } from "../../utils/api";
 import { getCurrentUser } from "../../utils/mockAuth";
+import ConfirmDialog from "../Dashboard/Shared/ConfirmDialog";
 
 interface RegisteredPlayer {
   name: string;
@@ -19,8 +20,8 @@ interface SessionDetailModalProps {
   selectedCount: number;
   /** When true, current user has a registration for this session */
   canCancel?: boolean;
-  /** Called when user clicks 'Cancel my registration' */
-  onCancelRegistration?: () => void;
+  /** Called when user clicks 'Cancel my registration'. May return a Promise; modal refetches registrations after it resolves. */
+  onCancelRegistration?: () => void | Promise<void>;
   /** Optional loading flag while cancellation is in progress */
   isCancelling?: boolean;
 }
@@ -38,13 +39,14 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
 }) => {
   const [players, setPlayers] = useState<RegisteredPlayer[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const user = getCurrentUser();
   const isAlreadyRegistered =
     !!user?.email &&
     players.some((p) => p.email?.toLowerCase() === user.email.toLowerCase());
 
-  useEffect(() => {
+  const fetchRegistrations = React.useCallback(() => {
     if (!event?.id) {
       setPlayers([]);
       return;
@@ -56,6 +58,18 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
       .catch(() => setPlayers([]))
       .finally(() => setPlayersLoading(false));
   }, [event?.id]);
+
+  useEffect(() => {
+    fetchRegistrations();
+  }, [fetchRegistrations]);
+
+  const handleCancelRegistration = async () => {
+    if (!onCancelRegistration) return;
+    setShowCancelConfirm(false);
+    const result = onCancelRegistration();
+    await (result instanceof Promise ? result : Promise.resolve());
+    fetchRegistrations();
+  };
 
   if (!event) return null;
 
@@ -150,7 +164,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               )}
               {isAlreadyRegistered && canCancel && onCancelRegistration && (
                 <button
-                  onClick={onCancelRegistration}
+                  onClick={() => setShowCancelConfirm(true)}
                   disabled={isCancelling}
                   className="w-full py-2.5 px-3 rounded-lg border-2 border-red-500 text-red-600 hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed font-medium transition-colors font-calibri text-sm sm:text-base"
                 >
@@ -193,6 +207,16 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={showCancelConfirm}
+        title="Cancel registration"
+        message="Are you sure you want to cancel your registration for this session? Your spot will be released for others."
+        confirmLabel="Yes, cancel"
+        cancelLabel="Keep registration"
+        variant="danger"
+        onConfirm={handleCancelRegistration}
+        onCancel={() => setShowCancelConfirm(false)}
+      />
     </div>
   );
 };
