@@ -107,8 +107,21 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
   }, [history, activeTab]);
 
   const hasRegistrations = registrations.length > 0;
+  // Attended tab: show attended from BOTH registrations and event history (dedupe by eventId)
+  const attendedEventIdsFromRegs = useMemo(
+    () =>
+      hasRegistrations && activeTab === "attended"
+        ? new Set(filteredByTab.map((r) => r.eventId))
+        : new Set<number>(),
+    [hasRegistrations, activeTab, filteredByTab]
+  );
   const displayItems = hasRegistrations ? filteredByTab : [];
-  const displayHistory = !hasRegistrations ? filteredHistory : [];
+  const displayHistory =
+    !hasRegistrations
+      ? filteredHistory
+      : activeTab === "attended"
+        ? filteredHistory.filter((h) => !attendedEventIdsFromRegs.has(h.eventId))
+        : [];
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -206,8 +219,8 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
         ))}
       </div>
 
-      {/* Show all (including cancelled) - for registrations list */}
-      {hasRegistrations && (
+      {/* Show all (including cancelled) and Select all - only when All tab is active */}
+      {hasRegistrations && activeTab === "all" && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <button
             type="button"
