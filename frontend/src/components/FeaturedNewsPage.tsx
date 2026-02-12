@@ -97,7 +97,7 @@ const FeaturedNewsPage: React.FC = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 text-sm sm:text-base font-calibri font-medium rounded-t transition-colors ${activeTab === tab.key
+              className={`uppercase px-4 py-2 text-sm sm:text-base font-calibri font-medium rounded-t transition-colors ${activeTab === tab.key
                 ? "text-rose-600 border-b-2 border-rose-600 -mb-[9px] bg-white/50"
                 : "text-gray-600 hover:text-gray-900 hover:bg-white/30"
                 }`}
