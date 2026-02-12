@@ -33,6 +33,14 @@ const newsletterSubscribeSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
 });
 
+const contactFormSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().optional(),
+  subject: z.string().min(1, 'Subject is required'),
+  message: z.string().min(10, 'Message must be at least 10 characters'),
+});
+
 // Validation middleware
 export const validateLogin = (
   req: Request,
@@ -109,6 +117,23 @@ export const validateNewsletterSubscribe = (
 ): void => {
   try {
     newsletterSubscribeSchema.parse(req.body);
+    next();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errorMessage = error.errors.map((e) => e.message).join(', ');
+      throw createError(errorMessage, 400);
+    }
+    next(error);
+  }
+};
+
+export const validateContactForm = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  try {
+    contactFormSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
-import emailjs from "@emailjs/browser";
 import {
   FaEnvelope,
   FaUser,
@@ -9,6 +8,7 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
 } from "react-icons/fa";
+import { apiFetch } from "../utils/api";
 
 interface FormData {
   name: string;
@@ -45,14 +45,6 @@ const ContactUsPage = () => {
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
-
-  // Initialize EmailJS with public key
-  useEffect(() => {
-    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-    if (publicKey && publicKey !== "YOUR_PUBLIC_KEY") {
-      emailjs.init(publicKey);
-    }
-  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -107,39 +99,23 @@ const ContactUsPage = () => {
     setSubmitStatus({ type: null, message: "" });
 
     try {
-      // EmailJS service configuration
-      // To set up EmailJS:
-      // 1. Sign up at https://www.emailjs.com/
-      // 2. Create an email service (Gmail, Outlook, etc.)
-      // 3. Create an email template with these variables: {{from_name}}, {{from_email}}, {{phone}}, {{subject}}, {{message}}
-      // 4. Get your Service ID, Template ID, and Public Key
-      // 5. Add them to your .env file or replace the values below:
+      const res = await apiFetch("/api/contact", {
+        method: "POST",
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone?.trim() || undefined,
+          subject: formData.subject.trim(),
+          message: formData.message.trim(),
+        }),
+        skipAuth: true,
+      });
 
-      const serviceId =
-        import.meta.env.VITE_EMAILJS_SERVICE_ID || "YOUR_SERVICE_ID";
-      const templateId =
-        import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID";
-      const publicKey =
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
-
-      // Check if EmailJS is configured
-      if (
-        serviceId === "YOUR_SERVICE_ID" ||
-        templateId === "YOUR_TEMPLATE_ID" ||
-        publicKey === "YOUR_PUBLIC_KEY"
-      ) {
-        // Fallback: Open mailto link if EmailJS is not configured
-        const mailtoLink = `mailto:support@chibibadminton.com.au?subject=${encodeURIComponent(
-          formData.subject
-        )}&body=${encodeURIComponent(
-          `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || "Not provided"
-          }\n\nMessage:\n${formData.message}`
-        )}`;
-        window.location.href = mailtoLink;
+      if (res.ok) {
         setSubmitStatus({
           type: "success",
           message:
-            "Opening your email client. If it doesn't open, please send an email to support@chibibadminton.com.au",
+            "Thank you! Your message has been sent successfully. We'll get back to you soon!",
         });
         setFormData({
           name: "",
@@ -148,39 +124,16 @@ const ContactUsPage = () => {
           subject: "",
           message: "",
         });
-        setIsSubmitting(false);
-        return;
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubmitStatus({
+          type: "error",
+          message:
+            data.message || "Oops! Something went wrong. Please try again or contact us directly at support@chibibadminton.com.au",
+        });
       }
-
-      // Using EmailJS to send email
-      await emailjs.send(
-        serviceId,
-        templateId,
-        {
-          from_name: formData.name,
-          from_email: formData.email,
-          phone: formData.phone || "Not provided",
-          subject: formData.subject,
-          message: formData.message,
-          to_email: "support@chibibadminton.com.au",
-        },
-        publicKey
-      );
-
-      setSubmitStatus({
-        type: "success",
-        message:
-          "Thank you! Your message has been sent successfully. We'll get back to you soon!",
-      });
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        subject: "",
-        message: "",
-      });
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.error("Error sending message:", error);
       setSubmitStatus({
         type: "error",
         message:

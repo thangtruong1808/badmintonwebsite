@@ -39,6 +39,24 @@ function rowToContact(r: ContactDbRow): ContactMessageRow {
   };
 }
 
+export const create = async (data: {
+  name: string;
+  email: string;
+  phone?: string | null;
+  subject: string;
+  message: string;
+}): Promise<ContactMessageRow> => {
+  const phone = data.phone ?? null;
+  const [result] = await pool.execute(
+    'INSERT INTO contact_messages (name, email, phone, subject, message, status) VALUES (?, ?, ?, ?, ?, ?)',
+    [data.name, data.email, phone, data.subject, data.message, 'new']
+  );
+  const id = (result as { insertId: number }).insertId;
+  const created = await findById(id);
+  if (!created) throw new Error('Contact message create: findById failed');
+  return created;
+};
+
 export const findAll = async (): Promise<ContactMessageRow[]> => {
   const [rows] = await pool.execute<ContactDbRow[]>(
     'SELECT * FROM contact_messages ORDER BY created_at DESC'

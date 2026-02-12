@@ -19,6 +19,7 @@ import homepageBannersRoutes from './routes/homepageBanners.js';
 import keyPersonsRoutes from './routes/keyPersons.js';
 import uploadRoutes from './routes/upload.js';
 import serviceOptionsRoutes from './routes/serviceOptions.js';
+import contactRoutes from './routes/contact.js';
 import { seedPlaySlotsIfEmpty } from './utils/initializeData.js';
 
 // Seed play_slots on startup if empty
@@ -74,6 +75,7 @@ app.use('/api/homepage-banners', homepageBannersRoutes);
 app.use('/api/key-persons', keyPersonsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/service-options', serviceOptionsRoutes);
+app.use('/api/contact', contactRoutes);
 
 // 404 handler
 app.use((req, res) => {

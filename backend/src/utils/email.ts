@@ -58,3 +58,66 @@ export async function sendPasswordResetEmail(
     console.error('[email] Failed to send password reset email:', err);
   }
 }
+
+export interface ContactFormData {
+  name: string;
+  email: string;
+  phone?: string | null;
+  subject: string;
+  message: string;
+}
+
+/**
+ * Send contact form email to CONTACT_MAIL_TO (e.g. support@). From MAIL_FROM, Reply-To = submitter email.
+ * Does not throw; logs errors so API can still return success if DB save succeeded.
+ */
+export async function sendContactFormEmail(data: ContactFormData): Promise<void> {
+  const trans = getTransporter();
+  const to = process.env.CONTACT_MAIL_TO;
+  if (!trans || !to) {
+    if (!to) console.warn('[email] CONTACT_MAIL_TO not set; skipping contact form email.');
+    else console.warn('[email] SMTP not configured; skipping contact form email.');
+    return;
+  }
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  const phone = data.phone ?? 'Not provided';
+  const subject = `Contact form: ${data.subject}`;
+  const text = [
+    `Name: ${data.name}`,
+    `Email: ${data.email}`,
+    `Phone: ${phone}`,
+    `Subject: ${data.subject}`,
+    '',
+    'Message:',
+    data.message,
+  ].join('\n');
+  const html = [
+    '<p><strong>Name:</strong> ' + escapeHtml(data.name) + '</p>',
+    '<p><strong>Email:</strong> ' + escapeHtml(data.email) + '</p>',
+    '<p><strong>Phone:</strong> ' + escapeHtml(phone) + '</p>',
+    '<p><strong>Subject:</strong> ' + escapeHtml(data.subject) + '</p>',
+    '<p><strong>Message:</strong></p>',
+    '<p>' + escapeHtml(data.message).replace(/\n/g, '<br>') + '</p>',
+  ].join('\n');
+  try {
+    await trans.sendMail({
+      from,
+      to,
+      replyTo: data.email,
+      subject,
+      text,
+      html,
+    });
+  } catch (err) {
+    console.error('[email] Failed to send contact form email:', err);
+  }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
