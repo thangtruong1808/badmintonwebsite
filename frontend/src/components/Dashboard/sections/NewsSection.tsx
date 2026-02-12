@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
@@ -6,11 +6,10 @@ import ConfirmDialog from "../Shared/ConfirmDialog";
 import {
   TextInput,
   NumberInput,
-  Select,
   TextArea,
   FormActions,
 } from "../Shared/inputs";
-import { apiFetch } from "../../../utils/api";
+import { apiFetch, API_BASE } from "../../../utils/api";
 
 export interface NewsRow {
   id: number;
@@ -26,12 +25,6 @@ export interface NewsRow {
   display_order: number;
   created_at?: string;
 }
-
-const BADGE_OPTIONS = [
-  { value: "UPCOMING", label: "Upcoming" },
-  { value: "REGULAR", label: "Regular" },
-  { value: "OPEN", label: "Open" },
-];
 
 const COLUMNS: Column<NewsRow>[] = [
   { key: "id", label: "ID" },
@@ -50,6 +43,9 @@ const NewsSection: React.FC = () => {
   const [editing, setEditing] = useState<NewsRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<NewsRow | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     image: "",
     title: "",
@@ -57,7 +53,7 @@ const NewsSection: React.FC = () => {
     time: "",
     location: "",
     description: "",
-    badge: "OPEN",
+    badge: "",
     category: "",
     link: "",
     display_order: 0,
@@ -91,12 +87,46 @@ const NewsSection: React.FC = () => {
       time: "",
       location: "",
       description: "",
-      badge: "OPEN",
+      badge: "",
       category: "",
       link: "",
       display_order: 0,
     });
+    setUploadError(null);
     setModalOpen(true);
+  };
+
+  const uploadNewsImage = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please select an image file (JPEG, PNG, etc.).");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setUploadError("Image must be less than 4MB.");
+      return;
+    }
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch(`${API_BASE}/api/upload/news-image`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Upload failed");
+      }
+      const data = await res.json();
+      setForm((f) => ({ ...f, image: data.url }));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const openEdit = (row: NewsRow) => {
@@ -113,6 +143,7 @@ const NewsSection: React.FC = () => {
       link: row.link ?? "",
       display_order: row.display_order,
     });
+    setUploadError(null);
     setModalOpen(true);
   };
 
@@ -126,7 +157,7 @@ const NewsSection: React.FC = () => {
       time: form.time || undefined,
       location: form.location || undefined,
       description: form.description || undefined,
-      badge: form.badge,
+      badge: form.badge.trim() || undefined,
       category: form.category || undefined,
       link: form.link || undefined,
       display_order: form.display_order,
@@ -210,12 +241,45 @@ const NewsSection: React.FC = () => {
         {formError && (
           <p className="text-sm text-red-600 font-calibri mb-2">{formError}</p>
         )}
-        <TextInput
-          label="Image URL"
-          name="image"
-          value={form.image}
-          onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
-        />
+        <div className="space-y-2">
+          <label className="block font-calibri text-sm font-medium text-gray-700">
+            Image
+          </label>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="block w-full text-sm text-gray-600 file:mr-4 file:rounded file:border-0 file:bg-rose-100 file:px-4 file:py-2 file:font-calibri file:text-rose-800 hover:file:bg-rose-200"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) uploadNewsImage(file);
+              }}
+            />
+            <span className="font-calibri text-sm text-gray-500 shrink-0">or paste URL below</span>
+          </div>
+          {uploading && (
+            <p className="text-sm text-gray-500 font-calibri">Uploading…</p>
+          )}
+          {uploadError && (
+            <p className="text-sm text-red-600 font-calibri">{uploadError}</p>
+          )}
+          <TextInput
+            label="Image URL (optional if you uploaded above)"
+            name="image"
+            type="url"
+            value={form.image}
+            onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
+            placeholder="https://… or leave empty after upload"
+          />
+          {form.image && (
+            <img
+              src={form.image}
+              alt="Preview"
+              className="mt-2 h-24 w-auto max-w-full object-contain rounded border border-gray-200"
+            />
+          )}
+        </div>
         <TextInput
           label="Title"
           name="title"
@@ -249,12 +313,12 @@ const NewsSection: React.FC = () => {
             setForm((f) => ({ ...f, description: e.target.value }))
           }
         />
-        <Select
+        <TextInput
           label="Badge"
           name="badge"
           value={form.badge}
           onChange={(e) => setForm((f) => ({ ...f, badge: e.target.value }))}
-          options={BADGE_OPTIONS}
+          placeholder="e.g. UPCOMING, REGULAR, OPEN"
         />
         <TextInput
           label="Category"

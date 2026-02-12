@@ -446,7 +446,7 @@ CREATE TABLE IF NOT EXISTS news_articles (
     time VARCHAR(100),
     location VARCHAR(255),
     description TEXT,
-    badge ENUM('UPCOMING', 'REGULAR', 'OPEN') NOT NULL DEFAULT 'OPEN',
+    badge VARCHAR(100) NOT NULL DEFAULT 'OPEN',
     category VARCHAR(100),
     link VARCHAR(500),
     display_order INT NOT NULL DEFAULT 0,

@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { FaPaperPlane, FaArrowLeft } from "react-icons/fa";
-import type { SocialEvent } from "../types/socialEvent";
 import { apiFetch } from "../utils/api";
-
-const BATTLE_ROYALE_REGISTRATION_LINK =
-  "https://docs.google.com/forms/d/e/1FAIpQLSc-JLX4pyrKoz8-G0CUKdFDrorKanOHJ_d1XmRB7TZoYS1ozQ/viewform";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -18,48 +14,65 @@ function formatDate(dateStr: string): string {
   return `${month} ${day}, ${y}`;
 }
 
+/** News article from news_articles table (GET /api/news/:id) */
+interface NewsArticle {
+  id: number;
+  image?: string | null;
+  title: string;
+  date?: string | null;
+  time?: string | null;
+  location?: string | null;
+  description?: string | null;
+  badge: string;
+  category?: string | null;
+  link?: string | null;
+  display_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 const NewsDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [event, setEvent] = useState<SocialEvent | null>(null);
+  const [article, setArticle] = useState<NewsArticle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = event ? `${event.title} - ChibiBadminton` : "Event Details - ChibiBadminton";
+    document.title = article ? `${article.title} - ChibiBadminton` : "News - ChibiBadminton";
     return () => {
       document.title = "ChibiBadminton";
     };
-  }, [event]);
+  }, [article]);
 
   useEffect(() => {
     if (!id) {
       setLoading(false);
-      setError("Invalid event ID");
+      setError("Invalid article ID");
       return;
     }
-    const fetchEvent = async () => {
+    const fetchArticle = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await apiFetch(`/api/events/${id}`, { skipAuth: true });
+        const res = await apiFetch(`/api/news/${id}`, { skipAuth: true });
         if (res.ok) {
           const data = await res.json();
-          setEvent(data);
+          setArticle(data);
         } else if (res.status === 404) {
-          setEvent(null);
-          setError("Event not found");
+          setArticle(null);
+          setError("Article not found");
         } else {
-          setEvent(null);
-          setError("Failed to load event");
+          setArticle(null);
+          setError("Failed to load article");
         }
       } catch {
-        setEvent(null);
-        setError("Failed to load event");
+        setArticle(null);
+        setError("Failed to load article");
       } finally {
         setLoading(false);
       }
     };
-    fetchEvent();
+    fetchArticle();
   }, [id]);
 
   if (loading) {
@@ -74,18 +87,18 @@ const NewsDetailPage: React.FC = () => {
     );
   }
 
-  if (error || !event) {
+  if (error || !article) {
     return (
       <div className="w-full min-h-screen bg-gradient-to-r from-rose-50 to-rose-100">
         <div className="container mx-auto px-4 pt-12 pb-8">
           <div className="text-center py-16">
-            <p className="text-gray-600 font-calibri mb-4">{error ?? "Event not found"}</p>
+            <p className="text-gray-600 font-calibri mb-4">{error ?? "Article not found"}</p>
             <Link
               to="/featured-news"
               className="inline-flex items-center gap-2 text-rose-600 hover:text-rose-700 font-calibri font-medium"
             >
               <FaArrowLeft size={14} />
-              Back to Battle Royale Events
+              Back to Featured News
             </Link>
           </div>
         </div>
@@ -93,7 +106,7 @@ const NewsDetailPage: React.FC = () => {
     );
   }
 
-  const isUpcoming = event.status === "available" || event.status === "full";
+  const hasLink = article.link && article.link.trim();
 
   return (
     <div className="w-full overflow-x-hidden min-h-screen bg-gradient-to-r from-rose-50 to-rose-100">
@@ -103,15 +116,15 @@ const NewsDetailPage: React.FC = () => {
           className="inline-flex items-center gap-2 text-rose-600 hover:text-rose-700 font-calibri text-sm sm:text-base mb-6"
         >
           <FaArrowLeft size={14} />
-          Back to Battle Royale Events
+          Back to Featured News
         </Link>
 
         <article className="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
           {/* Image */}
           <div className="relative w-full aspect-video sm:aspect-[2/1] bg-gray-100">
-            {event.imageUrl ? (
+            {article.image ? (
               <img
-                src={event.imageUrl}
+                src={article.image}
                 alt=""
                 className="w-full h-full object-contain"
               />
@@ -120,77 +133,65 @@ const NewsDetailPage: React.FC = () => {
                 No image
               </div>
             )}
-            <span
-              className={`absolute top-3 right-3 text-white text-sm font-bold px-3 py-1 rounded font-calibri ${isUpcoming ? "bg-rose-600" : "bg-gray-700"}`}
-            >
-              {isUpcoming ? "Upcoming" : "Completed"}
+            <span className="absolute top-3 right-3 text-white text-sm font-bold px-3 py-1 rounded font-calibri bg-rose-500">
+              {article.badge}
             </span>
           </div>
 
           {/* Content */}
           <div className="p-6 sm:p-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-huglove mb-4">
-              {event.title}
+              {article.title}
             </h1>
 
             <dl className="space-y-2 sm:space-y-3 text-gray-600 font-calibri text-sm sm:text-base mb-6">
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                <dt className="font-semibold text-gray-700">Date:</dt>
-                <dd>{formatDate(event.date)}</dd>
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                <dt className="font-semibold text-gray-700">Time:</dt>
-                <dd>{event.time ?? "TBD"}</dd>
-                {event.dayOfWeek && (
-                  <>
-                    <dt className="font-semibold text-gray-700">Day:</dt>
-                    <dd>{event.dayOfWeek}</dd>
-                  </>
-                )}
-              </div>
-              {event.location && (
+              {article.date && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  <dt className="font-semibold text-gray-700">Date:</dt>
+                  <dd>{formatDate(article.date)}</dd>
+                </div>
+              )}
+              {article.time && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  <dt className="font-semibold text-gray-700">Time:</dt>
+                  <dd>{article.time}</dd>
+                </div>
+              )}
+              {article.location && (
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
                   <dt className="font-semibold text-gray-700">Location:</dt>
-                  <dd>{event.location}</dd>
+                  <dd>{article.location}</dd>
                 </div>
               )}
-              {event.maxCapacity != null && (
+              {article.category && (
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
-                  <dt className="font-semibold text-gray-700">Capacity:</dt>
-                  <dd>
-                    {event.currentAttendees ?? 0} / {event.maxCapacity} attendees
-                  </dd>
-                </div>
-              )}
-              {event.price != null && event.price > 0 && (
-                <div className="flex flex-wrap gap-x-4 gap-y-1">
-                  <dt className="font-semibold text-gray-700">Price:</dt>
-                  <dd>${event.price.toFixed(2)}</dd>
+                  <dt className="font-semibold text-gray-700">Category:</dt>
+                  <dd>{article.category}</dd>
                 </div>
               )}
             </dl>
 
-            {event.description && (
+            {article.description && (
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-gray-800 font-calibri mb-2">
                   Description
                 </h2>
                 <p className="text-gray-600 font-calibri whitespace-pre-wrap leading-relaxed">
-                  {event.description}
+                  {article.description}
                 </p>
               </div>
             )}
 
-            {isUpcoming && (
+            {hasLink && (
               <div className="pt-2">
                 <a
-                  href={BATTLE_ROYALE_REGISTRATION_LINK}
+                  href={article.link!.trim()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold py-3 px-5 rounded-lg text-sm sm:text-base font-calibri transition-colors"
                 >
                   <FaPaperPlane size={16} />
-                  Register Now
+                  Read more
                 </a>
               </div>
             )}

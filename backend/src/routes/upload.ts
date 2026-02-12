@@ -525,4 +525,65 @@ router.post(
   }
 );
 
+/**
+ * @route   POST /api/upload/news-image
+ * @desc    Upload news article image to Cloudinary (admin only).
+ * @access  Private (admin)
+ */
+router.post(
+  '/news-image',
+  authenticateToken,
+  requireAdmin,
+  upload.single('image'),
+  async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.file) {
+        throw createError('No file uploaded', 400);
+      }
+
+      if (
+        !process.env.CLOUDINARY_CLOUD_NAME ||
+        !process.env.CLOUDINARY_API_KEY ||
+        !process.env.CLOUDINARY_API_SECRET
+      ) {
+        throw createError('Cloudinary is not configured', 500);
+      }
+
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'chibibadminton/news',
+          public_id: `news_${Date.now()}`,
+          transformation: [
+            { width: 1200, height: 630, crop: 'fill', gravity: 'auto' },
+            { quality: 'auto:good' },
+          ],
+          format: 'jpg',
+        },
+        (error, result) => {
+          if (error) {
+            next(createError('Failed to upload image to Cloudinary', 500));
+            return;
+          }
+
+          if (!result) {
+            next(createError('Upload result is empty', 500));
+            return;
+          }
+
+          res.json({
+            success: true,
+            url: result.secure_url,
+            publicId: result.public_id,
+          });
+        }
+      );
+
+      const bufferStream = Readable.from(req.file.buffer);
+      bufferStream.pipe(uploadStream);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 export default router;

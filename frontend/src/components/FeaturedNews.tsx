@@ -1,76 +1,59 @@
 import React, { useState, useEffect } from "react";
 import { FaPaperPlane } from "react-icons/fa";
-import { Link } from "react-router-dom";
-import RegistrationModal from "./PlayPage/RegistrationModal";
-import type { SocialEvent } from "../types/socialEvent";
+import { Link, useNavigate } from "react-router-dom";
 import { apiFetch } from "../utils/api";
 
-const BATTLE_ROYALE_REGISTRATION_LINK =
-  "https://docs.google.com/forms/d/e/1FAIpQLSc-JLX4pyrKoz8-G0CUKdFDrorKanOHJ_d1XmRB7TZoYS1ozQ/viewform";
-
-export interface PlaySlot {
+/** News article from news_articles table (GET /api/news) */
+export interface NewsArticle {
   id: number;
-  dayOfWeek: string;
-  time: string;
-  location: string;
+  image?: string | null;
   title: string;
-  description: string | null;
-  price: number;
-  maxCapacity: number;
-  imageUrl?: string | null;
-  isActive: boolean;
+  date?: string | null;
+  time?: string | null;
+  location?: string | null;
+  description?: string | null;
+  badge: string;
+  category?: string | null;
+  link?: string | null;
+  display_order: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export type FeaturedItem =
-  | { type: "event"; data: SocialEvent }
-  | { type: "playSlot"; data: PlaySlot };
+const FEATURED_LIMIT = 3;
 
 const badgeColor = (badge: string) => {
   switch (badge) {
-    case "WEDNESDAY":
-      return "bg-green-500";
-    case "FRIDAY":
-      return "bg-blue-500";
     case "UPCOMING":
       return "bg-rose-600";
+    case "REGULAR":
+      return "bg-green-500";
+    case "OPEN":
+      return "bg-blue-500";
     default:
       return "bg-rose-500";
   }
 };
 
 const FeaturedNews: React.FC = () => {
-  const [battleRoyaleEvents, setBattleRoyaleEvents] = useState<SocialEvent[]>([]);
-  const [playSlots, setPlaySlots] = useState<PlaySlot[]>([]);
-  const [socialEvents, setSocialEvents] = useState<SocialEvent[]>([]);
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false);
-  const [registrationEvents, setRegistrationEvents] = useState<SocialEvent[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [battleRoyaleRes, playSlotsRes, eventsRes] = await Promise.all([
-          apiFetch("/api/events?category=tournament", { skipAuth: true }),
-          apiFetch("/api/play-slots?active=true", { skipAuth: true }),
-          apiFetch("/api/events", { skipAuth: true }),
-        ]);
-        if (battleRoyaleRes.ok) {
-          const list = await battleRoyaleRes.json();
-          setBattleRoyaleEvents(Array.isArray(list) ? list : []);
-        }
-        if (playSlotsRes.ok) {
-          const list = await playSlotsRes.json();
-          setPlaySlots(Array.isArray(list) ? list : []);
-        }
-        if (eventsRes.ok) {
-          const list = await eventsRes.json();
-          setSocialEvents(Array.isArray(list) ? list : []);
+        const res = await apiFetch("/api/news", { skipAuth: true });
+        if (res.ok) {
+          const list = await res.json();
+          const data = Array.isArray(list) ? list : [];
+          setArticles(data);
+        } else {
+          setArticles([]);
         }
       } catch {
-        setBattleRoyaleEvents([]);
-        setPlaySlots([]);
-        setSocialEvents([]);
+        setArticles([]);
       } finally {
         setLoading(false);
       }
@@ -78,33 +61,16 @@ const FeaturedNews: React.FC = () => {
     fetchData();
   }, []);
 
-  const upcomingBattleRoyale = battleRoyaleEvents.filter(
-    (e) => e.status === "available" || e.status === "full"
-  );
-  const wednesdaySlot = playSlots.find((s) => s.dayOfWeek === "Wednesday");
-  const fridaySlot = playSlots.find((s) => s.dayOfWeek === "Friday");
+  const featuredItems = articles.slice(0, FEATURED_LIMIT);
 
-  const featuredItems: FeaturedItem[] = [];
-  if (upcomingBattleRoyale[0]) featuredItems.push({ type: "event", data: upcomingBattleRoyale[0] });
-  if (wednesdaySlot) featuredItems.push({ type: "playSlot", data: wednesdaySlot });
-  if (fridaySlot) featuredItems.push({ type: "playSlot", data: fridaySlot });
-
-  const handleRegisterClick = (item: FeaturedItem) => {
-    if (item.type === "event") {
-      window.open(BATTLE_ROYALE_REGISTRATION_LINK, "_blank");
-      return;
-    }
-    const slot = item.data;
-    const matchingEvent = socialEvents.find(
-      (e) => e.dayOfWeek === slot.dayOfWeek || e.title?.toLowerCase().includes(slot.dayOfWeek.toLowerCase())
-    );
-    if (matchingEvent) {
-      setRegistrationEvents([matchingEvent]);
-      setIsRegistrationModalOpen(true);
+  const handleReadMore = (article: NewsArticle) => {
+    if (article.link && article.link.trim()) {
+      window.open(article.link.trim(), "_blank");
     } else {
-      window.location.href = "/play";
+      navigate("/featured-news");
     }
   };
+
   return (
     <div className="py-16 bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="container mx-auto px-4">
@@ -122,22 +88,19 @@ const FeaturedNews: React.FC = () => {
           </div>
         )}
         {!loading && featuredItems.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {featuredItems.map((item) => {
-              const isEvent = item.type === "event";
-              const isPlaySlot = item.type === "playSlot";
-              const title = item.data.title;
-              const image = isEvent ? (item.data as SocialEvent).imageUrl : (item.data as PlaySlot).imageUrl ?? undefined;
-              const description = item.data.description ?? "";
-              const date = isEvent ? (item.data as SocialEvent).date : (isPlaySlot ? `Every ${(item.data as PlaySlot).dayOfWeek}` : null);
-              const time = item.data.time ?? null;
-              const location = item.data.location ?? null;
-              const badge = isEvent ? "UPCOMING" : (item.data as PlaySlot).dayOfWeek.toUpperCase();
-              const key = isEvent ? `event-${(item.data as SocialEvent).id}` : `slot-${(item.data as PlaySlot).id}`;
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {featuredItems.map((article) => {
+              const title = article.title;
+              const image = article.image ?? undefined;
+              const description = article.description ?? "";
+              const date = article.date ?? null;
+              const time = article.time ?? null;
+              const location = article.location ?? null;
+              const badge = article.badge ?? "OPEN";
 
               return (
                 <div
-                  key={key}
+                  key={article.id}
                   className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col h-full"
                 >
                   <div className="relative h-64 overflow-hidden bg-white flex items-center justify-center">
@@ -155,26 +118,27 @@ const FeaturedNews: React.FC = () => {
                     <span
                       className={`absolute top-2 right-2 text-white text-md font-bold px-2 py-1 rounded font-calibri ${badgeColor(badge)}`}
                     >
-                      {isEvent ? "UPCOMING" : `${(item.data as PlaySlot).dayOfWeek} PLAY`}
+                      {badge}
                     </span>
                   </div>
                   <div className="p-4 flex-grow flex flex-col">
-                    <h3 className="font-bold text-3xl mb-2 font-calibri min-h-[3.5rem]">{title}</h3>
-                    <p className="text-gray-800 text-lg font-calibri text-justify mb-2 line-clamp-3">{description}</p>
+                    <h3 className="font-bold text-2xl sm:text-3xl mb-2 font-calibri min-h-[3.5rem]">{title}</h3>
+                    <p className="text-gray-800 text-base sm:text-lg font-calibri text-justify mb-2 line-clamp-3">{description}</p>
                     <div className="space-y-1 mb-4">
-                      {date && <p className="text-gray-800 text-lg font-calibri">Date: {date}</p>}
-                      {time && <p className="text-gray-800 text-lg font-calibri">Time: {time}</p>}
-                      {location && <p className="text-gray-800 text-lg font-calibri">Location: {location}</p>}
+                      {date && <p className="text-gray-800 text-base sm:text-lg font-calibri">Date: {date}</p>}
+                      {time && <p className="text-gray-800 text-base sm:text-lg font-calibri">Time: {time}</p>}
+                      {location && <p className="text-gray-800 text-base sm:text-lg font-calibri">Location: {location}</p>}
                     </div>
                   </div>
                   <div className="p-4 pt-0 mt-auto">
                     <button
-                      onClick={() => handleRegisterClick(item)}
+                      type="button"
+                      onClick={() => handleReadMore(article)}
                       className="w-full bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl transform hover:scale-105 font-calibri"
                     >
                       <div className="flex items-center justify-center gap-4">
                         <FaPaperPlane size={18} />
-                        <span className="font-calibri text-md font-bold">Register Now</span>
+                        <span className="font-calibri text-md font-bold">Read more</span>
                       </div>
                     </button>
                   </div>
@@ -192,16 +156,6 @@ const FeaturedNews: React.FC = () => {
           </Link>
         </div>
       </div>
-      {/* Registration Modal for Wednesday Playtime */}
-      <RegistrationModal
-        isOpen={isRegistrationModalOpen}
-        onClose={() => setIsRegistrationModalOpen(false)}
-        events={registrationEvents}
-        isMultiEvent={registrationEvents.length > 1}
-        onSuccess={(_updatedEvents) => {
-          // No-op for now on the homepage; PlayPage handles updates in detail
-        }}
-      />
     </div>
   );
 };
