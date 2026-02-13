@@ -1,12 +1,14 @@
 import React, { useState, type FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaMoneyBillWave } from "react-icons/fa";
+import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaMoneyBillWave, FaUserPlus, FaSignInAlt, FaTimes } from "react-icons/fa";
 import type { CartItem } from "./ShopCheckoutPage";
 import type { Product } from "./types";
+import { getCurrentUser } from "../../utils/mockAuth";
 
 interface PaymentState {
   products?: Product[];
   items?: CartItem[];
+  checkoutState?: { items?: CartItem[] };
 }
 
 const ShopPaymentPage: React.FC = () => {
@@ -15,7 +17,9 @@ const ShopPaymentPage: React.FC = () => {
   const state = location.state as PaymentState | null;
   const legacyProducts: Product[] = state?.products ?? [];
   const items: CartItem[] =
-    state?.items ?? legacyProducts.map((p) => ({ product: p, quantity: 1, unitPrice: p.price }));
+    state?.items ?? state?.checkoutState?.items ?? legacyProducts.map((p) => ({ product: p, quantity: 1, unitPrice: p.price }));
+  const user = getCurrentUser();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -41,8 +45,22 @@ const ShopPaymentPage: React.FC = () => {
     return Object.keys(err).length === 0;
   };
 
+  const handleGoToSignIn = () => {
+    setShowAuthDialog(false);
+    navigate("/signin", { state: { from: "/shop/payment", checkoutState: { items } } });
+  };
+
+  const handleGoToRegister = () => {
+    setShowAuthDialog(false);
+    navigate("/register", { state: { from: "/shop/payment", checkoutState: { items } } });
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
     if (!validate()) return;
 
     setIsSubmitting(true);
@@ -81,6 +99,7 @@ const ShopPaymentPage: React.FC = () => {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 font-huglove mb-6 text-center">
@@ -207,6 +226,63 @@ const ShopPaymentPage: React.FC = () => {
         </div>
       </div>
     </div>
+
+    {showAuthDialog && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shop-auth-dialog-title"
+        aria-describedby="shop-auth-dialog-desc"
+      >
+        <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
+          <div className="p-6">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h2 id="shop-auth-dialog-title" className="text-xl md:text-2xl font-bold text-gray-900 font-calibri">
+                Sign in to continue
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowAuthDialog(false)}
+                className="p-1.5 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                aria-label="Close"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+            <p id="shop-auth-dialog-desc" className="text-gray-600 font-calibri text-sm md:text-base leading-relaxed mb-6">
+              To complete your order, please sign in to your account or create a new one. We&apos;ll bring you right back here after you&apos;re done.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={handleGoToSignIn}
+                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-bold font-calibri transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+              >
+                <FaSignInAlt size={18} />
+                Sign in
+              </button>
+              <button
+                type="button"
+                onClick={handleGoToRegister}
+                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 border-2 border-rose-500 text-rose-600 rounded-lg hover:bg-rose-50 font-bold font-calibri transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+              >
+                <FaUserPlus size={18} />
+                Create account
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAuthDialog(false)}
+              className="w-full mt-3 py-2.5 text-gray-600 hover:text-gray-800 font-calibri text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 rounded-lg"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
