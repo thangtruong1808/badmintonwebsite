@@ -38,6 +38,7 @@ function App() {
   const dispatch = useDispatch();
   const isDashboard = location.pathname === "/dashboard";
   const isPlayRoute = location.pathname === "/play";
+  const isRegisterRoute = location.pathname === "/register";
 
   useTokenValidation();
 
@@ -76,7 +77,7 @@ function App() {
     <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
       {!isDashboard && <Navbar />}
       <main
-        className={`flex-grow w-full relative ${isPlayRoute ? "bg-gradient-to-r from-rose-50 to-rose-100" : ""}`}
+        className={`flex-grow w-full relative ${isPlayRoute ? "bg-gradient-to-r from-rose-50 to-rose-100" : ""} ${isRegisterRoute ? "bg-gradient-to-b from-rose-50 to-rose-100" : ""}`}
         style={!isDashboard ? { paddingTop: "var(--navbar-height, 56px)" } : undefined}
       >
         <Routes>

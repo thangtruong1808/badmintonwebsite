@@ -104,12 +104,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                               <span className="font-calibri text-md font-bold">Register Now</span>
                             </div>
                           </button>
-                          <button className="flex-1 bg-white hover:bg-gray-50 text-rose-500 border-2 border-rose-500 font-bold py-4 px-6 rounded-xl transition-all duration-300 text-lg hover:shadow-lg font-calibri">
-                            <div className="flex items-center justify-center gap-4">
-                              <FaInfoCircle size={18} />
-                              <span className="font-calibri text-md font-bold">Learn More</span>
-                            </div>
-                          </button>
+
                         </div>
                       </div>
                     </div>

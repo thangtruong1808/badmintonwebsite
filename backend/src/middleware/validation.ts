@@ -41,6 +41,20 @@ const contactFormSchema = z.object({
   message: z.string().min(10, 'Message must be at least 10 characters'),
 });
 
+const serviceRequestSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().min(1, 'Phone is required'),
+  racket_brand: z.string().min(1, 'Racket brand is required'),
+  racket_model: z.string().min(1, 'Racket model is required'),
+  string_type: z.string().min(1, 'String selection is required'),
+  string_colour: z.string().optional().nullable(),
+  tension: z.string().min(1, 'Tension is required'),
+  stencil: z.union([z.boolean(), z.string()]).transform((v) => Boolean(v)),
+  grip: z.union([z.boolean(), z.string()]).transform((v) => Boolean(v)),
+  message: z.string().optional().nullable(),
+});
+
 // Validation middleware
 export const validateLogin = (
   req: Request,
@@ -134,6 +148,23 @@ export const validateContactForm = (
 ): void => {
   try {
     contactFormSchema.parse(req.body);
+    next();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errorMessage = error.errors.map((e) => e.message).join(', ');
+      throw createError(errorMessage, 400);
+    }
+    next(error);
+  }
+};
+
+export const validateServiceRequest = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  try {
+    req.body = serviceRequestSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -334,20 +334,20 @@ const ResetPasswordPage = () => {
 
             {/* Back to Sign In Link */}
             <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-              <span className="text-gray-500 text-md font-medium font-calibri text-lg text-rose-500">Remember your password? </span>
+              <span className="text-gray-500 text-md font-medium font-calibri text-md text-rose-500">Remember your password? </span>
               <Link
                 to="/signin"
-                className="text-rose-500 hover:text-rose-600 text-md font-medium font-calibri text-lg"
+                className="text-rose-500 hover:text-rose-600 text-md font-medium font-calibri text-md"
               >
                 <span className="text-rose-500 hover:text-rose-600 hover:underline">← Back to Sign In</span>
               </Link>
             </div>
 
             {/* Authenticated / Secure Message */}
-            <div className="w-full  rounded-lg p-4 flex flex-col items-center text-gray-500 text-md ">
-              <FaShieldAlt className="text-rose-500 mb-2" size={20} />
-              <span className="text-center leading-relaxed font-calibri text-md">
-                Your information is securely encrypted. We never share your data with third parties.
+            <div className="w-full rounded-lg p-4 flex flex-row flex-wrap items-center justify-center gap-2 text-gray-500 text-sm font-calibri">
+              <FaLock className="text-rose-500 flex-shrink-0" size={14} />
+              <span>
+                Secure authentication powered by encrypted connections.
               </span>
             </div>
 
@@ -355,7 +355,7 @@ const ResetPasswordPage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

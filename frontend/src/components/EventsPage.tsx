@@ -21,6 +21,11 @@ const EventsPage = () => {
     setSelectedEvent(null);
   };
 
+  const handleViewDetails = (event: EventDisplay) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="bg-gradient-to-r from-rose-50 to-rose-100 w-full min-h-screen overflow-x-hidden relative">
       <div className="relative z-10">
@@ -31,10 +36,14 @@ const EventsPage = () => {
           </div>
         )}
         <UpcomingEvents upcomingEvents={upcomingEvents} />
-        <EventsHistory completedEvents={completedEvents} />
+        <EventsHistory completedEvents={completedEvents} onViewDetails={handleViewDetails} />
         {!loading && events.length === 0 && <EventsEmptyState />}
         {isModalOpen && selectedEvent && (
-          <EventsRegistrationModal event={selectedEvent} onClose={closeRegistrationModal} />
+          <EventsRegistrationModal
+            event={selectedEvent}
+            onClose={closeRegistrationModal}
+            detailOnly={selectedEvent.status === "completed"}
+          />
         )}
       </div>
     </div>

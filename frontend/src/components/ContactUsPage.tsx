@@ -283,7 +283,7 @@ const ContactUsPage = () => {
                       >
                         <FaPhone className="inline mr-2 text-md" size={14} />
                         <span className="text-md">Phone Number</span>{" "}
-                        <span className="text-gray-400 font-calibri text-md">(Optional)</span>
+                        <span className="text-red-500 font-calibri text-md">(Optional)</span>
                       </label>
                       <input
                         type="tel"

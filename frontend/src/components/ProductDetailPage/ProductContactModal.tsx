@@ -25,8 +25,7 @@ interface ProductContactModalProps {
 }
 
 const inputClass = (hasError: boolean) =>
-  `w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-    hasError ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-green-500"
+  `w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${hasError ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-green-500"
   }`;
 
 const ProductContactModal = ({
@@ -46,10 +45,10 @@ const ProductContactModal = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
-        className="bg-gradient-to-t from-pink-100 to-pink-200 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-gradient-to-t from-rose-50 to-rose-100 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 border-b border-gray-300 px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-black font-calibri text-2xl">Contact Us</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 transition-colors">
             <FaTimes size={24} />
@@ -65,18 +64,17 @@ const ProductContactModal = ({
 
           {submitStatus.type && (
             <div
-              className={`mb-6 p-4 rounded-lg flex items-start space-x-3 ${
-                submitStatus.type === "success"
-                  ? "bg-rose-50 text-rose-800 border border-rose-200"
-                  : "bg-red-50 text-red-800 border border-red-200"
-              }`}
+              className={`mb-6 p-4 rounded-lg flex items-start space-x-3 ${submitStatus.type === "success"
+                ? "bg-rose-50 text-rose-800 border border-rose-200"
+                : "bg-red-50 text-red-800 border border-red-200"
+                }`}
             >
               {submitStatus.type === "success" ? (
                 <FaCheckCircle className="flex-shrink-0 mt-0.5" size={20} />
               ) : (
                 <FaExclamationCircle className="flex-shrink-0 mt-0.5" size={20} />
               )}
-              <p className="text-md font-calibri text-lg">{submitStatus.message}</p>
+              <p className="text-md font-calibri text-md">{submitStatus.message}</p>
             </div>
           )}
 
@@ -95,7 +93,7 @@ const ProductContactModal = ({
                 className={inputClass(!!errors.name)}
                 placeholder="Enter your full name"
               />
-              {errors.name && <p className="mt-1 text-red-500 font-calibri text-lg">{errors.name}</p>}
+              {errors.name && <p className="mt-1 text-red-500 font-calibri text-md">{errors.name}</p>}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -113,12 +111,12 @@ const ProductContactModal = ({
                   className={inputClass(!!errors.email)}
                   placeholder="Enter your email"
                 />
-                {errors.email && <p className="mt-1 text-red-500 font-calibri text-lg">{errors.email}</p>}
+                {errors.email && <p className="mt-1 text-red-500 font-calibri text-md">{errors.email}</p>}
               </div>
               <div>
-                <label htmlFor="phone" className="block text-md font-semibold text-gray-700 mb-2 font-calibri text-lg">
+                <label htmlFor="phone" className="block text-md font-semibold text-gray-700 mb-2 font-calibri text-md">
                   <FaPhone className="inline mr-2" size={14} />
-                  Phone Number <span className="text-gray-400 font-calibri text-lg">(Optional)</span>
+                  Phone Number <span className="text-red-500 font-calibri text-md">(Optional)</span>
                 </label>
                 <input
                   type="tel"
@@ -129,13 +127,13 @@ const ProductContactModal = ({
                   className={inputClass(!!errors.phone)}
                   placeholder="+61 400 000 000"
                 />
-                {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
+                {errors.phone && <p className="mt-1 text-sm text-red-500 font-calibri text-md">{errors.phone}</p>}
               </div>
             </div>
 
             <div>
-              <label htmlFor="subject" className="block text-md font-semibold text-gray-700 mb-2 font-calibri text-lg">
-                Subject <span className="text-red-500 font-calibri text-lg">*</span>
+              <label htmlFor="subject" className="block text-md font-semibold text-gray-700 mb-2 font-calibri text-md">
+                Subject <span className="text-red-500 font-calibri text-md">*</span>
               </label>
               <input
                 type="text"
@@ -176,9 +174,8 @@ const ProductContactModal = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`flex-1 flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-lg ${
-                  isSubmitting ? "opacity-70 cursor-not-allowed" : "hover:shadow-lg transform hover:-translate-y-0.5"
-                }`}
+                className={`flex-1 flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-lg ${isSubmitting ? "opacity-70 cursor-not-allowed" : "hover:shadow-lg transform hover:-translate-y-0.5"
+                  }`}
               >
                 {isSubmitting ? (
                   <>

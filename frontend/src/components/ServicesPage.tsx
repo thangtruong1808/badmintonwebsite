@@ -9,9 +9,8 @@ import {
   FaArrowLeft,
   FaTimes,
 } from "react-icons/fa";
-import emailjs from "@emailjs/browser";
 import { useNavigate } from "react-router-dom";
-import { API_BASE } from "../utils/api";
+import { API_BASE, apiFetch } from "../utils/api";
 
 interface FormData {
   name: string;
@@ -110,14 +109,6 @@ const ServicesPage = () => {
   const gripOptions =
     serviceOptions?.grips?.map((g) => ({ value: g.value, label: g.label })) ?? [];
 
-  // Initialize EmailJS
-  useEffect(() => {
-    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-    if (publicKey && publicKey !== "YOUR_PUBLIC_KEY") {
-      emailjs.init(publicKey);
-    }
-  }, []);
-
   useEffect(() => {
     document.title = "ChibiBadminton - Stringing Services";
   }, []);
@@ -201,31 +192,6 @@ const ServicesPage = () => {
     }
   };
 
-  const buildServiceDetails = () => {
-    let details = "Stringing Service Request:\n\n";
-    details += `Racket Brand: ${formData.racketBrand}\n`;
-    details += `Racket Model: ${formData.racketModel}\n`;
-    details += `String: ${formData.string}\n`;
-    if (formData.colour) {
-      details += `Colour: ${formData.colour}\n`;
-    }
-    details += `Tension: ${formData.tension}\n\n`;
-
-    details += "Extras:\n";
-    if (formData.stencil) {
-      details += `- Stencil: ${formData.stencil}\n`;
-    }
-    if (formData.grip) {
-      details += `- Grip: ${formData.grip}\n`;
-    }
-
-    if (formData.message.trim()) {
-      details += `\nAdditional Notes:\n${formData.message}`;
-    }
-
-    return details;
-  };
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -237,73 +203,30 @@ const ServicesPage = () => {
     setSubmitStatus({ type: null, message: "" });
 
     try {
-      const serviceId =
-        import.meta.env.VITE_EMAILJS_SERVICE_ID || "YOUR_SERVICE_ID";
-      const templateId =
-        import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID";
-      const publicKey =
-        import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
+      const res = await apiFetch("/api/service-requests", {
+        method: "POST",
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          racket_brand: formData.racketBrand.trim(),
+          racket_model: formData.racketModel.trim(),
+          string_type: formData.string,
+          string_colour: formData.colour?.trim() || null,
+          tension: formData.tension,
+          stencil: Boolean(formData.stencil),
+          grip: Boolean(formData.grip),
+          message: formData.message?.trim() || null,
+        }),
+        skipAuth: true,
+      });
 
-      // Check if EmailJS is configured
-      if (
-        serviceId === "YOUR_SERVICE_ID" ||
-        templateId === "YOUR_TEMPLATE_ID" ||
-        publicKey === "YOUR_PUBLIC_KEY"
-      ) {
-        // Fallback: Open mailto link if EmailJS is not configured
-        const serviceDetails = buildServiceDetails();
-        const mailtoLink = `mailto:support@chibibadminton.com.au?subject=${encodeURIComponent(
-          "Stringing Service Request"
-        )}&body=${encodeURIComponent(
-          `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\n${serviceDetails}`
-        )}`;
-        window.location.href = mailtoLink;
+      if (res.ok) {
         setSubmitStatus({
           type: "success",
           message:
-            "Opening your email client. If it doesn't open, please send an email to support@chibibadminton.com.au",
+            "Thank you! Your stringing service request has been submitted successfully. We'll contact you soon to confirm!",
         });
-        setTimeout(() => {
-          setFormData({
-            name: "",
-            email: "",
-            phone: "",
-            racketBrand: "",
-            racketModel: "",
-            string: "",
-            colour: "",
-            tension: "",
-            stencil: "",
-            grip: "",
-            message: "",
-          });
-        }, 2000);
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Using EmailJS to send email
-      const serviceDetails = buildServiceDetails();
-      await emailjs.send(
-        serviceId,
-        templateId,
-        {
-          from_name: formData.name,
-          from_email: formData.email,
-          phone: formData.phone,
-          subject: "Stringing Service Request",
-          message: serviceDetails,
-          to_email: "support@chibibadminton.com.au",
-        },
-        publicKey
-      );
-
-      setSubmitStatus({
-        type: "success",
-        message:
-          "Thank you! Your stringing service request has been submitted successfully. We'll contact you soon to confirm!",
-      });
-      setTimeout(() => {
         setFormData({
           name: "",
           email: "",
@@ -317,10 +240,17 @@ const ServicesPage = () => {
           grip: "",
           message: "",
         });
-        setSubmitStatus({ type: null, message: "" });
-      }, 3000);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubmitStatus({
+          type: "error",
+          message:
+            data.message ||
+            "Oops! Something went wrong. Please try again or contact us directly at support@chibibadminton.com.au",
+        });
+      }
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.error("Error submitting service request:", error);
       setSubmitStatus({
         type: "error",
         message:

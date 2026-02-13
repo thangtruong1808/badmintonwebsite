@@ -80,9 +80,9 @@ const ShopCheckoutPage: React.FC = () => {
               </div>
             ))}
 
-            <div className="pt-4 border-t-2 border-gray-200">
+            <div className="pt-4">
               <p className="text-lg font-bold text-gray-900 font-calibri">
-                Total: ${totalPrice.toFixed(2)}
+                Total: <span className="text-rose-600">${totalPrice.toFixed(2)}</span>
               </p>
             </div>
           </div>

@@ -113,6 +113,80 @@ export async function sendContactFormEmail(data: ContactFormData): Promise<void>
   }
 }
 
+export interface ServiceRequestEmailData {
+  name: string;
+  email: string;
+  phone: string;
+  racket_brand: string;
+  racket_model: string;
+  string_type: string;
+  string_colour: string | null;
+  tension: string;
+  stencil: boolean;
+  grip: boolean;
+  message: string | null;
+}
+
+/**
+ * Send stringing service request email to CONTACT_MAIL_TO. Reply-To = submitter email.
+ * Does not throw; logs errors.
+ */
+export async function sendServiceRequestEmail(data: ServiceRequestEmailData): Promise<void> {
+  const trans = getTransporter();
+  const to = process.env.CONTACT_MAIL_TO;
+  if (!trans || !to) {
+    if (!to) console.warn('[email] CONTACT_MAIL_TO not set; skipping service request email.');
+    else console.warn('[email] SMTP not configured; skipping service request email.');
+    return;
+  }
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  const subject = 'Stringing Service Request - ChibiBadminton';
+  const extras: string[] = [];
+  if (data.stencil) extras.push('Stencil');
+  if (data.grip) extras.push('Grip');
+  const text = [
+    'Stringing Service Request',
+    '',
+    'Name: ' + data.name,
+    'Email: ' + data.email,
+    'Phone: ' + data.phone,
+    '',
+    'Racket Brand: ' + data.racket_brand,
+    'Racket Model: ' + data.racket_model,
+    'String: ' + data.string_type,
+    data.string_colour ? 'Colour: ' + data.string_colour : '',
+    'Tension: ' + data.tension,
+    extras.length ? 'Extras: ' + extras.join(', ') : '',
+    '',
+    data.message ? 'Additional notes:\n' + data.message : '',
+  ].filter(Boolean).join('\n');
+  const html = [
+    '<h2>Stringing Service Request</h2>',
+    '<p><strong>Name:</strong> ' + escapeHtml(data.name) + '</p>',
+    '<p><strong>Email:</strong> ' + escapeHtml(data.email) + '</p>',
+    '<p><strong>Phone:</strong> ' + escapeHtml(data.phone) + '</p>',
+    '<p><strong>Racket Brand:</strong> ' + escapeHtml(data.racket_brand) + '</p>',
+    '<p><strong>Racket Model:</strong> ' + escapeHtml(data.racket_model) + '</p>',
+    '<p><strong>String:</strong> ' + escapeHtml(data.string_type) + '</p>',
+    data.string_colour ? '<p><strong>Colour:</strong> ' + escapeHtml(data.string_colour) + '</p>' : '',
+    '<p><strong>Tension:</strong> ' + escapeHtml(data.tension) + '</p>',
+    extras.length ? '<p><strong>Extras:</strong> ' + escapeHtml(extras.join(', ')) + '</p>' : '',
+    data.message ? '<p><strong>Additional notes:</strong></p><p>' + escapeHtml(data.message).replace(/\n/g, '<br>') + '</p>' : '',
+  ].filter(Boolean).join('\n');
+  try {
+    await trans.sendMail({
+      from,
+      to,
+      replyTo: data.email,
+      subject,
+      text,
+      html,
+    });
+  } catch (err) {
+    console.error('[email] Failed to send service request email:', err);
+  }
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')

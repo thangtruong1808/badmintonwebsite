@@ -9,9 +9,10 @@ import type { EventDisplay } from "../types/event";
 
 interface EventsHistoryProps {
   completedEvents: EventDisplay[];
+  onViewDetails?: (event: EventDisplay) => void;
 }
 
-const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
+const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents, onViewDetails }) => {
   return (
     <>
       <div className="bg-gradient-to-r from-rose-50 to-rose-100">
@@ -89,7 +90,12 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents }) => {
                       {event.description}
                     </p>
                     <div className="pt-4 border-t border-gray-200">
-                      <button className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-calibri">
+                      <button
+                        type="button"
+                        onClick={() => onViewDetails?.(event)}
+                        className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-calibri focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                        aria-label={`View details for ${event.title}`}
+                      >
                         View Details
                       </button>
                     </div>

@@ -43,7 +43,7 @@ const ShopContactModal = ({
         aria-labelledby="contact-modal-title"
         aria-describedby={selectedProduct ? "contact-modal-product" : undefined}
       >
-        <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-gray-200 px-6 py-4 flex items-center justify-between font-calibri z-10">
+        <div className="sticky top-0 bg-gradient-to-r from-pink-100 to-pink-200 border-b border-gray-200 px-6 py-4 flex items-center justify-between font-calibri z-10">
           <h2 id="contact-modal-title" className="text-2xl font-bold text-black font-huglove">
             Contact Us
           </h2>
@@ -73,11 +73,10 @@ const ShopContactModal = ({
 
           {submitStatus.type && (
             <div
-              className={`mb-6 p-4 rounded-lg flex items-start space-x-3 ${
-                submitStatus.type === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200 font-calibri text-md"
-                  : "bg-red-50 text-red-800 border border-red-200 font-calibri text-md"
-              }`}
+              className={`mb-6 p-4 rounded-lg flex items-start space-x-3 ${submitStatus.type === "success"
+                ? "bg-green-50 text-green-800 border border-green-200 font-calibri text-md"
+                : "bg-red-50 text-red-800 border border-red-200 font-calibri text-md"
+                }`}
             >
               {submitStatus.type === "success" ? (
                 <FaCheckCircle className="flex-shrink-0 mt-0.5" size={20} />

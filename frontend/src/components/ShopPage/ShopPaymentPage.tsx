@@ -174,7 +174,15 @@ const ShopPaymentPage: React.FC = () => {
                 ) : (
                   <FaExclamationCircle className="flex-shrink-0 mt-0.5" size={20} />
                 )}
-                <p className="font-medium text-sm">{submitStatus.message}</p>
+                <div>
+                  <p className="font-medium text-sm">{submitStatus.message}</p>
+                  {submitStatus.type === "success" && (
+                    <p className="text-sm text-green-700 mt-2 flex items-center gap-2">
+                      <span className="animate-spin inline-block w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full" aria-hidden />
+                      Redirecting you to the shop…
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
@@ -182,13 +190,14 @@ const ShopPaymentPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate("/shop/checkout", { state: { items } })}
-                className="flex-1 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 font-bold font-calibri transition-colors"
+                disabled={submitStatus.type === "success"}
+                className="flex-1 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 font-bold font-calibri transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Back
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || submitStatus.type === "success"}
                 className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-bold font-calibri disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isSubmitting ? "Processing…" : "Place order"}
