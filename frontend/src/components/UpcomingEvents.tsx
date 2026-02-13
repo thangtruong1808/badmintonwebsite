@@ -1,5 +1,5 @@
 import React from "react";
-import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaInfoCircle } from "react-icons/fa";
+import { FaCalendarAlt, FaClock, FaMapMarkerAlt } from "react-icons/fa";
 import type { EventDisplay } from "../types/event";
 import { FaPaperPlane } from "react-icons/fa";
 

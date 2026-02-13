@@ -4,7 +4,6 @@ import {
   FaEnvelope,
   FaCheckCircle,
   FaExclamationCircle,
-  FaShieldAlt,
   FaLock,
 } from "react-icons/fa";
 import { apiFetch } from "../utils/api";
