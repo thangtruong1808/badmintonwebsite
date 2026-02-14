@@ -36,7 +36,7 @@ const UserProfilePage: React.FC = () => {
   const [transactions, setTransactions] = useState<RewardPointTransaction[]>([]);
   const [eventHistory, setEventHistory] = useState<UserEventHistory[]>([]);
   const [registrations, setRegistrations] = useState<RegistrationWithEventDetails[]>([]);
-  const [includeCancelled, setIncludeCancelled] = useState(false);
+  const [includeCancelled, setIncludeCancelled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

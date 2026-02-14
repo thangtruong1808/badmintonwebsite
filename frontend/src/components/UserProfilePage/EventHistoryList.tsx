@@ -7,12 +7,13 @@ import {
   FaMoneyBillWave,
   FaExchangeAlt,
   FaListUl,
+  FaUserPlus,
 } from "react-icons/fa";
 import type { UserEventHistory } from "../../types/user";
 import type { RegistrationWithEventDetails } from "../../types/socialEvent";
 import { formatPoints } from "../../utils/rewardPoints";
 import { claimPointsForEvent } from "../../utils/rewardPointsService";
-import { cancelUserRegistration } from "../../utils/registrationService";
+import { cancelUserRegistration, registerUserForEventIds } from "../../utils/registrationService";
 import { getCurrentUser } from "../../utils/mockAuth";
 
 interface EventHistoryListProps {
@@ -36,6 +37,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
     "all" | "attended" | "upcoming" | "cancelled"
   >("all");
   const [claimingEventId, setClaimingEventId] = useState<number | null>(null);
+  const [reRegisteringEventId, setReRegisteringEventId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [cancellingIds, setCancellingIds] = useState<Set<string>>(new Set());
 
@@ -98,6 +100,23 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
       await onRefetch();
     } finally {
       setCancellingIds(new Set());
+    }
+  };
+
+  const handleRegisterAgain = async (reg: RegistrationWithEventDetails) => {
+    const user = getCurrentUser();
+    if (!user) return;
+    setReRegisteringEventId(reg.eventId);
+    try {
+      const formData = {
+        name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email,
+        email: user.email,
+        phone: user.phone ?? "",
+      };
+      const result = await registerUserForEventIds([reg.eventId], formData);
+      if (result.success) await onRefetch();
+    } finally {
+      setReRegisteringEventId(null);
     }
   };
 
@@ -260,7 +279,8 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
         {displayItems.length > 0 &&
           displayItems.map((reg) => {
             const status = reg.status === "cancelled" ? "cancelled" : (reg.attendanceStatus ?? "upcoming");
-            const isCancelable = reg.id && reg.status !== "cancelled";
+            // Attended tab shows past events only — no cancel/checkbox to avoid confusion
+            const isCancelable = reg.id && reg.status !== "cancelled" && activeTab !== "attended";
             const isCancelling = reg.id ? cancellingIds.has(reg.id) : false;
             const isSelected = reg.id ? selectedIds.has(reg.id) : false;
             const title = reg.eventTitle ?? `Event #${reg.eventId}`;
@@ -306,14 +326,11 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
                       <span className="font-semibold">Category:</span>{" "}
                       <span className="capitalize">{category}</span>
                     </p>
-                    {reg.attendanceStatus === "attended" && (
+                    {reg.attendanceStatus === "attended" && (reg.pointsEarned ?? 0) > 0 && (
                       <div className="flex items-center gap-4 mt-2">
-                        {(reg.pointsEarned ?? 0) > 0 && (
-                          <span className="text-green-600 font-semibold font-calibri">
-                            +{formatPoints(reg.pointsEarned ?? 0)} points
-                          </span>
-                        )}
-                        {reg.paymentMethod && getPaymentIcon(reg.paymentMethod)}
+                        <span className="text-green-600 font-semibold font-calibri">
+                          +{formatPoints(reg.pointsEarned ?? 0)} points
+                        </span>
                       </div>
                     )}
                   </div>
@@ -330,6 +347,17 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
                             : "Paid"}
                       </span>
                     </div>
+                  )}
+                  {reg.status === "cancelled" && (
+                    <button
+                      type="button"
+                      onClick={() => handleRegisterAgain(reg)}
+                      disabled={reRegisteringEventId === reg.eventId}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold font-calibri bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-50 transition-colors"
+                    >
+                      <FaUserPlus size={14} />
+                      {reRegisteringEventId === reg.eventId ? "Registering…" : "Register again"}
+                    </button>
                   )}
                   {isCancelable && (
                     <button

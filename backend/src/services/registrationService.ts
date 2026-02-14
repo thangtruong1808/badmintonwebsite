@@ -121,9 +121,21 @@ export interface RegistrationWithEventDetails extends Registration {
   eventCategory?: string | null;
 }
 
+/** True if the event date (YYYY-MM-DD or ISO string) is before today (date-only). */
+function isEventDateInPast(eventDate: string | Date | null): boolean {
+  if (eventDate == null) return false;
+  const d = typeof eventDate === 'string' ? new Date(eventDate) : eventDate;
+  if (Number.isNaN(d.getTime())) return false;
+  const eventDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const today = new Date();
+  const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return eventDay < todayDay;
+}
+
 /**
  * Get user registrations with event details (for profile event list).
  * When includeCancelled is true, returns all registrations including cancelled.
+ * For confirmed registrations whose event date is in the past, attendanceStatus is returned as 'attended' so they appear in the Attended tab.
  */
 export const getRegistrationsWithEventDetails = async (
   userId: string,
@@ -143,8 +155,13 @@ export const getRegistrationsWithEventDetails = async (
   );
   return rows.map((r) => {
     const reg = rowToRegistration(r);
+    const eventDate = r.event_date ?? null;
+    const pastEvent = isEventDateInPast(eventDate);
+    const attendanceStatus =
+      reg.status === 'confirmed' && pastEvent ? ('attended' as const) : reg.attendanceStatus;
     return {
       ...reg,
+      attendanceStatus,
       eventTitle: r.event_title ?? null,
       eventDate: r.event_date ?? null,
       eventTime: r.event_time ?? null,

@@ -83,6 +83,35 @@ export async function registerUserForEvents(
 }
 
 /**
+ * Re-register the current user for one or more event IDs (e.g. after cancelling).
+ * Uses the same API as registerUserForEvents. Backend will update existing cancelled row to confirmed.
+ */
+export async function registerUserForEventIds(
+  eventIds: number[],
+  formData: RegistrationFormData
+): Promise<{ success: boolean; message: string }> {
+  if (eventIds.length === 0) {
+    return { success: false, message: "No events selected." };
+  }
+  try {
+    const res = await apiFetch("/api/registrations", {
+      method: "POST",
+      body: JSON.stringify({ eventIds, formData }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return { success: true, message: data.message ?? "Registration successful!" };
+    }
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in to register." : (data.message ?? data.error ?? "Registration failed."),
+    };
+  } catch {
+    return { success: false, message: "Could not submit registration. Please try again." };
+  }
+}
+
+/**
  * Get a single event by ID (caller should use GET /api/events/:id if needed).
  * Kept for backward compatibility; prefer fetching from API in the component.
  */
