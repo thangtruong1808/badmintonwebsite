@@ -138,7 +138,12 @@ const ResetPasswordPage = () => {
         skipAuth: true,
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) {
+      if (res.ok && data.success === false) {
+        setSubmitStatus({
+          type: "error",
+          message: data.message || "Invalid or expired reset link. Please request a new password reset.",
+        });
+      } else if (res.ok) {
         setSubmitStatus({
           type: "success",
           message: data.message || "Password has been reset. You can now sign in with your new password.",

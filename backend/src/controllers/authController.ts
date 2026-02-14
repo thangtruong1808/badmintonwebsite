@@ -71,7 +71,8 @@ export const register = async (
 
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
-      throw createError('User with this email already exists', 409);
+      res.status(200).json({ message: 'User with this email already exists.' });
+      return;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -261,11 +262,13 @@ export const resetPassword = async (
   try {
     const { token, newPassword, confirmPassword } = req.body;
     if (newPassword !== confirmPassword) {
-      throw createError('Passwords do not match', 400);
+      res.status(200).json({ success: false, message: 'Passwords do not match.' });
+      return;
     }
     const userId = await findValidResetToken(token);
     if (!userId) {
-      throw createError('Invalid or expired reset link. Please request a new password reset.', 400);
+      res.status(200).json({ success: false, message: 'Invalid or expired reset link. Please request a new password reset.' });
+      return;
     }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await updatePassword(userId, hashedPassword);
