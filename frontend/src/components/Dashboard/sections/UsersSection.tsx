@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
@@ -20,6 +20,7 @@ export interface UserRow {
   reward_points: number;
   member_since: string;
   created_at?: string;
+  isBlocked?: boolean;
 }
 
 const ROLE_OPTIONS = [
@@ -35,16 +36,7 @@ const PAYMENT_METHOD_OPTIONS = [
   { value: "mixed", label: "Mixed" },
 ];
 
-const COLUMNS: Column<UserRow>[] = [
-  { key: "id", label: "ID", render: (r) => r.id.slice(0, 12) + "…" },
-  { key: "firstName", label: "Name", render: (r) => `${r.firstName} ${r.lastName}`.trim() },
-  { key: "email", label: "Email" },
-  { key: "role", label: "Role" },
-  { key: "reward_points", label: "Points" },
-  { key: "member_since", label: "Member Since" },
-];
-
-function toUserRow(u: { id: string; firstName: string; lastName: string; email: string; phone?: string; role: string; rewardPoints: number; memberSince: string; created_at?: string }): UserRow {
+function toUserRow(u: { id: string; firstName: string; lastName: string; email: string; phone?: string; role: string; rewardPoints: number; memberSince: string; created_at?: string; isBlocked?: boolean }): UserRow {
   return {
     id: u.id,
     firstName: u.firstName ?? "",
@@ -55,12 +47,15 @@ function toUserRow(u: { id: string; firstName: string; lastName: string; email: 
     reward_points: u.rewardPoints,
     member_since: u.memberSince,
     created_at: u.created_at,
+    isBlocked: u.isBlocked ?? false,
   };
 }
 
 const UsersSection: React.FC = () => {
   const [items, setItems] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null);
@@ -98,6 +93,89 @@ const UsersSection: React.FC = () => {
   useEffect(() => {
     fetchList();
   }, []);
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (r) =>
+        `${r.firstName} ${r.lastName}`.toLowerCase().includes(q) ||
+        (r.email ?? "").toLowerCase().includes(q)
+    );
+  }, [items, searchQuery]);
+
+  const handleToggleBlock = async (row: UserRow) => {
+    setTogglingId(row.id);
+    try {
+      const res = await apiFetch(`/api/dashboard/users/${row.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ isBlocked: !row.isBlocked }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setItems((prev) =>
+          prev.map((r) => (r.id === row.id ? toUserRow(updated) : r))
+        );
+      }
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const columns: Column<UserRow>[] = useMemo(
+    () => [
+      { key: "id", label: "ID", render: (r) => r.id.slice(0, 12) + "…" },
+      { key: "firstName", label: "Name", render: (r) => `${r.firstName} ${r.lastName}`.trim() },
+      { key: "email", label: "Email" },
+      { key: "role", label: "Role" },
+      { key: "reward_points", label: "Points" },
+      { key: "member_since", label: "Member Since" },
+      {
+        key: "status",
+        label: "Status",
+        render: (r) => (
+          <div className="flex flex-wrap items-center gap-2">
+            {r.isBlocked ? (
+              <>
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold font-calibri bg-red-100 text-red-800">
+                  Blocked
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleBlock(r);
+                  }}
+                  disabled={togglingId === r.id}
+                  className="rounded px-2 py-1 text-xs font-semibold font-calibri bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-50 transition-colors"
+                >
+                  {togglingId === r.id ? "…" : "Unblock"}
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold font-calibri bg-green-100 text-green-800">
+                  Active
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleBlock(r);
+                  }}
+                  disabled={togglingId === r.id}
+                  className="rounded px-2 py-1 text-xs font-semibold font-calibri bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+                >
+                  {togglingId === r.id ? "…" : "Block"}
+                </button>
+              </>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [togglingId]
+  );
 
   const openEdit = (row: UserRow) => {
     setFormError(null);
@@ -151,16 +229,32 @@ const UsersSection: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      <div className="w-full">
+        <label htmlFor="users-search" className="sr-only">
+          Search by name or email
+        </label>
+        <input
+          id="users-search"
+          type="search"
+          placeholder="Search by name or email"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+          aria-label="Search by name or email"
+        />
+      </div>
       {loading ? (
         <p className="font-calibri text-gray-600">Loading...</p>
       ) : (
         <DataTable
-          columns={COLUMNS}
-          data={items}
+          columns={columns}
+          data={filteredItems}
           getRowId={(r) => r.id}
           onEdit={openEdit}
           onDelete={(r) => setDeleteTarget(r)}
           emptyMessage="No users yet."
+          pageSize={10}
+          pageSizeOptions={[5, 10, 25, 50]}
         />
       )}
       <FormModal

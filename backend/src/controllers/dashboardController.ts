@@ -54,7 +54,7 @@ export const getDashboardUsers = async (req: Request, res: Response, next: NextF
 };
 
 export const updateDashboardUser = async (
-  req: Request<{ id: string }, {}, { firstName?: string; lastName?: string; phone?: string; role?: string; rewardPoints?: number }>,
+  req: Request<{ id: string }, {}, { firstName?: string; lastName?: string; phone?: string; role?: string; rewardPoints?: number; isBlocked?: boolean }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {

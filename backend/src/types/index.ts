@@ -14,6 +14,7 @@ export interface User {
   totalPointsSpent: number;
   memberSince: string; // ISO date string
   avatar?: string;
+  isBlocked?: boolean;
 }
 
 export interface UserResponse {
@@ -28,6 +29,7 @@ export interface UserResponse {
   totalPointsSpent: number;
   memberSince: string;
   avatar?: string;
+  isBlocked?: boolean;
 }
 
 // Event types

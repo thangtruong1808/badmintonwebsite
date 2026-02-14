@@ -38,6 +38,10 @@ export const login = async (
       throw createError('Invalid email or password', 401);
     }
 
+    if (user.isBlocked) {
+      throw createError('The account has been blocked. Please contact us for support.', 401);
+    }
+
     const accessToken = generateAccessToken(user.id, user.email);
     const { token: refreshToken, expiresAt: refreshExpiresAt } = await createRefreshTokenRecord(user.id);
     const expiresIn = getAccessTokenExpiresInSeconds();
@@ -124,6 +128,12 @@ export const refresh = async (
       res.status(401).json({ status: 'fail', message: 'User not found', forceLogout: true });
       return;
     }
+    if (user.isBlocked) {
+      await deleteRefreshToken(token);
+      clearAuthCookies(res);
+      res.status(401).json({ status: 'fail', message: 'Account is disabled', forceLogout: true });
+      return;
+    }
 
     const doExtend = req.body?.extend !== false;
     let refreshTokenExpiresAt: number;
@@ -164,20 +174,28 @@ export const me = async (
       const found = await findRefreshToken(refreshToken);
       if (found) {
         user = await getUserById(found.userId);
-        if (user) {
+        if (user && !user.isBlocked) {
           await extendRefreshTokenExpiry(refreshToken);
           refreshTokenExpiresAt = getRefreshTokenExpiresAt().getTime();
           const accessToken = generateAccessToken(user.id, user.email);
           setAuthCookies(res, accessToken, refreshToken);
         } else {
-          await deleteRefreshToken(refreshToken);
+          if (user?.isBlocked) {
+            await deleteRefreshToken(refreshToken);
+            clearAuthCookies(res);
+          }
+          user = null;
         }
       }
     } else if (user && refreshToken) {
       refreshTokenExpiresAt = await getRefreshTokenExpiryMs(refreshToken);
     }
 
-    if (!user) {
+    if (!user || user.isBlocked) {
+      if (user?.isBlocked && refreshToken) {
+        await deleteRefreshToken(refreshToken);
+        clearAuthCookies(res);
+      }
       res.status(200).json({ user: null });
       return;
     }

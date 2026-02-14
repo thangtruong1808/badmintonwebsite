@@ -18,6 +18,7 @@ interface UserRow extends RowDataPacket {
   total_points_spent: number;
   member_since: Date | string;
   avatar: string | null;
+  is_blocked?: boolean;
 }
 
 function rowToUser(row: UserRow): User {
@@ -37,6 +38,7 @@ function rowToUser(row: UserRow): User {
     totalPointsSpent: row.total_points_spent,
     memberSince,
     avatar: row.avatar ?? undefined,
+    isBlocked: Boolean(row.is_blocked),
   };
 }
 
@@ -95,7 +97,7 @@ export const getAllUsersCount = async (): Promise<number> => {
 
 export const getAllUsers = async (): Promise<Omit<User, 'password'>[]> => {
   const [rows] = await pool.execute<UserRow[]>(
-    'SELECT id, first_name, last_name, email, phone, role, reward_points, total_points_earned, total_points_spent, member_since, avatar, created_at, updated_at FROM users ORDER BY created_at DESC'
+    'SELECT id, first_name, last_name, email, phone, role, reward_points, total_points_earned, total_points_spent, member_since, avatar, is_blocked, created_at, updated_at FROM users ORDER BY created_at DESC'
   );
   return rows.map((row) => {
     const memberSince = row.member_since instanceof Date
@@ -113,6 +115,7 @@ export const getAllUsers = async (): Promise<Omit<User, 'password'>[]> => {
       totalPointsSpent: row.total_points_spent,
       memberSince,
       avatar: row.avatar ?? undefined,
+      isBlocked: Boolean(row.is_blocked),
     };
   });
 };
@@ -161,6 +164,10 @@ export const updateUser = async (
   if (updates.avatar !== undefined) {
     fields.push('avatar = ?');
     values.push(updates.avatar);
+  }
+  if (updates.isBlocked !== undefined) {
+    fields.push('is_blocked = ?');
+    values.push(updates.isBlocked ? 1 : 0);
   }
   if (fields.length === 0) return user;
   values.push(userId);
