@@ -63,9 +63,12 @@ const BannerCarousel: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="pb-16 bg-gradient-to-r from-rose-50 to-rose-100">
-        <div className="container mx-auto px-4">
-          <div className="relative w-full overflow-hidden aspect-[1920/600] max-h-[400px] bg-rose-200/50 rounded-lg animate-pulse" />
+      <div className="pb-16 bg-gradient-to-r from-rose-50 to-rose-100 min-h-[280px] flex items-center justify-center">
+        <div className="container mx-auto px-4 flex justify-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-8">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-rose-500 border-t-transparent flex-shrink-0" aria-hidden />
+            <span className="font-calibri text-gray-600">Loading…</span>
+          </div>
         </div>
       </div>
     );

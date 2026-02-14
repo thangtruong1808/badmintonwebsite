@@ -88,7 +88,10 @@ const SessionRegistrationsPage: React.FC = () => {
             </h2>
 
             {loading ? (
-              <p className="font-calibri text-gray-600">Loading…</p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-8">
+                <div className="animate-spin rounded-full h-10 w-10 border-2 border-rose-500 border-t-transparent flex-shrink-0" aria-hidden />
+                <span className="font-calibri text-gray-600">Loading…</span>
+              </div>
             ) : players.length === 0 ? (
               <p className="font-calibri text-gray-600">No players registered yet.</p>
             ) : (

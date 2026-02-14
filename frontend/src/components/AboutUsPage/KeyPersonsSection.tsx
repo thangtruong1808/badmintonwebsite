@@ -35,17 +35,10 @@ const KeyPersonsSection = () => {
 
   if (loading) {
     return (
-      <section className="mb-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-700">
-            Meet Our Team
-          </h2>
-          <p className="text-lg text-gray-800 max-w-2xl mx-auto font-calibri">
-            The people behind Chibi Badminton Club
-          </p>
-        </div>
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-rose-500" />
+      <section className="mb-16 bg-gradient-to-r from-rose-50 to-rose-100 min-h-[40vh] flex items-center justify-center">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-8">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-rose-500 border-t-transparent flex-shrink-0" aria-hidden />
+          <span className="font-calibri text-gray-600">Loading…</span>
         </div>
       </section>
     );

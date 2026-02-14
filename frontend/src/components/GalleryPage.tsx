@@ -166,11 +166,15 @@ const GalleryPage = () => {
               {error}
             </div>
           )}
-          {(photosLoading || videosLoading) && (
-            <div className="text-center mb-4 font-calibri text-gray-600">
-              Loading gallery…
+          {(photosLoading || videosLoading) ? (
+            <div className="bg-gradient-to-r from-rose-50 to-rose-100 min-h-[40vh] flex items-center justify-center">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-8">
+                <div className="animate-spin rounded-full h-10 w-10 border-2 border-rose-500 border-t-transparent flex-shrink-0" aria-hidden />
+                <span className="font-calibri text-gray-600">Loading gallery…</span>
+              </div>
             </div>
-          )}
+          ) : (
+          <>
           {/* Header Message */}
           <div className="text-center mb-10 p-6 rounded-lg shadow-xl bg-gradient-to-t from-rose-50 to-rose-100">
             <h1 className="text-4xl md:text-5xl font-extrabold text-black mb-4">
@@ -352,7 +356,6 @@ const GalleryPage = () => {
               </div>
             </div>
           </div>
-        </div>
 
         {/* Image Modal */}
         {selectedImage && (
@@ -376,7 +379,10 @@ const GalleryPage = () => {
             </div>
           </div>
         )}
+          </>
+          )}
       </div>
+    </div>
     </div>
   );
 };
