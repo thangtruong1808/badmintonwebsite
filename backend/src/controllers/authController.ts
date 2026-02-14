@@ -26,20 +26,24 @@ export const login = async (
 
     const user = await getUserByEmail(email);
     if (!user) {
-      throw createError('Invalid email or password', 401);
+      res.status(200).json({ message: 'Invalid email or password. Please try again.' });
+      return;
     }
 
     if (!user.password) {
-      throw createError('Invalid email or password', 401);
+      res.status(200).json({ message: 'Invalid email or password. Please try again.' });
+      return;
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw createError('Invalid email or password', 401);
+      res.status(200).json({ message: 'Invalid email or password. Please try again.' });
+      return;
     }
 
     if (user.isBlocked) {
-      throw createError('The account has been blocked. Please contact us for support.', 401);
+      res.status(200).json({ message: 'The account has been blocked. Please contact us for support.' });
+      return;
     }
 
     const accessToken = generateAccessToken(user.id, user.email);
