@@ -137,7 +137,7 @@ const PlayPage: React.FC = () => {
       <div className="container mx-auto px-4 pt-12 pb-8">
         {/* Header */}
         <div className="text-center mb-10 p-6 rounded-lg shadow-xl bg-gradient-to-r from-rose-50 to-rose-100">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 font-huglove">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 mb-4 font-huglove">
             Play Sessions
           </h1>
           <p className="text-gray-700 text-base md:text-lg lg:text-xl max-w-3xl mx-auto font-calibri">

@@ -93,10 +93,10 @@ const ReviewsPage = () => {
 
           {/* Header Text Over Banner */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 text-white drop-shadow-lg">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium mb-4 text-white drop-shadow-lg font-huglove">
               Reviews
             </h1>
-            <p className="text-base md:text-xl lg:text-2xl text-white max-w-3xl mx-auto drop-shadow-md font-medium">
+            <p className="text-base md:text-xl lg:text-2xl text-white max-w-3xl mx-auto drop-shadow-md font-calibri">
               What our community says about us
             </p>
           </div>
@@ -107,15 +107,15 @@ const ReviewsPage = () => {
         {/* Reviews Summary Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 mb-12 text-center">
           <div className="flex flex-col items-center mb-6">
-            <div className="text-5xl md:text-6xl font-bold text-gray-800 mb-2">
+            <div className="text-5xl md:text-6xl font-medium text-gray-800 mb-2 font-huglove">
               {averageRating.toFixed(1)}
             </div>
             <StarRating rating={Math.round(averageRating)} />
-            <p className="text-gray-600 mt-2 text-lg">
+            <p className="text-gray-600 mt-2 text-lg font-calibri">
               Based on {totalReviews} reviews
             </p>
           </div>
-          <p className="text-gray-700 text-base md:text-lg max-w-3xl mx-auto">
+          <p className="text-gray-700 text-base md:text-lg max-w-3xl mx-auto font-calibri">
             ChibiBadminton is rated <strong>{averageRating.toFixed(1)}</strong>{" "}
             out of 5 based on <strong>{totalReviews}</strong> verified reviews
             from our community members.
@@ -124,7 +124,7 @@ const ReviewsPage = () => {
 
         {/* Reviews Grid */}
         <div className="mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-black text-center md:text-left">
+          <h2 className="text-2xl md:text-3xl font-medium mb-6 text-black text-center md:text-left font-huglove">
             Community Reviews
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -139,11 +139,11 @@ const ReviewsPage = () => {
                     <FaUserCircle className="text-gray-400" size={40} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-black truncate">
+                        <h3 className="font-medium text-black truncate font-huglove">
                           {review.name}
                         </h3>
                         {review.isVerified && (
-                          <span className="text-blue-600 text-xs font-medium bg-blue-50 px-2 py-0.5 rounded">
+                          <span className="text-blue-600 text-xs font-medium bg-blue-50 px-2 py-0.5 rounded font-calibri">
                             Verified
                           </span>
                         )}
@@ -154,16 +154,16 @@ const ReviewsPage = () => {
                 </div>
 
                 {/* Review Date */}
-                <p className="text-xs text-gray-500 mb-3">{review.date}</p>
+                <p className="text-xs text-gray-500 mb-3 font-calibri">{review.date}</p>
 
                 {/* Review Text */}
-                <p className="text-gray-700 text-sm md:text-base leading-relaxed flex-grow mb-4 text-justify">
+                <p className="text-gray-700 text-sm md:text-base leading-relaxed flex-grow mb-4 text-justify font-calibri">
                   {review.review}
                 </p>
 
                 {/* Google Review Link (SEO) */}
                 <div className="pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-400 italic">
+                  <p className="text-xs text-gray-400 italic font-calibri">
                     This review was helpful
                   </p>
                 </div>
@@ -174,14 +174,14 @@ const ReviewsPage = () => {
 
         {/* Call to Action */}
         <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 text-center mt-12">
-          <h3 className="text-2xl md:text-3xl font-bold mb-4 text-black">
+          <h3 className="text-2xl md:text-3xl font-medium mb-4 text-black font-huglove">
             Share Your Experience
           </h3>
-          <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
+          <p className="text-gray-700 mb-6 max-w-2xl mx-auto font-calibri">
             Have you played with us? We'd love to hear about your experience!
             Join our community and leave a review.
           </p>
-          <button className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg text-lg transition duration-300">
+          <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-lg text-lg transition duration-300 font-calibri hover:scale-105">
             Write a Review
           </button>
         </div>

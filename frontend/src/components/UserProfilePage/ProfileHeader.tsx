@@ -107,7 +107,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate }) =
       <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
         {/* Avatar */}
         <div className="flex-shrink-0 relative group">
-          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-rose-500 flex items-center justify-center text-white text-4xl md:text-5xl font-bold relative">
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-rose-500 flex items-center justify-center text-white text-4xl md:text-5xl font-medium relative">
             {user.avatar ? (
               <img
                 src={user.avatar}
@@ -151,7 +151,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate }) =
 
         {/* User Info */}
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 font-huglove">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 mb-2 font-huglove">
             {user.firstName} {user.lastName}
           </h1>
 

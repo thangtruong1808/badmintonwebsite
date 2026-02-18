@@ -141,7 +141,7 @@ const NewsDetailPage: React.FC = () => {
 
           {/* Content */}
           <div className="p-6 sm:p-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-huglove mb-4">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 font-huglove mb-4">
               {article.title}
             </h1>
 

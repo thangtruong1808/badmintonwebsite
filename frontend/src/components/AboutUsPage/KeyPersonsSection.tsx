@@ -38,7 +38,7 @@ const KeyPersonsSection = () => {
       <section className="mb-16 bg-gradient-to-r from-rose-50 to-rose-100 min-h-[40vh] flex items-center justify-center">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-8">
           <div className="animate-spin rounded-full h-10 w-10 border-2 border-rose-500 border-t-transparent flex-shrink-0" aria-hidden />
-          <span className="font-calibri text-gray-600">Loading…</span>
+          <span className="font-calibri text-gray-900 font-medium text-lg">Loading…</span>
         </div>
       </section>
     );
@@ -51,10 +51,10 @@ const KeyPersonsSection = () => {
   return (
     <section className="mb-16">
       <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-700">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 font-huglove mb-4">
           Meet Our Team
         </h2>
-        <p className="text-lg text-gray-800 max-w-2xl mx-auto font-calibri">
+        <p className="text-gray-900 max-w-2xl mx-auto font-calibri font-medium text-lg">
           The people behind Chibi Badminton Club
         </p>
       </div>
@@ -75,14 +75,14 @@ const KeyPersonsSection = () => {
                 <FaUser className="text-rose-600" size={48} aria-hidden />
               )}
             </div>
-            <h3 className="text-xl font-bold text-gray-800 font-calibri">
+            <h3 className="text-gray-900 font-calibri text-lg xl:text-2xl mb-2 font-huglove">
               {person.firstName} {person.lastName}
             </h3>
-            <p className="text-rose-600 font-semibold text-sm md:text-base font-calibri mb-2">
+            <p className="text-rose-600 font-calibri text-base xl:text-lg mb-2 font-huglove">
               {person.role}
             </p>
             {person.description && (
-              <p className="text-gray-800 text-sm md:text-base leading-relaxed text-justify font-calibri line-clamp-4">
+              <p className="text-gray-900 leading-relaxed text-justify font-calibri text-lg line-clamp-4 font-medium">
                 {person.description}
               </p>
             )}

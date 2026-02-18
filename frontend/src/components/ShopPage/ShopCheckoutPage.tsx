@@ -51,7 +51,7 @@ const ShopCheckoutPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 font-huglove mb-6 text-center">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 font-huglove mb-6 text-center">
           Review your selection
         </h1>
 
@@ -70,9 +70,9 @@ const ShopCheckoutPage: React.FC = () => {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 font-calibri">{item.product.name}</p>
-                  <p className="text-sm text-gray-500 font-calibri">{item.product.category}</p>
-                  <p className="text-rose-600 font-semibold font-calibri">
+                  <p className="font-medium text-gray-900 font-calibri text-lg">{item.product.name}</p>
+                  <p className="text-gray-500 font-calibri text-lg">{item.product.category}</p>
+                  <p className="text-rose-600 font-medium font-calibri text-lg">
                     {item.quantity} × ${item.unitPrice.toFixed(2)} = $
                     {(item.quantity * item.unitPrice).toFixed(2)}
                   </p>
@@ -81,7 +81,7 @@ const ShopCheckoutPage: React.FC = () => {
             ))}
 
             <div className="pt-4">
-              <p className="text-lg font-bold text-gray-900 font-calibri">
+              <p className="text-lg text-gray-900 font-calibri">
                 Total: <span className="text-rose-600">${totalPrice.toFixed(2)}</span>
               </p>
             </div>
@@ -90,13 +90,13 @@ const ShopCheckoutPage: React.FC = () => {
           <div className="p-6 bg-gray-50 flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => navigate("/shop")}
-              className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-bold font-calibri transition-colors"
+              className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-calibri transition-colors"
             >
               Back
             </button>
             <button
               onClick={handleContinueToPayment}
-              className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-bold font-calibri transition-colors"
+              className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-calibri transition-colors"
             >
               Continue to Payment
             </button>

@@ -113,26 +113,27 @@ const PlayPaymentPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 font-huglove mb-6 text-center">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 font-huglove mb-6 text-center">
           Payment
         </h1>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="p-6 space-y-4 border-b border-gray-200">
             {events.map((e) => (
-              <div key={e.id} className="text-gray-700 font-calibri">
-                <p className="font-bold">{e.title}</p>
-                <p className="text-sm">{formatDate(e.date)} • {e.time} • {e.location}</p>
-                {e.price != null && <p className="text-rose-600 font-semibold">${e.price}</p>}
+              <div key={e.id} className="text-gray-700 font-calibri text-lg">
+                <p className="font-medium text-gray-900 font-calibri text-lg">{e.title}</p>
+                <p className="text-gray-600 font-calibri text-lg">{formatDate(e.date)} - {e.time} </p>
+                <p className="text-gray-600 font-calibri text-lg">{e.location}</p>
+                {e.price != null && <p className="text-rose-600 font-calibri text-lg">${e.price}</p>}
               </div>
             ))}
-            <p className="text-lg font-bold text-gray-900">Total: ${Number(totalPrice).toFixed(2)}</p>
+            <p className="text-lg text-gray-900 font-calibri">Total: ${Number(totalPrice).toFixed(2)}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4 font-calibri">
             <div>
               <label className="block font-medium text-gray-700 mb-1">
-                <FaUser className="inline mr-2" size={14} /> Name <span className="text-red-500">*</span>
+                <FaUser className="inline mr-2" size={14} /> Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -144,7 +145,7 @@ const PlayPaymentPage: React.FC = () => {
               {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
             </div>
             <div>
-              <label className="block font-medium text-gray-700 mb-1">
+              <label className="block font-medium text-gray-700 mb-1 font-calibri text-lg">
                 <FaEnvelope className="inline mr-2" size={14} /> Email <span className="text-red-500">*</span>
               </label>
               <input
@@ -157,7 +158,7 @@ const PlayPaymentPage: React.FC = () => {
               {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
             </div>
             <div>
-              <label className="block font-medium text-gray-700 mb-1">
+              <label className="block font-medium text-gray-700 mb-1 font-calibri text-lg">
                 <FaPhone className="inline mr-2" size={14} /> Phone <span className="text-red-500">*</span>
               </label>
               <input
@@ -172,7 +173,7 @@ const PlayPaymentPage: React.FC = () => {
 
             {totalPrice > 0 && user && (
               <div>
-                <label className="block font-medium text-gray-700 mb-2">Payment method</label>
+                <label className="block font-medium text-gray-700 mb-2 font-calibri text-lg">Payment method</label>
                 <div className="space-y-2">
                   <button
                     type="button"
@@ -210,7 +211,7 @@ const PlayPaymentPage: React.FC = () => {
               <div className={`p-4 rounded-lg flex items-start gap-3 ${submitStatus.type === "success" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}>
                 {submitStatus.type === "success" ? <FaCheckCircle className="flex-shrink-0 mt-0.5" size={20} /> : <FaExclamationCircle className="flex-shrink-0 mt-0.5" size={20} />}
                 <div>
-                  <p className="font-medium text-sm">{submitStatus.message}</p>
+                  <p className="font-medium text-sm font-calibri">{submitStatus.message}</p>
                   {submitStatus.type === "success" && (
                     <p className="text-sm text-green-700 mt-2 flex items-center gap-2">
                       <span className="animate-spin inline-block w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full" aria-hidden />
@@ -226,14 +227,14 @@ const PlayPaymentPage: React.FC = () => {
                 type="button"
                 onClick={() => navigate("/play/checkout")}
                 disabled={submitStatus.type === "success"}
-                className="flex-1 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 font-calibri disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Back
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || submitStatus.type === "success"}
-                className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-calibri disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Processing…" : "Complete registration"}
               </button>

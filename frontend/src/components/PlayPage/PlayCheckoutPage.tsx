@@ -64,7 +64,7 @@ const PlayCheckoutPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 font-huglove mb-6 text-center">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 font-huglove mb-6 text-center">
           Review your selection
         </h1>
 
@@ -75,22 +75,22 @@ const PlayCheckoutPage: React.FC = () => {
                 key={e.id}
                 className="border-b border-gray-200 pb-4 last:border-0 last:pb-0"
               >
-                <p className="font-bold text-gray-900 font-calibri">{e.title}</p>
-                <p className="text-sm text-gray-600 font-calibri">
+                <p className="font-medium text-gray-900 font-calibri text-lg">{e.title}</p>
+                <p className="text-md text-gray-600 font-calibri text-lg">
                   {formatDate(e.date)} • {e.time}
                 </p>
-                <p className="text-sm text-gray-600 font-calibri">{e.location}</p>
-                <p className="text-sm text-gray-700 font-calibri">
+                <p className="text-gray-600 font-calibri text-lg">{e.location}</p>
+                <p className="text-gray-700 font-calibri text-lg">
                   {e.maxCapacity - e.currentAttendees} spots available / {e.maxCapacity} total
                 </p>
                 {e.price != null && (
-                  <p className="text-rose-600 font-semibold font-calibri">${e.price}</p>
+                  <p className="text-rose-600 font-calibri text-lg">${e.price}</p>
                 )}
               </div>
             ))}
 
             <div className="pt-2 ">
-              <p className="text-lg font-bold text-gray-900 font-calibri ">
+              <p className="text-lg text-gray-900 font-calibri ">
                 Total: <span className="text-rose-600">${Number(totalPrice).toFixed(2)}</span>
               </p>
             </div>
@@ -99,13 +99,13 @@ const PlayCheckoutPage: React.FC = () => {
           <div className="p-6 bg-gray-50 flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => navigate("/play")}
-              className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-bold font-calibri transition-colors"
+              className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-calibri transition-colors"
             >
               Back
             </button>
             <button
               onClick={handleContinueToPayment}
-              className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-bold font-calibri transition-colors"
+              className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-calibri transition-colors"
             >
               Continue to Payment
             </button>
@@ -130,7 +130,7 @@ const PlayCheckoutPage: React.FC = () => {
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
             <div className="p-6">
               <div className="flex items-start justify-between gap-4 mb-4">
-                <h2 id="auth-dialog-title" className="text-xl md:text-2xl font-bold text-gray-900 font-calibri">
+                <h2 id="auth-dialog-title" className="text-xl md:text-2xl text-gray-900 font-calibri">
                   Sign in to continue
                 </h2>
                 <button
@@ -149,7 +149,7 @@ const PlayCheckoutPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleGoToSignIn}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-bold font-calibri transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-calibri transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
                 >
                   <FaSignInAlt size={18} />
                   Sign in
@@ -157,7 +157,7 @@ const PlayCheckoutPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleGoToRegister}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 border-2 border-rose-500 text-rose-600 rounded-lg hover:bg-rose-50 font-bold font-calibri transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 border-2 border-rose-500 text-rose-600 rounded-lg hover:bg-rose-50 font-calibri transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
                 >
                   <FaUserPlus size={18} />
                   Create account

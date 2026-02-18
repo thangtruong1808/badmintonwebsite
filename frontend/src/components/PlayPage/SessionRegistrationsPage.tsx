@@ -68,21 +68,21 @@ const SessionRegistrationsPage: React.FC = () => {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {eventInfo && (
             <div className="p-6 border-b border-gray-200">
-              <h1 className="text-xl font-bold text-gray-900 font-huglove mb-2">{eventInfo.title}</h1>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-calibri text-gray-900 font-huglove mb-2">{eventInfo.title}</h1>
               {eventInfo.date && (
-                <p className="text-gray-600 font-calibri text-sm">
+                <p className="text-gray-600 font-calibri text-lg">
                   {new Date(eventInfo.date).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
                   {eventInfo.time && ` • ${eventInfo.time}`}
                 </p>
               )}
               {eventInfo.location && (
-                <p className="text-gray-600 font-calibri text-sm">{eventInfo.location}</p>
+                <p className="text-gray-600 font-calibri text-lg">{eventInfo.location}</p>
               )}
             </div>
           )}
 
           <div className="p-6">
-            <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900 font-calibri mb-4">
+            <h2 className="flex items-center gap-2 text-gray-900 font-calibri text-lg mb-4">
               <FaUsers size={20} />
               Registered players ({players.length})
             </h2>
@@ -97,9 +97,9 @@ const SessionRegistrationsPage: React.FC = () => {
             ) : (
               <ul className="space-y-2">
                 {players.map((p, i) => (
-                  <li key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg font-calibri">
-                    <span className="font-medium text-gray-900">{p.name}</span>
-                    {p.email && <span className="text-sm text-gray-500 truncate max-w-[60%]">{p.email}</span>}
+                  <li key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg font-calibri text-lg">
+                    <span className="font-medium text-gray-900 font-calibri text-lg">{p.name}</span>
+                    {p.email && <span className="text-gray-500 font-calibri text-lg truncate max-w-[60%]">{p.email}</span>}
                   </li>
                 ))}
               </ul>

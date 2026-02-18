@@ -22,10 +22,10 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                 <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full text-md font-semibold mb-4 font-calibri">
                   UPCOMING
                 </div>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-black drop-shadow-lg">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium mb-4 text-black drop-shadow-lg font-huglove">
                   Upcoming Battle Royale Events
                 </h2>
-                <p className="text-black text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md font-calibri">
+                <p className="text-black text-base md:text-lg max-w-2xl mx-auto drop-shadow-md font-calibri">
                   Don't miss out on these exciting Battle Royale tournaments!
                 </p>
               </div>
@@ -49,7 +49,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                       {/* Event Details */}
                       <div className="w-full lg:w-1/2 p-8 lg:p-10 flex flex-col justify-between bg-stone-50">
                         <div>
-                          <h3 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 font-calibri">
+                          <h3 className="text-3xl md:text-4xl font-medium mb-6 text-gray-900 font-calibri font-huglove">
                             {event.title}
                           </h3>
                           <div className="space-y-3 mb-6">
@@ -101,7 +101,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                           >
                             <div className="flex items-center justify-center gap-4">
                               <FaPaperPlane size={18} />
-                              <span className="font-calibri text-md font-bold">Register Now</span>
+                              <span className="font-calibri text-md font-medium">Register Now</span>
                             </div>
                           </button>
 

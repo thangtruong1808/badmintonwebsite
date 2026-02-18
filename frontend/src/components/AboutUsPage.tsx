@@ -49,16 +49,16 @@ const AboutUsPage = () => {
         {/* Introduction Section */}
         <section className="mb-16">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-700">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium mb-6 font-huglove">
               Welcome to the Chibi Badminton Club
             </h2>
-            <p className="text-lg md:text-xl text-gray-700 leading-relaxed mb-6 font-calibri">
+            <p className="text-base md:text-lg leading-relaxed mb-6 font-calibri">
               Founded in 2020, Chibi Badminton Club has grown into a vibrant community
               of badminton enthusiasts. Our mission is to make badminton
               accessible to everyone, from casual players to competitive
               athletes.
             </p>
-            <p className="text-base md:text-lg text-gray-700 leading-relaxed font-calibri">
+            <p className="text-base md:text-lg leading-relaxed font-calibri">
               We organise regular tournaments, training sessions, and social
               events to foster skill development and camaraderie among our
               members. Whether you're looking to improve your game, meet new
@@ -79,11 +79,11 @@ const AboutUsPage = () => {
                 <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
                   <FaBullseye className="text-white" size={24} />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-gray-800 font-calibri">
+                <h3 className="text-2xl md:text-3xl font-medium text-gray-800 font-calibri font-huglove">
                   Our Goal
                 </h3>
               </div>
-              <p className="text-gray-800 text-base md:text-lg leading-relaxed text-justify font-calibri">
+              <p className="text-base md:text-lg leading-relaxed text-justify font-calibri">
                 To create an inclusive badminton community with lots of social interaction and positive vibes. We
                 aim to make badminton accessible to everyone while fostering a supportive and competitive environment.
               </p>
@@ -95,7 +95,7 @@ const AboutUsPage = () => {
                 <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
                   <FaTrophy className="text-white" size={24} />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-gray-800 font-calibri">
+                <h3 className="text-2xl md:text-3xl font-medium text-gray-800 font-calibri font-huglove">
                   Our Vision
                 </h3>
               </div>
@@ -110,10 +110,10 @@ const AboutUsPage = () => {
         {/* Core Values Section */}
         <section className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-700">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium mb-4 font-huglove">
               Our Core Values
             </h2>
-            <p className="text-lg text-gray-800 max-w-2xl mx-auto font-calibri">
+            <p className="text-base md:text-lg max-w-2xl mx-auto font-calibri">
               The principles that we stand by within the club
             </p>
           </div>
@@ -128,10 +128,10 @@ const AboutUsPage = () => {
                   <div className="w-14 h-14 bg-rose-500 rounded-full flex items-center justify-center mb-4">
                     <IconComponent className="text-white" size={28} />
                   </div>
-                  <h3 className="text-xl font-bold mb-3 text-gray-800 font-calibri">
+                  <h3 className="text-xl font-medium mb-3 text-gray-800 font-calibri font-huglove">
                     {value.title}
                   </h3>
-                  <p className="text-gray-800 text-sm md:text-base leading-relaxed text-justify font-calibri">
+                  <p className="text-base md:text-lg leading-relaxed text-justify font-calibri">
                     {value.description}
                   </p>
                 </div>
@@ -145,7 +145,7 @@ const AboutUsPage = () => {
         {/* What We Offer Section */}
         <section className="mb-16">
           <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg shadow-lg p-8 md:p-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center text-gray-800">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium mb-8 text-center font-huglove">
               What We Offer
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -153,10 +153,10 @@ const AboutUsPage = () => {
                 <div className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaCalendarAlt className="text-white" size={32} />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-gray-800 font-calibri">
+                <h3 className="text-xl font-medium mb-3 text-gray-800 font-calibri font-huglove">
                   Regular Sessions
                 </h3>
-                <p className="text-gray-800 font-calibri">
+                <p className="text-base md:text-lg font-calibri">
                   Weekly badminton sessions every Wednesday and Friday from 7:00
                   PM to 10:00 PM. Primarily consisting of Intermediate players.
                 </p>
@@ -165,10 +165,10 @@ const AboutUsPage = () => {
                 <div className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaTrophy className="text-white" size={32} />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-gray-800 font-calibri">
+                <h3 className="text-xl font-medium mb-3 text-gray-800 font-calibri font-huglove">
                   Tournaments
                 </h3>
-                <p className="text-gray-800 font-calibri">
+                <p className="text-base md:text-lg font-calibri">
                   We host a small number of tournaments each annual year. We refer to them as "Battle Royale" - A fun way to describe our competitions :).
                 </p>
               </div>
@@ -176,10 +176,10 @@ const AboutUsPage = () => {
                 <div className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaUsers className="text-white" size={32} />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-gray-800 font-calibri">
+                <h3 className="text-xl font-medium mb-3 text-gray-800 font-calibri font-huglove">
                   Community Events
                 </h3>
-                <p className="text-gray-800 font-calibri  ">
+                <p className="text-base md:text-lg font-calibri  ">
                   Social gatherings and late night food runs to undo our hard work hah! :D
                 </p>
               </div>

@@ -19,7 +19,7 @@ const ShopProductGrid = ({
 }: ShopProductGridProps) => {
   return (
     <div className="mb-8">
-      <h2 className="text-xl md:text-2xl font-bold mb-4 text-black text-left font-huglove lg:text-center">
+      <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-medium mb-4 text-black text-left font-huglove lg:text-center">
         {categoryFilter === CATEGORY_ALL ? "Products" : categoryFilter}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 font-calibri text-lg">

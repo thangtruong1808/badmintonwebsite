@@ -5,8 +5,8 @@ const ShopWhySection = () => (
     className="bg-white rounded-xl shadow-lg p-6 md:p-8 mt-12 bg-gradient-to-r from-rose-50 to-rose-100 border border-rose-200"
     aria-labelledby="why-shop-heading"
   >
-    <h2 id="why-shop-heading" className="text-2xl font-bold mb-6 text-black text-center font-calibri">
-      Why Shop with ChibiBadminton
+    <h2 id="why-shop-heading" className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-medium mb-6 text-black text-center font-huglove">
+      Why Shop with Us
     </h2>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
       <div className="flex flex-col items-center">

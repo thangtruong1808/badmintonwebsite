@@ -174,215 +174,215 @@ const GalleryPage = () => {
               </div>
             </div>
           ) : (
-          <>
-          {/* Header Message */}
-          <div className="text-center mb-10 p-6 rounded-lg shadow-xl bg-gradient-to-t from-rose-50 to-rose-100">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-black mb-4">
-              Welcome to Our Badminton Gallery!
-            </h1>
-            <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto font-calibri">
-              Explore our vibrant collection of photos and videos, capturing the excitement of tournaments, the joy of social events, and memorable moments with our Chibi Badminton community.
-            </p>
-          </div>
-
-          {/* Two Column Layout: Photos (70%) and Videos (30%) */}
-          <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 md:gap-8">
-            {/* Photos Column - 70% width (7/10 columns) */}
-            <div className="lg:col-span-7">
-              <div className="bg-gradient-to-t from-rose-50 to-rose-100 rounded-lg shadow-lg p-6 md:p-8 mb-6">
-                <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
-                    <FaImages className="text-white" size={24} />
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-black">
-                    Photo Gallery
-                  </h2>
-                </div>
-                <p className="text-gray-600 mb-6 text-sm md:text-base font-calibri">
-                  Capturing the best moments from our tournaments, events, and
-                  community gatherings
+            <>
+              {/* Header Message */}
+              <div className="text-center mb-10 p-6 rounded-lg shadow-xl bg-gradient-to-t from-rose-50 to-rose-100">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-black mb-4 font-huglove">
+                  Welcome to Our Badminton Gallery!
+                </h1>
+                <p className="text-base md:text-lg text-gray-700 max-w-3xl mx-auto font-calibri">
+                  Explore our vibrant collection of photos and videos, capturing the excitement of tournaments, the joy of social events, and memorable moments with our Chibi Badminton community.
                 </p>
-
-                {/* Photo Filter Buttons */}
-                <div className="mb-6 flex flex-wrap gap-2">
-                  {photoFilterOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() =>
-                        setSelectedPhotoFilter(
-                          option.value as "all" | "chibi-tournament" | "veteran-tournament"
-                        )
-                      }
-                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 font-calibri ${selectedPhotoFilter === option.value
-                        ? "bg-rose-500 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                        }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {filteredPhotos.map((photo) => (
-                    <div
-                      key={photo.id}
-                      className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-                      onClick={() => setSelectedImage(photo.src)}
-                    >
-                      <img
-                        src={photo.src}
-                        alt={photo.alt}
-                        className="w-full h-48 md:h-56 object-cover group-hover:scale-110 transition-transform duration-300 font-calibri"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="bg-white/90 rounded-full p-3">
-                            <FaImages className="text-rose-500" size={24} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
-            </div>
 
-            {/* Videos Column - 30% width (3/10 columns) */}
-            <div className="lg:col-span-3">
-              <div className="bg-gradient-to-t from-rose-50 to-rose-100 rounded-lg shadow-lg p-6 md:p-8 sticky top-24">
-                <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
-                    <FaVideo className="text-white" size={24} />
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-black">
-                    Videos
-                  </h2>
-                </div>
-                <p className="text-gray-600 mb-6 text-sm md:text-base font-calibri">
-                  Watch highlights and recaps from our events and playlists
-                </p>
+              {/* Two Column Layout: Photos (70%) and Videos (30%) */}
+              <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 md:gap-8">
+                {/* Photos Column - 70% width (7/10 columns) */}
+                <div className="lg:col-span-7">
+                  <div className="bg-gradient-to-t from-rose-50 to-rose-100 rounded-lg shadow-lg p-6 md:p-8 mb-6">
+                    <div className="flex items-center mb-6">
+                      <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
+                        <FaImages className="text-white" size={24} />
+                      </div>
+                      <h2 className="text-2xl md:text-3xl font-medium text-black font-huglove">
+                        Photo Gallery
+                      </h2>
+                    </div>
+                    <p className="text-gray-600 mb-6 text-sm md:text-base font-calibri">
+                      Capturing the best moments from our tournaments, events, and
+                      community gatherings
+                    </p>
 
-                {/* Video Category Buttons */}
-                <div className="mb-6 flex flex-wrap gap-2">
-                  {videoCategoryOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() =>
-                        setSelectedVideoCategory(
-                          option.value as
-                          | "all"
-                          | "Wednesday"
-                          | "Friday"
-                          | "tournament"
-                          | "playlists"
-                        )
-                      }
-                      className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 font-calibri ${selectedVideoCategory === option.value
-                        ? "bg-rose-500 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
-                        }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="gallery-videos-scroll pr-2 overflow-y-auto max-h-[calc(3*(200px+1.5rem))]">
-                  <div className="space-y-6">
-                    {filteredVideos.map((video) => {
-                      const thumbnailUrl = getThumbnailUrl(video);
-                      const videoUrl = getVideoUrl(video);
-                      const videoIdForFallback = parseYouTubeId(
-                        video.embed_id,
-                        "video"
-                      );
-                      return (
-                        <div
-                          key={video.id}
-                          className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                    {/* Photo Filter Buttons */}
+                    <div className="mb-6 flex flex-wrap gap-2">
+                      {photoFilterOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() =>
+                            setSelectedPhotoFilter(
+                              option.value as "all" | "chibi-tournament" | "veteran-tournament"
+                            )
+                          }
+                          className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 font-calibri ${selectedPhotoFilter === option.value
+                            ? "bg-rose-500 text-white"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                            }`}
                         >
-                          <div className="relative aspect-video bg-gray-200 flex items-center justify-center">
-                            <img
-                              src={thumbnailUrl}
-                              alt={video.title}
-                              className="w-full h-full object-cover font-calibri"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                if (
-                                  videoIdForFallback &&
-                                  target.src.includes("hqdefault")
-                                ) {
-                                  target.src = `https://img.youtube.com/vi/${videoIdForFallback}/mqdefault.jpg`;
-                                } else {
-                                  target.src = playlistPlaceholder;
-                                }
-                              }}
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-all duration-300">
-                              {videoUrl ? (
-                                <a
-                                  href={videoUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  aria-label={`Watch ${video.title}`}
-                                  className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center hover:bg-rose-600 transition-colors duration-300 transform hover:scale-110 cursor-pointer font-calibri"
-                                >
-                                  <FaPlay className="text-white ml-1" size={20} />
-                                </a>
-                              ) : (
-                                <div
-                                  className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center font-calibri"
-                                  aria-hidden
-                                >
-                                  <FaPlay className="text-white ml-1" size={20} />
-                                </div>
-                              )}
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {filteredPhotos.map((photo) => (
+                        <div
+                          key={photo.id}
+                          className="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                          onClick={() => setSelectedImage(photo.src)}
+                        >
+                          <img
+                            src={photo.src}
+                            alt={photo.alt}
+                            className="w-full h-48 md:h-56 object-cover group-hover:scale-110 transition-transform duration-300 font-calibri"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="bg-white/90 rounded-full p-3">
+                                <FaImages className="text-rose-500" size={24} />
+                              </div>
                             </div>
                           </div>
-                          <div className="p-3 bg-white">
-                            <h3 className="font-semibold text-sm md:text-base text-black line-clamp-2 font-calibri">
-                              {video.title}
-                            </h3>
-                          </div>
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <p className="text-xs md:text-sm text-gray-500 text-center mt-6 italic font-calibri">
-                  Stay tuned for more exciting video highlights!
-                </p>
-              </div>
-            </div>
-          </div>
 
-        {/* Image Modal */}
-        {selectedImage && (
-          <div
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 font-calibri"
-            onClick={() => setSelectedImage(null)}
-          >
-            <div className="relative max-w-5xl max-h-[90vh]">
-              <img
-                src={selectedImage}
-                alt="Full size"
-                className="max-w-full max-h-[90vh] object-contain rounded-lg"
-              />
-              <button
-                onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 bg-white/90 hover:bg-white text-black rounded-full p-2 transition-colors duration-300 font-calibri"
-                aria-label="Close"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
-          </>
+                {/* Videos Column - 30% width (3/10 columns) */}
+                <div className="lg:col-span-3">
+                  <div className="bg-gradient-to-t from-rose-50 to-rose-100 rounded-lg shadow-lg p-6 md:p-8 sticky top-24">
+                    <div className="flex items-center mb-6">
+                      <div className="w-12 h-12 bg-rose-500 rounded-full flex items-center justify-center mr-4">
+                        <FaVideo className="text-white" size={24} />
+                      </div>
+                      <h2 className="text-2xl md:text-3xl font-medium text-black font-huglove">
+                        Videos
+                      </h2>
+                    </div>
+                    <p className="text-gray-600 mb-6 text-sm md:text-base font-calibri">
+                      Watch highlights and recaps from our events and playlists
+                    </p>
+
+                    {/* Video Category Buttons */}
+                    <div className="mb-6 flex flex-wrap gap-2">
+                      {videoCategoryOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() =>
+                            setSelectedVideoCategory(
+                              option.value as
+                              | "all"
+                              | "Wednesday"
+                              | "Friday"
+                              | "tournament"
+                              | "playlists"
+                            )
+                          }
+                          className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 font-calibri ${selectedVideoCategory === option.value
+                            ? "bg-rose-500 text-white"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300 font-calibri"
+                            }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="gallery-videos-scroll pr-2 overflow-y-auto max-h-[calc(3*(200px+1.5rem))]">
+                      <div className="space-y-6">
+                        {filteredVideos.map((video) => {
+                          const thumbnailUrl = getThumbnailUrl(video);
+                          const videoUrl = getVideoUrl(video);
+                          const videoIdForFallback = parseYouTubeId(
+                            video.embed_id,
+                            "video"
+                          );
+                          return (
+                            <div
+                              key={video.id}
+                              className="rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                            >
+                              <div className="relative aspect-video bg-gray-200 flex items-center justify-center">
+                                <img
+                                  src={thumbnailUrl}
+                                  alt={video.title}
+                                  className="w-full h-full object-cover font-calibri"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    if (
+                                      videoIdForFallback &&
+                                      target.src.includes("hqdefault")
+                                    ) {
+                                      target.src = `https://img.youtube.com/vi/${videoIdForFallback}/mqdefault.jpg`;
+                                    } else {
+                                      target.src = playlistPlaceholder;
+                                    }
+                                  }}
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-all duration-300">
+                                  {videoUrl ? (
+                                    <a
+                                      href={videoUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      aria-label={`Watch ${video.title}`}
+                                      className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center hover:bg-rose-600 transition-colors duration-300 transform hover:scale-110 cursor-pointer font-calibri"
+                                    >
+                                      <FaPlay className="text-white ml-1" size={20} />
+                                    </a>
+                                  ) : (
+                                    <div
+                                      className="w-16 h-16 bg-gray-400 rounded-full flex items-center justify-center font-calibri"
+                                      aria-hidden
+                                    >
+                                      <FaPlay className="text-white ml-1" size={20} />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="p-3 bg-white">
+                                <h3 className="font-semibold text-sm md:text-base text-black line-clamp-2 font-calibri">
+                                  {video.title}
+                                </h3>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <p className="text-xs md:text-sm text-gray-500 text-center mt-6 italic font-calibri">
+                      Stay tuned for more exciting video highlights!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Image Modal */}
+              {selectedImage && (
+                <div
+                  className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 font-calibri"
+                  onClick={() => setSelectedImage(null)}
+                >
+                  <div className="relative max-w-5xl max-h-[90vh]">
+                    <img
+                      src={selectedImage}
+                      alt="Full size"
+                      className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                    />
+                    <button
+                      onClick={() => setSelectedImage(null)}
+                      className="absolute top-4 right-4 bg-white/90 hover:bg-white text-black rounded-full p-2 transition-colors duration-300 font-calibri"
+                      aria-label="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
+        </div>
       </div>
-    </div>
     </div>
   );
 };

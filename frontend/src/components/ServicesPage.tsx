@@ -97,11 +97,11 @@ const ServicesPage = () => {
 
   const stringOptions: Record<string, string[]> = serviceOptions
     ? Object.fromEntries(
-        serviceOptions.strings.map((s) => [
-          s.name,
-          s.colours?.map((c) => c.colour) ?? [],
-        ])
-      )
+      serviceOptions.strings.map((s) => [
+        s.name,
+        s.colours?.map((c) => c.colour) ?? [],
+      ])
+    )
     : {};
   const tensionOptions = serviceOptions?.tensions?.map((t) => t.label) ?? [];
   const stencilOptions =
@@ -276,10 +276,10 @@ const ServicesPage = () => {
 
         {/* Header - compact on all screens */}
         <div className="text-center mb-4 md:mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-1 md:mb-2 font-huglove">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 mb-1 md:mb-2 font-huglove">
             Stringing Services
           </h1>
-          <p className="text-gray-700 text-sm md:text-base max-w-3xl mx-auto font-calibri">
+          <p className="text-gray-700 text-base md:text-lg max-w-3xl mx-auto font-calibri">
             Book your racket stringing service. Fill out the form with your racket and string preferences.
           </p>
         </div>
@@ -486,11 +486,10 @@ const ServicesPage = () => {
                         }));
                         if (errors.string) setErrors((prev) => ({ ...prev, string: undefined }));
                       }}
-                      className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${
-                        errors.string
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-rose-500"
-                      } ${optionsLoading ? "bg-gray-100 cursor-wait" : ""}`}
+                      className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${errors.string
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-rose-500"
+                        } ${optionsLoading ? "bg-gray-100 cursor-wait" : ""}`}
                     >
                       <option value="">
                         {optionsLoading ? "Loading..." : "Select string"}
@@ -520,18 +519,17 @@ const ServicesPage = () => {
                       )}
                     </label>
                     {formData.string &&
-                    formData.string !== "Other" &&
-                    (stringOptions[formData.string]?.length ?? 0) > 0 ? (
+                      formData.string !== "Other" &&
+                      (stringOptions[formData.string]?.length ?? 0) > 0 ? (
                       <select
                         id="colour"
                         name="colour"
                         value={formData.colour}
                         onChange={handleChange}
-                        className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${
-                          errors.colour
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-rose-500"
-                        }`}
+                        className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${errors.colour
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-rose-500"
+                          }`}
                       >
                         <option value="">Select colour</option>
                         {stringOptions[formData.string]?.map((c) => (
@@ -548,15 +546,13 @@ const ServicesPage = () => {
                         value={formData.colour}
                         onChange={handleChange}
                         disabled={!formData.string || formData.string === "Other"}
-                        className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${
-                          errors.colour
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-rose-500"
-                        } ${
-                          !formData.string || formData.string === "Other"
+                        className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${errors.colour
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-rose-500"
+                          } ${!formData.string || formData.string === "Other"
                             ? "bg-gray-100 cursor-not-allowed"
                             : ""
-                        }`}
+                          }`}
                         placeholder={
                           !formData.string
                             ? "Select string first"
@@ -587,11 +583,10 @@ const ServicesPage = () => {
                       value={formData.tension}
                       disabled={optionsLoading}
                       onChange={handleChange}
-                      className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${
-                        errors.tension
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-rose-500"
-                      } ${optionsLoading ? "bg-gray-100 cursor-wait" : ""}`}
+                      className={`w-full px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 font-calibri text-sm md:text-lg ${errors.tension
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-rose-500"
+                        } ${optionsLoading ? "bg-gray-100 cursor-wait" : ""}`}
                     >
                       <option value="">
                         {optionsLoading ? "Loading..." : "Select tension"}
@@ -631,9 +626,8 @@ const ServicesPage = () => {
                       value={formData.stencil}
                       disabled={optionsLoading}
                       onChange={handleChange}
-                      className={`w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm md:text-lg ${
-                        optionsLoading ? "bg-gray-100 cursor-wait" : ""
-                      }`}
+                      className={`w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm md:text-lg ${optionsLoading ? "bg-gray-100 cursor-wait" : ""
+                        }`}
                     >
                       {stencilOptions.map((opt) => (
                         <option key={opt.value || "none"} value={opt.value}>
@@ -657,9 +651,8 @@ const ServicesPage = () => {
                       value={formData.grip}
                       disabled={optionsLoading}
                       onChange={handleChange}
-                      className={`w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm md:text-lg ${
-                        optionsLoading ? "bg-gray-100 cursor-wait" : ""
-                      }`}
+                      className={`w-full px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm md:text-lg ${optionsLoading ? "bg-gray-100 cursor-wait" : ""
+                        }`}
                     >
                       {gripOptions.map((opt) => (
                         <option key={opt.value || "none"} value={opt.value}>

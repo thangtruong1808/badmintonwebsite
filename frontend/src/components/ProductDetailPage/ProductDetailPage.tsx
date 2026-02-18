@@ -49,10 +49,10 @@ const ProductDetailPageInner = ({ id }: ProductDetailPageInnerProps) => {
     return (
       <div className="w-full overflow-x-hidden">
         <div className="px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto min-h-full text-center">
-          <h1 className="text-3xl font-bold mb-4 text-black">Product Not Found</h1>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-calibri text-black font-huglove mb-4">Product Not Found</h1>
           <button
             onClick={() => navigate("/shop")}
-            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-300"
+            className="bg-green-600 hover:bg-green-700 text-white font-calibri text-lg py-2 px-6 rounded-lg transition duration-300"
           >
             Back to Shop
           </button>
@@ -81,7 +81,7 @@ const ProductDetailPageInner = ({ id }: ProductDetailPageInnerProps) => {
           className="flex items-center gap-2 text-gray-600 hover:text-black mb-6 transition-colors duration-300 font-calibri text-lg"
         >
           <FaArrowLeft size={18} />
-          <span className="font-large font-calibri text-lg">Back to Shop</span>
+          <span className="font-calibri text-lg">Back to Shop</span>
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 mb-12 font-calibri text-lg">

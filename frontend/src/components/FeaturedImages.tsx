@@ -7,7 +7,7 @@ const FeaturedImages: React.FC = () => {
   return (
     <div className="pt-8 px-8 pb-0 bg-gradient-to-t from-pink-100 to-pink-300">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8 font-huglove">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-center mb-8 font-huglove">
           Featured Images
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -18,7 +18,7 @@ const FeaturedImages: React.FC = () => {
               alt="Chibi Wednesday Playtime"
               className="rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 mb-4 w-full h-auto object-cover"
             />
-            <p className="text-md md:text-lg text-gray-700 font-calibri font-semibold">
+            <p className="text-md md:text-lg text-gray-700 font-calibri font-medium">
               Chibi Wednesday Playtime from 7:00 PM to 10:00 PM
             </p>
           </div>
@@ -30,7 +30,7 @@ const FeaturedImages: React.FC = () => {
               alt="Chibi Friday Playtime"
               className="rounded-lg shadow-2xl hover:shadow-3xl transition-all duration-300 mb-4 w-full h-auto object-cover"
             />
-            <p className="text-md md:text-lg text-gray-700 font-calibri font-semibold">
+            <p className="text-md md:text-lg text-gray-700 font-calibri font-medium">
               Chibi Friday Playtime from 7:00 PM to 10:00 PM
             </p>
           </div>

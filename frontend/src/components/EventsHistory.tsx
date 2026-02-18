@@ -23,10 +23,10 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents, onViewDe
               <div className="inline-block bg-gray-700 text-white px-4 py-2 rounded-full text-md font-semibold mb-4 font-calibri">
                 PAST EVENTS
               </div>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-black drop-shadow-lg">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium mb-4 text-black drop-shadow-lg font-huglove">
                 Battle Royale History
               </h2>
-              <p className="text-black text-lg md:text-xl max-w-2xl mx-auto drop-shadow-md font-calibri">
+              <p className="text-black text-base md:text-lg max-w-2xl mx-auto drop-shadow-md font-calibri">
                 Take a look back at our amazing past Battle Royale tournaments
               </p>
             </div>
@@ -49,7 +49,7 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents, onViewDe
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
                   <div className="p-6 bg-white/95">
-                    <h3 className="text-xl md:text-2xl font-bold mb-4 text-gray-900 line-clamp-2 font-calibri">
+                    <h3 className="text-xl md:text-2xl font-medium mb-4 text-gray-900 line-clamp-2 font-calibri font-huglove">
                       {event.title}
                     </h3>
                     <div className="space-y-3 mb-4">
@@ -93,7 +93,7 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents, onViewDe
                       <button
                         type="button"
                         onClick={() => onViewDetails?.(event)}
-                        className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-calibri focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                        className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg font-calibri focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                         aria-label={`View details for ${event.title}`}
                       >
                         View Details

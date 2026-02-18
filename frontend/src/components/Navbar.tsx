@@ -52,12 +52,11 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
       </Link>
     );
   }
-
   return (
     <Link
       to={to}
       onClick={() => setIsOpen(false)}
-      className={`font-huglove font-normal block lg:inline-block py-2.5 lg:py-0 px-2 lg:px-2 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 border-rose-200 lg:border-0 whitespace-nowrap lg:px-3 xl:px-4 xl:py-2 text-lg lg:text-2xl xl:text-3xl ${isActive
+      className={`font-huglove font-normal block lg:inline-block py-2.5 lg:py-0 px-2 lg:px-2 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 border-rose-200 lg:border-0 whitespace-nowrap lg:px-3 xl:px-4 xl:py-2 text-lg lg:text-2xl xl:text-3xl   ${isActive
         ? "text-rose-500 bg-transparent underline decoration-rose-500 decoration-4 underline-offset-[10px]"
         : "text-black hover:text-black hover:bg-rose-300 lg:hover:bg-transparent lg:hover:text-rose-500 rounded-md"
         }`}
@@ -67,9 +66,9 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
           ? "pb-0.5 after:content-[''] after:absolute after:bottom-0 after:left-1 after:right-1 after:h-0.5 after:bg-rose-500"
           : ""
           }`}
-        style={{
-          textShadow: "1px 1px 3px rgba(0,0,0,0.3)",
-        }}
+      // style={{
+      //   textShadow: "1px 1px 3px rgba(0,0,0,0.3)",
+      // }}
       >
         {renderPageName()}
       </span>

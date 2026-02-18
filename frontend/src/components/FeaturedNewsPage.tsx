@@ -80,10 +80,10 @@ const FeaturedNewsPage: React.FC = () => {
     <div className="w-full overflow-x-hidden min-h-screen bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="container mx-auto px-4 pt-12 pb-8">
         <div className="text-center mb-10 p-12 rounded-lg shadow-xl bg-gradient-to-t from-rose-50 to-rose-100 mt-4">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2 font-huglove text-center">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 mb-1 sm:mb-2 font-huglove text-center">
             Featured News
           </h1>
-          <p className="text-center text-gray-600 font-calibri text-sm sm:text-base">
+          <p className="text-center text-gray-600 font-calibri text-base sm:text-lg">
             All news articles from the club
           </p>
         </div>
