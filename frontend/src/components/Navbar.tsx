@@ -39,7 +39,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
       <Link
         to={to}
         onClick={() => setIsOpen(false)}
-        className="font-huglove text-base lg:text-lg inline-block cursor-pointer"
+        className="font-huglove text-lg lg:text-2xl xl:text-3xl inline-block cursor-pointer"
       >
         <span
           className={`inline-flex items-center relative px-2 2xl:px-4 py-1 rounded-full transition-colors duration-300 ${isActive
@@ -57,8 +57,8 @@ const NavItem: React.FC<NavItemProps> = ({ to, pageName, setIsOpen }) => {
     <Link
       to={to}
       onClick={() => setIsOpen(false)}
-      className={`font-huglove text-base  lg:text-xl lg:px-3 xl:text-2xl xl:px-4 xl:py-2 block lg:inline-block py-2.5 lg:py-0 px-2 lg:px-2 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 border-rose-200 lg:border-0 whitespace-nowrap ${isActive
-        ? "text-rose-500 font-semibold bg-transparent underline decoration-rose-500 decoration-4 underline-offset-[10px]"
+      className={`font-huglove font-normal block lg:inline-block py-2.5 lg:py-0 px-2 lg:px-2 cursor-pointer transition-colors duration-300 border-b lg:border-b-0 border-rose-200 lg:border-0 whitespace-nowrap lg:px-3 xl:px-4 xl:py-2 text-lg lg:text-2xl xl:text-3xl ${isActive
+        ? "text-rose-500 bg-transparent underline decoration-rose-500 decoration-4 underline-offset-[10px]"
         : "text-black hover:text-black hover:bg-rose-300 lg:hover:bg-transparent lg:hover:text-rose-500 rounded-md"
         }`}
     >
@@ -185,7 +185,7 @@ const Navbar: React.FC = () => {
             <div className="relative flex-shrink-0 ml-1 self-center">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="font-huglove text-base lg:text-lg inline-flex items-center gap-1 p-0.5 rounded-full hover:ring-2 hover:ring-rose-400 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="font-huglove text-lg lg:text-xl font-normal inline-flex items-center gap-1 p-0.5 rounded-full hover:ring-2 hover:ring-rose-400 transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500"
                 aria-label={`${user.firstName} ${user.lastName} - account menu`}
                 aria-expanded={showUserMenu}
                 title={`${user.firstName} ${user.lastName}`}
@@ -326,7 +326,7 @@ const Navbar: React.FC = () => {
                   onClick={() => {
                     setIsOpen(false);
                   }}
-                  className="font-huglove text-base flex items-center py-2.5 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
+                  className="font-huglove text-lg font-normal flex items-center py-2.5 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
                   aria-label={`${user.firstName} ${user.lastName} - My Profile`}
                   title={`${user.firstName} ${user.lastName}`}
                 >
@@ -348,7 +348,7 @@ const Navbar: React.FC = () => {
                     onClick={() => {
                       setIsOpen(false);
                     }}
-                    className="font-huglove text-base block py-2.5 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
+                    className="font-huglove text-lg font-normal block py-2.5 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
                   >
                     Dashboard
                   </Link>

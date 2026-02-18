@@ -74,7 +74,7 @@ const FeaturedNews: React.FC = () => {
   return (
     <div className="py-16 bg-gradient-to-r from-rose-50 to-rose-100">
       <div className="container mx-auto px-4">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-8 font-huglove">
+        <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-center mb-8 font-huglove">
           Featured News
         </h2>
         {loading && (

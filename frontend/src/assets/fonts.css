@@ -1,12 +1,14 @@
-/* Huglove font - Currently using system cursive fallback */
-/* TODO: Replace src/assets/fonts/Huglove.ttf placeholder with actual font file */
-/* @font-face {
+/* Huglove - real font from CDN so it works on all devices and matches your UI.
+   (Local Huglove.ttf was invalid; this uses the same font from OnlineWebFonts.)
+   To self-host again: download a valid Huglove.woff2 and use url('./fonts/Huglove.woff2') format('woff2'). */
+@font-face {
   font-family: 'Huglove';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('./fonts/Huglove.ttf') format('truetype');
-} */
+  src: url('https://db.onlinewebfonts.com/t/b367f4f5b655d86970fe79a54f07d896.woff2') format('woff2'),
+       url('https://db.onlinewebfonts.com/t/b367f4f5b655d86970fe79a54f07d896.woff') format('woff');
+}
 
 @font-face {
   font-family: 'Roboto';
