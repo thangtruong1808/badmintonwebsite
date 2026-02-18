@@ -107,10 +107,10 @@ const NewsletterPopup: React.FC = () => {
           {/* Information Section */}
           <div className="w-full sm:w-2/3 p-4 sm:p-6 flex flex-col justify-between">
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2 font-huglove">
+              <h3 className="text-gray-900 font-calibri text-lg xl:text-2xl mb-2 font-huglove">
                 Stay Updated!
               </h3>
-              <p className="text-sm text-gray-700 mb-4 font-calibri">
+              <p className="text-gray-700 mb-4 font-calibri text-sm font-medium">
                 Subscribe to our newsletter and never miss out on events, tournaments, and special offers!
               </p>
             </div>
@@ -138,7 +138,7 @@ const NewsletterPopup: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 text-sm shadow-lg hover:shadow-xl transform hover:scale-105 font-calibri disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-calibri text-base xl:text-lg py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? "..." : "Subscribe"}
                   </button>
