@@ -13,16 +13,14 @@ function getTransporter(): Transporter | null {
   const portNum = parseInt(port, 10);
   // Port 465: direct TLS. Port 587: STARTTLS (requireTLS needed for some servers e.g. Hostinger).
   const useSecure = process.env.SMTP_SECURE === 'true' && portNum === 465;
-  const transportOptions: Parameters<typeof nodemailer.createTransport>[0] = {
+  const options = {
     host,
     port: portNum,
     secure: useSecure,
     auth: { user, pass },
+    ...(portNum === 587 && !useSecure ? { requireTLS: true } : {}),
   };
-  if (portNum === 587 && !useSecure) {
-    (transportOptions as Record<string, unknown>).requireTLS = true;
-  }
-  transporter = nodemailer.createTransport(transportOptions);
+  transporter = nodemailer.createTransport(options as Parameters<typeof nodemailer.createTransport>[0]);
   return transporter;
 }
 
