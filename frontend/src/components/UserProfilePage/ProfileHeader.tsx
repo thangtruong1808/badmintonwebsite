@@ -180,8 +180,8 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate }) =
           </div>
         </div>
 
-        {/* Reward Points Card */}
-        <div className="w-full md:w-auto">
+        {/* Reward Points Card - centered on mobile, flexes within bounds on md+ */}
+        <div className="w-full min-w-0 flex justify-center md:flex-1 md:min-w-0 md:flex md:justify-end md:items-start">
           <RewardPointsCard user={user} />
         </div>
       </div>
