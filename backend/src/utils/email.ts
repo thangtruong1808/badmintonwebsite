@@ -5,10 +5,10 @@ let transporter: Transporter | null = null;
 
 function getTransporter(): Transporter | null {
   if (transporter) return transporter;
-  const host = (process.env.SMTP_HOST ?? '').trim();
-  const port = (process.env.SMTP_PORT ?? '').trim();
-  const user = (process.env.SMTP_USER ?? '').trim();
-  const pass = (process.env.SMTP_PASS ?? '').trim();
+  const host = (process.env.SMTP_HOST ?? '').trim().replace(/[\x00-\x1F\x7F]/g, '');
+  const port = (process.env.SMTP_PORT ?? '').trim().replace(/[\x00-\x1F\x7F]/g, '');
+  const user = (process.env.SMTP_USER ?? '').trim().replace(/[\x00-\x1F\x7F]/g, '');
+  const pass = (process.env.SMTP_PASS ?? '').trim().replace(/[\x00-\x1F\x7F]/g, '');
   if (!host || !port || !user || !pass) return null;
   const portNum = parseInt(port, 10);
   // Port 465: direct TLS. Port 587: STARTTLS (requireTLS needed for some servers e.g. Hostinger).
@@ -60,7 +60,7 @@ export async function sendPasswordResetEmail(
     const isAuth = err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code === 'EAUTH';
     console.error('[email] Failed to send password reset email:', err);
     if (isAuth) {
-      console.error('[email] SMTP auth failed (535). Check SMTP_USER and SMTP_PASS in .env. For Hostinger: use the mailbox password from hPanel → Emails, ensure the mailbox exists and is active.');
+      console.error('[email] SMTP auth failed (535). Verify: 1) SMTP_USER is the real mailbox (not alias). 2) SMTP_PASS is correct - try a simple password (letters+numbers) to rule out .env parsing. 3) Try SMTP_HOST=smtp.hostinger.com with port 587, or smtp.titan.email with port 465.');
     }
   }
 }
