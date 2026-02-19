@@ -172,10 +172,10 @@ const ResetPasswordPage = () => {
       <div className="w-full max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 mb-2 font-huglove">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium mb-2 font-huglove">
             Reset Password
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-xl lg:text-2xl font-medium">
             {isSetPasswordMode
               ? "Enter your new password below"
               : "Enter your email to receive a password reset link"}
@@ -338,12 +338,12 @@ const ResetPasswordPage = () => {
 
             {/* Back to Sign In Link */}
             <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-              <span className="text-gray-500 text-md font-medium font-calibri text-md text-rose-500">Remember your password? </span>
+              <span className="text-gray-500 text-md font-calibri text-lg text-rose-500">Remember your password? </span>
               <Link
                 to="/signin"
-                className="text-rose-500 hover:text-rose-600 text-md font-medium font-calibri text-md"
+                className="text-rose-500 hover:text-rose-600 font-semibold font-calibri text-md hover:underline"
               >
-                <span className="text-rose-500 hover:text-rose-600 hover:underline">← Back to Sign In</span>
+                ← Back to Sign In
               </Link>
             </div>
 

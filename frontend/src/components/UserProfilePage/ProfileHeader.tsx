@@ -151,7 +151,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate }) =
 
         {/* User Info */}
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 mb-2 font-huglove">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl mb-2 font-huglove">
             {user.firstName} {user.lastName}
           </h1>
 

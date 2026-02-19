@@ -93,7 +93,7 @@ const UserProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="absolute inset-0 w-full bg-gradient-to-b from-pink-100 to-pink-200 flex items-center justify-center">
+      <div className="absolute inset-0 w-full bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto mb-4"></div>
           <p className="text-gray-600 font-calibri">Loading profile...</p>
@@ -104,7 +104,7 @@ const UserProfilePage: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="absolute inset-0 w-full bg-gradient-to-b from-pink-100 to-pink-200 flex items-center justify-center p-4">
+      <div className="absolute inset-0 w-full bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
           <p className="text-gray-600 font-calibri">
             {error || "No user data available."}

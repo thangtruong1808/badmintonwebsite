@@ -6,7 +6,7 @@ const ShopWhySection = () => (
     aria-labelledby="why-shop-heading"
   >
     <h2 id="why-shop-heading" className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-medium mb-6 text-black text-center font-huglove">
-      Why Shop with Us
+      Why with Us
     </h2>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
       <div className="flex flex-col items-center">

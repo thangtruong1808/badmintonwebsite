@@ -128,10 +128,10 @@ const SignInPage = () => {
       <div className="w-full max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 mb-2 font-huglove">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium mb-2 font-huglove">
             Sign In
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-xl lg:text-2xl font-medium">
             Sign in to your account to continue
           </p>
         </div>
@@ -261,12 +261,12 @@ const SignInPage = () => {
                 Don't have an account?{" "}
                 <Link
                   to="/register"
-                  className="text-rose-500 hover:text-rose-600 font-semibold font-calibri"
+                  className="text-rose-500 hover:text-rose-600 font-semibold font-calibri hover:underline"
                 >
                   Create an account
                 </Link>
               </p>
-              <div className="mt-4 flex items-center justify-center text-gray-500 text-xs">
+              <div className="mt-4 flex items-center justify-center text-gray-500 text-sm font-calibri">
                 <FaLock className="mr-2 text-rose-500" size={14} />
                 <span>Secure authentication powered by encrypted connections</span>
               </div>

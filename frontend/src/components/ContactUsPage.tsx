@@ -151,7 +151,7 @@ const ContactUsPage = () => {
       <div className="w-full overflow-x-hidden pt-20 pb-8">
         <div className="px-4 md:px-8 max-w-7xl mx-auto ">
           {/* Subtitle Section */}
-          <div className="text-center p-12 rounded-lg shadow-xl bg-gradient-to-t from-rose-50 to-rose-100 my-10">
+          <div className="text-center p-12 rounded-lg shadow-xl bg-gradient-to-r from-rose-50 to-rose-100 my-10">
             <h1 className="text-gray-900 max-w-7xl mx-auto font-calibri font-medium text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-huglove">
               Send us a message and we'll respond as soon as possible.
             </h1>
@@ -160,7 +160,7 @@ const ContactUsPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 md:gap-2">
             {/* Contact Information */}
             <div className="lg:col-span-1">
-              <div className="bg-gradient-to-r from-rose-50 to-rose-100 lg:bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg p-6 md:p-8 shadow-lg h-full border border-slate-200">
+              <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg p-6 md:p-8 shadow-lg h-full border border-slate-200">
                 <h2 className="text-2xl font-medium mb-6 font-huglove">
                   Get In Touch
                 </h2>
@@ -193,7 +193,7 @@ const ContactUsPage = () => {
 
             {/* Contact Form */}
             <div className="lg:col-span-2">
-              <div className="bg-gradient-to-r from-rose-50 to-rose-100 lg:bg-gradient-to-l from-rose-50 to-rose-100 rounded-lg p-6 md:p-8 shadow-lg border border-slate-200">
+              <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-lg p-6 md:p-8 shadow-lg border border-slate-200">
                 <h2 className="text-2xl font-medium mb-6 font-huglove">
                   Send Us a Message
                 </h2>

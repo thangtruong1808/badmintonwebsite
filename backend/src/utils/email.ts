@@ -5,20 +5,24 @@ let transporter: Transporter | null = null;
 
 function getTransporter(): Transporter | null {
   if (transporter) return transporter;
-  const host = process.env.SMTP_HOST;
-  const port = process.env.SMTP_PORT;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const host = (process.env.SMTP_HOST ?? '').trim();
+  const port = (process.env.SMTP_PORT ?? '').trim();
+  const user = (process.env.SMTP_USER ?? '').trim();
+  const pass = (process.env.SMTP_PASS ?? '').trim();
   if (!host || !port || !user || !pass) return null;
   const portNum = parseInt(port, 10);
-  // Ports 2525 and 587 use STARTTLS (plain first); only 465 uses direct TLS. Avoid SSL "wrong version number" on Mailtrap etc.
+  // Port 465: direct TLS. Port 587: STARTTLS (requireTLS needed for some servers e.g. Hostinger).
   const useSecure = process.env.SMTP_SECURE === 'true' && portNum === 465;
-  transporter = nodemailer.createTransport({
+  const transportOptions: Parameters<typeof nodemailer.createTransport>[0] = {
     host,
     port: portNum,
     secure: useSecure,
     auth: { user, pass },
-  });
+  };
+  if (portNum === 587 && !useSecure) {
+    (transportOptions as Record<string, unknown>).requireTLS = true;
+  }
+  transporter = nodemailer.createTransport(transportOptions);
   return transporter;
 }
 
@@ -54,8 +58,12 @@ export async function sendPasswordResetEmail(
         <p>If you did not request this, you can ignore this email.</p>
       `.trim(),
     });
-  } catch (err) {
+  } catch (err: unknown) {
+    const isAuth = err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code === 'EAUTH';
     console.error('[email] Failed to send password reset email:', err);
+    if (isAuth) {
+      console.error('[email] SMTP auth failed (535). Check SMTP_USER and SMTP_PASS in .env. For Hostinger: use the mailbox password from hPanel → Emails, ensure the mailbox exists and is active.');
+    }
   }
 }
 

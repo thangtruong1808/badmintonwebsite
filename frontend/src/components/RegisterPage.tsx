@@ -156,10 +156,10 @@ const RegisterPage = () => {
       <div className="w-full max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-6 md:mb-8">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 mb-2 font-huglove">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium mb-2 font-huglove">
             Create Account
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-xl lg:text-2xl font-medium">
             Register for a new account to get started
           </p>
         </div>
@@ -413,11 +413,11 @@ const RegisterPage = () => {
 
             {/* Sign In Link */}
             <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-              <p className="text-gray-600 text-sm font-calibri">
+              <p className="text-gray-600 text-md font-calibri">
                 Already have an account?{" "}
                 <Link
                   to="/signin"
-                  className="text-rose-500 hover:text-rose-600 font-semibold"
+                  className="text-rose-500 hover:text-rose-600 font-semibold hover:underline"
                 >
                   Sign in
                 </Link>

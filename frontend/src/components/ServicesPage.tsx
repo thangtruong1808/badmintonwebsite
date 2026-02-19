@@ -285,7 +285,7 @@ const ServicesPage = () => {
         </div>
 
         {/* Form Card - single column */}
-        <div className="bg-gradient-to-t from-rose-50 to-rose-100 rounded-xl shadow-2xl overflow-hidden max-w-7xl mx-auto">
+        <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-xl shadow-2xl overflow-hidden max-w-7xl mx-auto">
           <div className="p-4 md:p-6 lg:p-8">
             <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
               {/* Personal Information Section */}
