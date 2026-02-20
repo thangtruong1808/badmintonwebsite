@@ -289,7 +289,13 @@ const Navbar: React.FC = () => {
         </div>
       </div>
       {isOpen && (
-        <div className="lg:hidden absolute left-0 right-0 top-full bg-gradient-to-r from-rose-50 to-rose-100 shadow-xl w-full border-t border-rose-200 text-black z-50">
+        <>
+          <div
+            className="fixed inset-0 z-[45] lg:hidden bg-black/20"
+            onClick={() => setIsOpen(false)}
+            aria-hidden
+          />
+          <div className="lg:hidden absolute left-0 right-0 top-full bg-gradient-to-r from-rose-50 to-rose-100 shadow-xl w-full border-t border-rose-200 text-black z-50">
           <div className="w-full">
             <NavItem
               to="/"
@@ -349,12 +355,24 @@ const Navbar: React.FC = () => {
                     Dashboard
                   </Link>
                 )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    handleLogout();
+                  }}
+                  className="font-huglove text-lg font-normal w-full text-left block py-2.5 px-2 border-b border-rose-200 text-black hover:bg-rose-300 rounded-md"
+                >
+                  <FaSignOutAlt className="inline mr-2" size={14} />
+                  Sign Out
+                </button>
               </>
             ) : (
               <NavItem to="/signin" pageName="sign-in" setIsOpen={setIsOpen} />
             )}
           </div>
         </div>
+        </>
       )}
     </nav>
   );
