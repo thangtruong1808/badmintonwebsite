@@ -266,9 +266,9 @@ const SignInPage = () => {
                   Create an account
                 </Link>
               </p>
-              <div className="mt-4 flex items-center justify-center text-gray-500 text-sm font-calibri">
-                <FaLock className="mr-2 text-rose-500" size={14} />
-                <span>Secure authentication powered by encrypted connections</span>
+              <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2 text-gray-500 text-sm font-calibri text-center">
+                <FaLock className="text-rose-500 flex-shrink-0" size={14} />
+                <span>Secure authentication powered by encrypted connections.</span>
               </div>
             </div>
           </div>

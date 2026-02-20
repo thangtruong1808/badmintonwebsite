@@ -147,10 +147,9 @@ const RegisterPage = () => {
 
   return (
     <div
-      className="w-full flex flex-col items-center justify-center bg-gradient-to-b from-rose-50 to-rose-100 px-4 py-8 overflow-x-hidden overflow-y-hidden"
+      className="w-full flex flex-col items-center justify-center bg-gradient-to-b from-rose-50 to-rose-100 px-4 py-8 overflow-x-hidden"
       style={{
         minHeight: "calc(100vh - var(--navbar-height, 56px) - 4.5rem)",
-        maxHeight: "calc(100vh - var(--navbar-height, 56px) - 4.5rem)",
       }}
     >
       <div className="w-full max-w-5xl mx-auto">
@@ -422,9 +421,9 @@ const RegisterPage = () => {
                   Sign in
                 </Link>
               </p>
-              <div className="mt-4 flex items-center justify-center text-gray-500 text-sm font-calibri">
-                <FaLock className="mr-2 text-rose-500" size={14} />
-                <span>Secure authentication powered by encrypted connections</span>
+              <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2 text-gray-500 text-sm font-calibri text-center">
+                <FaLock className="text-rose-500 flex-shrink-0" size={14} />
+                <span>Secure authentication powered by encrypted connections.</span>
               </div>
             </div>
           </div>

@@ -348,11 +348,9 @@ const ResetPasswordPage = () => {
             </div>
 
             {/* Authenticated / Secure Message */}
-            <div className="w-full rounded-lg p-4 flex flex-row flex-wrap items-center justify-center gap-2 text-gray-500 text-sm font-calibri">
+            <div className="w-full rounded-lg p-4 flex flex-col sm:flex-row items-center justify-center gap-2 text-gray-500 text-sm font-calibri text-center">
               <FaLock className="text-rose-500 flex-shrink-0" size={14} />
-              <span>
-                Secure authentication powered by encrypted connections.
-              </span>
+              <span>Secure authentication powered by encrypted connections.</span>
             </div>
 
 
