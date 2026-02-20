@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useTokenValidation } from "./hooks/useTokenValidation";
@@ -36,11 +36,26 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [fontsReady, setFontsReady] = useState(false);
   const isDashboard = location.pathname === "/dashboard";
   const isPlayRoute = location.pathname === "/play";
   const isRegisterRoute = location.pathname === "/register";
+  const isHomeRoute = location.pathname === "/";
 
   useTokenValidation();
+
+  useEffect(() => {
+    let mounted = true;
+    const done = () => {
+      if (mounted) setFontsReady(true);
+    };
+    document.fonts.load("16px Huglove").then(done).catch(done);
+    const timeout = setTimeout(done, 5000);
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+    };
+  }, []);
 
   useEffect(() => {
     const restoreSession = async () => {
@@ -73,11 +88,25 @@ function App() {
     return () => window.removeEventListener("auth:forceLogout", handleForceLogout);
   }, [navigate]);
 
+  if (!fontsReady) {
+    return (
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-r from-rose-50 to-rose-100">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-8">
+          <div
+            className="animate-spin rounded-full h-10 w-10 border-2 border-rose-500 border-t-transparent flex-shrink-0"
+            aria-hidden
+          />
+          <span className="font-calibri text-gray-600">Loading…</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
       {!isDashboard && <Navbar />}
       <main
-        className={`flex-grow w-full relative ${isPlayRoute ? "bg-gradient-to-r from-rose-50 to-rose-100" : ""} ${isRegisterRoute ? "bg-gradient-to-b from-rose-50 to-rose-100" : ""}`}
+        className={`flex-grow w-full relative ${isHomeRoute ? "bg-gradient-to-r from-rose-50 to-rose-100" : ""} ${isPlayRoute ? "bg-gradient-to-r from-rose-50 to-rose-100" : ""} ${isRegisterRoute ? "bg-gradient-to-b from-rose-50 to-rose-100" : ""}`}
         style={!isDashboard ? { paddingTop: "var(--navbar-height, 56px)" } : undefined}
       >
         <Routes>
