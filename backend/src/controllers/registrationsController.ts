@@ -14,6 +14,7 @@ import {
 import {
   joinWaitlist as joinWaitlistService,
   getMyAddGuestsWaitlistEntry,
+  getMyEventWaitlistStatus as getMyEventWaitlistStatusService,
   reduceAddGuestsWaitlist as reduceAddGuestsWaitlistService,
 } from '../services/waitlistService.js';
 import {
@@ -260,6 +261,28 @@ export const getMyAddGuestsWaitlist = async (
     }
 
     res.json({ count: entry.count, registrationId: reg.id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyEventWaitlistStatus = async (
+  req: AuthRequest<object, object, object, { eventId?: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const eventId = parseInt(req.query.eventId as string);
+    if (isNaN(eventId)) {
+      throw createError('Valid eventId is required', 400);
+    }
+
+    const onWaitlist = await getMyEventWaitlistStatusService(req.userId, eventId);
+    res.json({ onWaitlist });
   } catch (error) {
     next(error);
   }

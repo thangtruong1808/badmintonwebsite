@@ -162,6 +162,21 @@ export const getFirstWaitlistEntry = async (eventId: number): Promise<WaitlistEn
 };
 
 /**
+ * Check if the current user is on the event waitlist (new_spot type - waiting for a spot).
+ * Returns true if user has an event_waitlist entry with registration_id IS NULL.
+ */
+export const getMyEventWaitlistStatus = async (
+  userId: string,
+  eventId: number
+): Promise<boolean> => {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    'SELECT 1 FROM event_waitlist WHERE user_id = ? AND event_id = ? AND registration_id IS NULL LIMIT 1',
+    [userId, eventId]
+  );
+  return rows.length > 0;
+};
+
+/**
  * Get waitlist entries for an event (public - name, guestCount, type for display).
  * type: 'new_spot' = waiting for a spot (not registered); 'add_guests' = registered, friends waiting.
  */

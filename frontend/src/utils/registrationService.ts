@@ -204,6 +204,23 @@ export async function addGuestsToRegistration(
 }
 
 /**
+ * Check if current user is on the event waitlist (new_spot - waiting for a spot).
+ * Returns { onWaitlist: boolean }. Use when event is full to disable "Join waitlist" button.
+ */
+export async function getMyEventWaitlistStatus(eventId: number): Promise<{ onWaitlist: boolean }> {
+  try {
+    const res = await apiFetch(`/api/registrations/my-event-waitlist?eventId=${eventId}`);
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return { onWaitlist: !!data.onWaitlist };
+    }
+  } catch {
+    // ignore
+  }
+  return { onWaitlist: false };
+}
+
+/**
  * Get current user's add-guests waitlist count for an event.
  */
 export async function getMyAddGuestsWaitlist(eventId: number): Promise<{ count: number; registrationId?: string }> {

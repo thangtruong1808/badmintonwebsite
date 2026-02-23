@@ -10,6 +10,7 @@ import {
   addGuestsToRegistration,
   removeGuestsToRegistration,
   getMyAddGuestsWaitlist,
+  getMyEventWaitlistStatus,
   reduceWaitlistFriends,
 } from "../../utils/registrationService";
 
@@ -84,6 +85,8 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   const [guestCountToRemove, setGuestCountToRemove] = useState<number>(1);
   const [showRemoveGuestsConfirm, setShowRemoveGuestsConfirm] = useState(false);
   const [myWaitlistFriendCount, setMyWaitlistFriendCount] = useState<number>(0);
+  const [isOnEventWaitlist, setIsOnEventWaitlist] = useState<boolean>(false);
+  const [eventWaitlistStatusLoading, setEventWaitlistStatusLoading] = useState(false);
   const [reduceWaitlistSubmitting, setReduceWaitlistSubmitting] = useState(false);
   const [reduceWaitlistMessage, setReduceWaitlistMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [waitlistCountToReduce, setWaitlistCountToReduce] = useState<number>(1);
@@ -151,6 +154,25 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     }
   }, [event?.id, user?.id, fetchMyWaitlistCount]);
 
+  const fetchMyEventWaitlistStatus = React.useCallback(async () => {
+    if (!event?.id || !user?.id) {
+      setIsOnEventWaitlist(false);
+      return;
+    }
+    setEventWaitlistStatusLoading(true);
+    const data = await getMyEventWaitlistStatus(event.id);
+    setIsOnEventWaitlist(data.onWaitlist);
+    setEventWaitlistStatusLoading(false);
+  }, [event?.id, user?.id]);
+
+  useEffect(() => {
+    if (event?.id && user?.id && isFull && !isAlreadyRegistered) {
+      fetchMyEventWaitlistStatus();
+    } else {
+      setIsOnEventWaitlist(false);
+    }
+  }, [event?.id, user?.id, isFull, isAlreadyRegistered, fetchMyEventWaitlistStatus]);
+
   // Fallback: when API returns 0 but user is registered and waitlist shows add-guests entry for them
   useEffect(() => {
     if (myWaitlistFriendCount >= 1 || !user || !isAlreadyRegistered || waitlistPlayers.length === 0) return;
@@ -213,6 +235,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     setWaitlistSubmitting(false);
     if (result.success) {
       setWaitlistMessage({ type: "success", text: result.message });
+      setIsOnEventWaitlist(true);
       fetchWaitlist();
       setTimeout(() => {
         setShowWaitlistForm(false);
@@ -450,7 +473,11 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             <div className="flex flex-col gap-3 pt-4">
               {isFull && !isAlreadyRegistered && (
                 <p className="text-amber-700 text-sm font-medium bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  This session is full. Join the waitlist to be notified when a spot opens.
+                  {eventWaitlistStatusLoading
+                    ? "Checking waitlist status…"
+                    : isOnEventWaitlist
+                      ? "You're on the waitlist. We'll email you when a spot opens."
+                      : "This session is full. Join the waitlist to be notified when a spot opens."}
                 </p>
               )}
               {isAlreadyRegistered && (
@@ -565,12 +592,13 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                     {isInCart ? "Remove from selection" : "Add to selection"}
                   </button>
                 )}
-                {!isAlreadyRegistered && isFull && (
+                {!isAlreadyRegistered && isFull && !isOnEventWaitlist && (
                   <button
                     onClick={openWaitlistForm}
-                    className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium transition-colors font-calibri text-sm sm:text-base"
+                    disabled={eventWaitlistStatusLoading}
+                    className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium transition-colors font-calibri text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Join waitlist
+                    {eventWaitlistStatusLoading ? "Loading…" : "Join waitlist"}
                   </button>
                 )}
                 {isAlreadyRegistered && isInCart && (

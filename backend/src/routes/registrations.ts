@@ -10,6 +10,7 @@ import {
   addGuestsToRegistration,
   removeGuestsFromRegistration,
   getMyAddGuestsWaitlist,
+  getMyEventWaitlistStatus,
   reduceWaitlistFriends,
 } from '../controllers/registrationsController.js';
 import { authenticateToken } from '../middleware/auth.js';
@@ -64,6 +65,13 @@ router.get('/my-pending-payments', authenticateToken, getMyPendingPayments);
  * @access  Private
  */
 router.get('/my-add-guests-waitlist', authenticateToken, getMyAddGuestsWaitlist);
+
+/**
+ * @route   GET /api/registrations/my-event-waitlist?eventId=
+ * @desc    Check if current user is on event waitlist (new_spot type)
+ * @access  Private
+ */
+router.get('/my-event-waitlist', authenticateToken, getMyEventWaitlistStatus);
 
 /**
  * @route   POST /api/registrations/:id/confirm-payment
