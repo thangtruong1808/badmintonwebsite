@@ -46,6 +46,8 @@ interface SessionDetailModalProps {
   onRefetchRequested?: () => void | Promise<void>;
   /** Optional loading flag while cancellation is in progress */
   isCancelling?: boolean;
+  /** Called when user adds friends - navigate to checkout/payment. guestCountTotal: when partial (some waitlisted), total to add via API. */
+  onNavigateToAddGuestsPayment?: (registrationId: string, guestCount: number, event: SocialEvent, guestCountTotal?: number) => void;
 }
 
 const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
@@ -61,6 +63,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   onGuestsAdded,
   onRefetchRequested,
   isCancelling = false,
+  onNavigateToAddGuestsPayment,
 }) => {
   const [players, setPlayers] = useState<RegisteredPlayer[]>([]);
   const [waitlistPlayers, setWaitlistPlayers] = useState<WaitlistPlayer[]>([]);
@@ -229,7 +232,11 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     const spotsLeft = event.maxCapacity - event.currentAttendees;
     const count = Math.min(Math.max(1, guestCountToAdd), 10);
     if (count <= spotsLeft) {
-      doAddGuests(myRegistrationId, count);
+      if (onNavigateToAddGuestsPayment) {
+        onNavigateToAddGuestsPayment(myRegistrationId, count, event);
+      } else {
+        doAddGuests(myRegistrationId, count);
+      }
     } else {
       const toAdd = spotsLeft;
       const toWaitlist = count - spotsLeft;
@@ -261,9 +268,16 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
 
   const handlePartialGuestsConfirm = () => {
     if (!pendingGuestAdd) return;
+    const { registrationId, toAdd, toWaitlist } = pendingGuestAdd;
+    const totalCount = toAdd + toWaitlist;
     setShowPartialGuestsConfirm(false);
-    doAddGuests(pendingGuestAdd.registrationId, pendingGuestAdd.count);
     setPendingGuestAdd(null);
+    if (onNavigateToAddGuestsPayment && toAdd > 0 && event) {
+      onNavigateToAddGuestsPayment(registrationId, toAdd, event, totalCount);
+      onClose();
+    } else {
+      doAddGuests(registrationId, totalCount);
+    }
   };
 
   const handleRemoveGuestsClick = () => {
@@ -399,8 +413,8 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             )}
 
             <div className="border-t border-gray-200 pt-4 mt-4">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-2 font-calibri">
-              <FaList className="text-amber-500" />
+              <h3 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-2 font-calibri">
+                <FaList className="text-amber-500" />
                 Waiting list ({waitlistPlayers.length})
               </h3>
               {waitlistLoading ? (
@@ -589,12 +603,13 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
       <ConfirmDialog
         open={showPartialGuestsConfirm}
         title="Partial availability"
+        titleClassName="font-calibri text-xl font-bold text-gray-800"
         message={
           pendingGuestAdd
-            ? `Only ${pendingGuestAdd.toAdd} of your friends will be added to the list. The remaining ${pendingGuestAdd.toWaitlist} will be on the waiting list. Continue?`
+            ? `${pendingGuestAdd.toAdd} friend(s) will be added (payment required). ${pendingGuestAdd.toWaitlist} will be on the waitlist (no payment). Proceed to payment?`
             : ""
         }
-        confirmLabel="Yes, continue"
+        confirmLabel="Proceed to payment"
         cancelLabel="Cancel"
         variant="default"
         onConfirm={handlePartialGuestsConfirm}

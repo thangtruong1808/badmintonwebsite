@@ -10,11 +10,12 @@ import {
   FaUserPlus,
 } from "react-icons/fa";
 import type { UserEventHistory } from "../../types/user";
-import type { RegistrationWithEventDetails } from "../../types/socialEvent";
+import type { RegistrationWithEventDetails, SocialEvent } from "../../types/socialEvent";
 import { formatPoints } from "../../utils/rewardPoints";
 import { claimPointsForEvent } from "../../utils/rewardPointsService";
-import { cancelUserRegistration, registerUserForEventIds } from "../../utils/registrationService";
+import { cancelUserRegistration } from "../../utils/registrationService";
 import { getCurrentUser } from "../../utils/mockAuth";
+import ConfirmDialog from "../Dashboard/Shared/ConfirmDialog";
 
 interface EventHistoryListProps {
   history: UserEventHistory[];
@@ -23,6 +24,8 @@ interface EventHistoryListProps {
   onToggleIncludeCancelled: () => void;
   onRefetch: () => void;
   onPointsClaimed: () => void;
+  /** Navigate to checkout for re-registration (same flow as Play page). */
+  onNavigateToReRegisterCheckout?: (event: SocialEvent) => void;
 }
 
 const EventHistoryList: React.FC<EventHistoryListProps> = ({
@@ -32,6 +35,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
   onToggleIncludeCancelled,
   onRefetch,
   onPointsClaimed,
+  onNavigateToReRegisterCheckout,
 }) => {
   const [activeTab, setActiveTab] = useState<
     "all" | "attended" | "upcoming" | "cancelled"
@@ -40,6 +44,9 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
   const [reRegisteringEventId, setReRegisteringEventId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [cancellingIds, setCancellingIds] = useState<Set<string>>(new Set());
+  const [cancelOneReg, setCancelOneReg] = useState<RegistrationWithEventDetails | null>(null);
+  const [showCancelSelectedConfirm, setShowCancelSelectedConfirm] = useState(false);
+  const [registerAgainReg, setRegisterAgainReg] = useState<RegistrationWithEventDetails | null>(null);
 
   const filteredByTab = useMemo(() => {
     if (activeTab === "all") {
@@ -74,21 +81,33 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
     setSelectedIds((prev) => (prev.size === ids.length ? new Set() : new Set(ids)));
   };
 
-  const handleCancelOne = async (registrationId: string) => {
-    setCancellingIds((prev) => new Set(prev).add(registrationId));
+  const handleCancelOneClick = (reg: RegistrationWithEventDetails) => {
+    if (reg.id) setCancelOneReg(reg);
+  };
+
+  const handleCancelOneConfirm = async () => {
+    const reg = cancelOneReg;
+    setCancelOneReg(null);
+    if (!reg?.id) return;
+    setCancellingIds((prev) => new Set(prev).add(reg.id!));
     try {
-      const ok = await cancelUserRegistration(registrationId);
+      const ok = await cancelUserRegistration(reg.id);
       if (ok) await onRefetch();
     } finally {
       setCancellingIds((prev) => {
         const next = new Set(prev);
-        next.delete(registrationId);
+        next.delete(reg.id!);
         return next;
       });
     }
   };
 
-  const handleCancelSelected = async () => {
+  const handleCancelSelectedClick = () => {
+    if (selectedCancelCount > 0) setShowCancelSelectedConfirm(true);
+  };
+
+  const handleCancelSelectedConfirm = async () => {
+    setShowCancelSelectedConfirm(false);
     const toCancel = canCancelRegs.filter((r) => r.id && selectedIds.has(r.id)).map((r) => r.id as string);
     if (toCancel.length === 0) return;
     setCancellingIds((prev) => new Set([...prev, ...toCancel]));
@@ -103,9 +122,40 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
     }
   };
 
-  const handleRegisterAgain = async (reg: RegistrationWithEventDetails) => {
+  const regToSocialEvent = (reg: RegistrationWithEventDetails): SocialEvent => ({
+    id: reg.eventId,
+    title: reg.eventTitle ?? `Event #${reg.eventId}`,
+    date: reg.eventDate ?? "",
+    time: reg.eventTime ?? "",
+    dayOfWeek: "",
+    location: reg.eventLocation ?? "",
+    description: "",
+    maxCapacity: 0,
+    currentAttendees: 0,
+    price: reg.eventPrice ?? 0,
+    status: "available",
+    category: (reg.eventCategory as "regular" | "tournament") ?? "regular",
+  });
+
+  const handleRegisterAgainClick = (reg: RegistrationWithEventDetails) => {
+    setRegisterAgainReg(reg);
+  };
+
+  const handleRegisterAgainConfirm = () => {
+    const reg = registerAgainReg;
+    setRegisterAgainReg(null);
+    if (!reg) return;
+    if (onNavigateToReRegisterCheckout) {
+      onNavigateToReRegisterCheckout(regToSocialEvent(reg));
+    } else {
+      handleRegisterAgainDirect(reg);
+    }
+  };
+
+  const handleRegisterAgainDirect = async (reg: RegistrationWithEventDetails) => {
     const user = getCurrentUser();
     if (!user) return;
+    const { registerUserForEventIds } = await import("../../utils/registrationService");
     setReRegisteringEventId(reg.eventId);
     try {
       const formData = {
@@ -262,7 +312,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
               {selectedCancelCount > 0 && (
                 <button
                   type="button"
-                  onClick={handleCancelSelected}
+                  onClick={handleCancelSelectedClick}
                   disabled={cancellingIds.size > 0}
                   className="px-3 py-1.5 rounded-lg font-calibri text-sm font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
                 >
@@ -351,7 +401,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
                   {reg.status === "cancelled" && (
                     <button
                       type="button"
-                      onClick={() => handleRegisterAgain(reg)}
+                      onClick={() => handleRegisterAgainClick(reg)}
                       disabled={reRegisteringEventId === reg.eventId}
                       className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold font-calibri bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-50 transition-colors"
                     >
@@ -362,7 +412,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
                   {isCancelable && (
                     <button
                       type="button"
-                      onClick={() => reg.id && handleCancelOne(reg.id)}
+                      onClick={() => handleCancelOneClick(reg)}
                       disabled={isCancelling}
                       className="px-3 py-1.5 rounded-lg text-sm font-semibold font-calibri bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
                     >
@@ -456,6 +506,52 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!cancelOneReg}
+        title="Cancel registration"
+        titleClassName="font-calibri text-lg text-gray-800"
+        message={
+          cancelOneReg
+            ? `Are you sure you want to cancel your registration for "${cancelOneReg.eventTitle ?? `Event #${cancelOneReg.eventId}`}"? Your spot will be released for others. You can register again later if spots are available.`
+            : ""
+        }
+        confirmLabel="Yes, cancel"
+        cancelLabel="Keep registration"
+        variant="danger"
+        onConfirm={handleCancelOneConfirm}
+        onCancel={() => setCancelOneReg(null)}
+      />
+      <ConfirmDialog
+        open={showCancelSelectedConfirm}
+        title="Cancel selected registrations"
+        titleClassName="font-calibri text-lg text-gray-800"
+        message={
+          selectedCancelCount > 0
+            ? `Are you sure you want to cancel ${selectedCancelCount} registration${selectedCancelCount !== 1 ? "s" : ""}? Your spot${selectedCancelCount !== 1 ? "s will" : " will"} be released for others. You can register again later if spots are available.`
+            : ""
+        }
+        confirmLabel="Yes, cancel"
+        cancelLabel="Keep"
+        variant="danger"
+        onConfirm={handleCancelSelectedConfirm}
+        onCancel={() => setShowCancelSelectedConfirm(false)}
+      />
+      <ConfirmDialog
+        open={!!registerAgainReg}
+        title="Register again"
+        titleClassName="font-calibri text-lg text-gray-800"
+        message={
+          registerAgainReg
+            ? `You’re about to re-register for "${registerAgainReg.eventTitle ?? `Event #${registerAgainReg.eventId}`}". You’ll be taken to the checkout to complete your payment. Ready to continue?`
+            : ""
+        }
+        confirmLabel="Proceed to payment"
+        cancelLabel="Cancel"
+        variant="default"
+        onConfirm={handleRegisterAgainConfirm}
+        onCancel={() => setRegisterAgainReg(null)}
+      />
     </div>
   );
 };

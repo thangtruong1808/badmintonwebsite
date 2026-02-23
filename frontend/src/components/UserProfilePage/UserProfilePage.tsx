@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { setCredentials } from "../../store/authSlice";
 import { apiFetch } from "../../utils/api";
 import {
@@ -33,6 +33,7 @@ function normalizeUser(data: Record<string, unknown>): User {
 
 const UserProfilePage: React.FC = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<RewardPointTransaction[]>([]);
   const [eventHistory, setEventHistory] = useState<UserEventHistory[]>([]);
@@ -163,6 +164,9 @@ const UserProfilePage: React.FC = () => {
               onToggleIncludeCancelled={() => setIncludeCancelled((v) => !v)}
               onRefetch={fetchProfile}
               onPointsClaimed={handlePointsClaimed}
+              onNavigateToReRegisterCheckout={(event) => {
+                navigate("/play/checkout", { state: { events: [event] } });
+              }}
             />
           </div>
         </div>

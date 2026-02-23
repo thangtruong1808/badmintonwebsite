@@ -7,12 +7,24 @@ import { getMyPendingPayments } from "../../utils/registrationService";
 import { selectAuthInitialized } from "../../store/authSlice";
 import type { SocialEvent } from "../../types/socialEvent";
 
+interface AddGuestsContext {
+  registrationId: string;
+  guestCount: number;
+  event: SocialEvent;
+  guestCountTotal?: number;
+}
+
 const PlayCheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const pendingId = searchParams.get("pending") ?? undefined;
-  const state = location.state as { events?: SocialEvent[]; checkoutState?: { events?: SocialEvent[] } } | null;
+  const state = location.state as {
+    events?: SocialEvent[];
+    checkoutState?: { events?: SocialEvent[]; addGuestsContext?: AddGuestsContext };
+    addGuestsContext?: AddGuestsContext;
+  } | null;
+  const addGuestsContext = state?.addGuestsContext ?? state?.checkoutState?.addGuestsContext;
   const eventsFromState: SocialEvent[] = state?.events ?? state?.checkoutState?.events ?? [];
   const user = getCurrentUser();
   const authInitialized = useSelector(selectAuthInitialized);
@@ -53,26 +65,52 @@ const PlayCheckoutPage: React.FC = () => {
     }).catch(() => setPendingLoading(false));
   }, [pendingId, user?.id, authInitialized, navigate]);
 
-  const events: SocialEvent[] = pendingEvents ?? eventsFromState;
+  const eventsForDisplay: SocialEvent[] = addGuestsContext
+    ? (() => {
+        const e = addGuestsContext.event;
+        const pricePer = Number(e.price ?? 0);
+        return Array.from({ length: addGuestsContext.guestCount }, () => ({
+          ...e,
+          id: e.id,
+          title: e.title,
+          price: pricePer,
+        })) as SocialEvent[];
+      })()
+    : pendingEvents ?? eventsFromState;
+  const events: SocialEvent[] = addGuestsContext ? eventsForDisplay : (pendingEvents ?? eventsFromState);
   const totalPrice = events.reduce((sum, e) => sum + Number(e.price ?? 0), 0);
   const isPendingFlow = !!pendingId && !!pendingEvents?.length;
+  const isAddGuestsFlow = !!addGuestsContext;
 
   const handleContinueToPayment = () => {
     if (!user) {
       setShowAuthDialog(true);
       return;
     }
-    navigate(pendingId ? `/play/payment?pending=${pendingId}` : "/play/payment", { state: { events } });
+    navigate(
+      pendingId ? `/play/payment?pending=${pendingId}` : "/play/payment",
+      { state: addGuestsContext ? { addGuestsContext, events } : { events } }
+    );
   };
 
   const handleGoToSignIn = () => {
     setShowAuthDialog(false);
-    navigate("/signin", { state: { from: pendingId ? `/play/checkout?pending=${pendingId}` : "/play/checkout", checkoutState: { events } } });
+    navigate("/signin", {
+      state: {
+        from: pendingId ? `/play/checkout?pending=${pendingId}` : "/play/checkout",
+        checkoutState: addGuestsContext ? { addGuestsContext, events } : { events },
+      },
+    });
   };
 
   const handleGoToRegister = () => {
     setShowAuthDialog(false);
-    navigate("/register", { state: { from: pendingId ? `/play/checkout?pending=${pendingId}` : "/play/checkout", checkoutState: { events } } });
+    navigate("/register", {
+      state: {
+        from: pendingId ? `/play/checkout?pending=${pendingId}` : "/play/checkout",
+        checkoutState: addGuestsContext ? { addGuestsContext, events } : { events },
+      },
+    });
   };
 
   if (pendingLoading) {
@@ -86,7 +124,7 @@ const PlayCheckoutPage: React.FC = () => {
     );
   }
 
-  if (events.length === 0) {
+  if (events.length === 0 && !addGuestsContext) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
@@ -119,11 +157,20 @@ const PlayCheckoutPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 font-huglove mb-6 text-center">
-          {isPendingFlow ? "A spot opened for you!" : "Review your selection"}
+          {isPendingFlow ? "A spot opened for you!" : isAddGuestsFlow ? "Add friends to your registration" : "Review your selection"}
         </h1>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {isPendingFlow && (
+          {isAddGuestsFlow && addGuestsContext && (
+            <div className="p-4 bg-rose-50 border-b border-rose-200">
+              <p className="text-rose-800 font-calibri text-sm font-medium">
+                {addGuestsContext.guestCountTotal != null && addGuestsContext.guestCountTotal > addGuestsContext.guestCount
+                  ? `${addGuestsContext.guestCount} friend(s) will be added (payment required). ${addGuestsContext.guestCountTotal - addGuestsContext.guestCount} on waitlist (no payment).`
+                  : `Adding ${addGuestsContext.guestCount} friend${addGuestsContext.guestCount !== 1 ? "s" : ""} to your registration. Proceed to payment.`}
+              </p>
+            </div>
+          )}
+          {isPendingFlow && !isAddGuestsFlow && (
             <div className="p-4 bg-amber-50 border-b border-amber-200">
               <p className="text-amber-800 font-calibri text-sm font-medium">
                 Complete your registration within 24 hours. Review below and continue to payment.
@@ -131,7 +178,18 @@ const PlayCheckoutPage: React.FC = () => {
             </div>
           )}
           <div className="p-6 space-y-4">
-            {events.map((e) => (
+            {isAddGuestsFlow && addGuestsContext ? (
+              <div className="border-b border-gray-200 pb-4">
+                <p className="font-medium text-gray-900 font-calibri text-lg">{addGuestsContext.event.title}</p>
+                <p className="text-md text-gray-600 font-calibri text-lg">
+                  {formatDate(addGuestsContext.event.date)} • {addGuestsContext.event.time}
+                </p>
+                <p className="text-gray-600 font-calibri text-lg">{addGuestsContext.event.location}</p>
+                <p className="text-rose-600 font-calibri text-lg">
+                  Adding {addGuestsContext.guestCount} friend{addGuestsContext.guestCount !== 1 ? "s" : ""} × ${Number(addGuestsContext.event.price ?? 0).toFixed(2)} = ${totalPrice.toFixed(2)}
+                </p>
+              </div>
+            ) : events.map((e) => (
               <div
                 key={e.id}
                 className="border-b border-gray-200 pb-4 last:border-0 last:pb-0"

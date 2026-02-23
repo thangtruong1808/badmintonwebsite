@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import type { SocialEvent, Registration } from "../types/socialEvent";
 import PlayCalendar from "./PlayPage/PlayCalendar";
 import SessionDetailModal from "./PlayPage/SessionDetailModal";
 import { setCartItems, getCartItems, clearCart } from "../utils/cartStorage";
-import type { SocialEvent, Registration } from "../types/socialEvent";
 import { getCurrentUser } from "../utils/mockAuth";
 import { getUserRegistrations, cancelUserRegistration } from "../utils/registrationService";
 
@@ -242,6 +242,19 @@ const PlayPage: React.FC = () => {
                 }
               }}
               isCancelling={!!regId && regId === cancellingRegistrationId}
+              onNavigateToAddGuestsPayment={(registrationId, guestCount, ev, guestCountTotal) => {
+                setSelectedEvent(null);
+                navigate("/play/checkout", {
+                  state: {
+                    addGuestsContext: {
+                      registrationId,
+                      guestCount,
+                      event: ev,
+                      ...(guestCountTotal != null ? { guestCountTotal } : {}),
+                    },
+                  },
+                });
+              }}
             />
           );
         })()}

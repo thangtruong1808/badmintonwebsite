@@ -21,7 +21,7 @@ import {
   getRegistrationById,
 } from '../services/registrationService.js';
 import { getEventById } from '../services/eventService.js';
-import { sendWaitlistFriendsUpdateConfirmationEmail } from '../utils/email.js';
+import { sendWaitlistFriendsUpdateConfirmationEmail, sendRemoveGuestsConfirmationEmail } from '../utils/email.js';
 import { createError } from '../middleware/errorHandler.js';
 import type { RegistrationFormData } from '../types/index.js';
 
@@ -213,6 +213,19 @@ export const removeGuestsFromRegistration = async (
     }
 
     const result = await removeGuestsFromRegistrationService(req.userId, registrationId, guestCount);
+    const registration = await getRegistrationById(registrationId);
+    if (registration?.email && result.removed) {
+      const event = await getEventById(registration.eventId);
+      if (event) {
+        await sendRemoveGuestsConfirmationEmail(
+          registration.email,
+          event.title,
+          `${event.date} ${event.time}`,
+          result.removed,
+          result.promoted ?? 0
+        );
+      }
+    }
     res.json(result);
   } catch (error) {
     next(error);

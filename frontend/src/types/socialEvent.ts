@@ -38,6 +38,7 @@ export interface RegistrationWithEventDetails extends Registration {
   eventTime?: string | null;
   eventLocation?: string | null;
   eventCategory?: string | null;
+  eventPrice?: number | null;
 }
 
 export interface RegistrationFormData {

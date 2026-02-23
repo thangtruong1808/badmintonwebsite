@@ -9,7 +9,7 @@ import {
 } from './eventService.js';
 import { getUserById } from './userService.js';
 import { promoteFromWaitlist } from './waitlistService.js';
-import { sendWaitlistPromotionEmail, sendRegistrationConfirmationEmail } from '../utils/email.js';
+import { sendWaitlistPromotionEmail, sendRegistrationConfirmationEmail, sendRegistrationConfirmationEmailForSessions, sendAddGuestsConfirmationEmail, sendCancellationConfirmationEmail } from '../utils/email.js';
 import pool from '../db/connection.js';
 
 export interface RegistrationRow {
@@ -128,6 +128,7 @@ export interface RegistrationWithEventDetails extends Registration {
   eventTime?: string | null;
   eventLocation?: string | null;
   eventCategory?: string | null;
+  eventPrice?: number | null;
 }
 
 /** True if the event date (YYYY-MM-DD or ISO string) is before today (date-only). */
@@ -155,7 +156,7 @@ export const getRegistrationsWithEventDetails = async (
     `SELECT r.id, r.event_id, r.user_id, r.name, r.email, r.phone, r.registration_date,
             r.status, r.attendance_status, r.points_earned, r.points_claimed, r.payment_method, r.points_used,
             r.guest_count, r.pending_payment_expires_at,
-            e.title AS event_title, e.date AS event_date, e.time AS event_time, e.location AS event_location, e.category AS event_category
+            e.title AS event_title, e.date AS event_date, e.time AS event_time, e.location AS event_location, e.category AS event_category, e.price AS event_price
      FROM registrations r
      LEFT JOIN events e ON r.event_id = e.id
      WHERE r.user_id = ?
@@ -177,6 +178,7 @@ export const getRegistrationsWithEventDetails = async (
       eventTime: r.event_time ?? null,
       eventLocation: r.event_location ?? null,
       eventCategory: r.event_category ?? null,
+      eventPrice: r.event_price ?? null,
     };
   });
 };
@@ -222,6 +224,7 @@ export const registerForEvents = async (
   const spotsPerRegistration = 1 + guestCount;
 
   const newRegistrations: Registration[] = [];
+  const confirmedSessions: { title: string; date: string; time?: string; location?: string }[] = [];
 
   for (const eventId of eventIds) {
     const event = await getEventById(eventId);
@@ -269,6 +272,12 @@ export const registerForEvents = async (
           guestCount,
         });
         await incrementEventAttendees(eventId, spotsPerRegistration);
+        confirmedSessions.push({
+          title: event.title,
+          date: event.date,
+          time: event.time,
+          location: event.location,
+        });
       }
       continue;
     }
@@ -304,6 +313,19 @@ export const registerForEvents = async (
     });
 
     await incrementEventAttendees(eventId, spotsPerRegistration);
+    confirmedSessions.push({
+      title: event.title,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+    });
+  }
+
+  if (confirmedSessions.length > 0) {
+    const email = (formData.email && String(formData.email).trim()) || user.email;
+    if (email) {
+      await sendRegistrationConfirmationEmailForSessions(email, confirmedSessions);
+    }
   }
 
   return {
@@ -335,7 +357,15 @@ export const cancelRegistration = async (
   await decrementEventAttendees(reg.event_id, delta);
 
   const event = await getEventById(reg.event_id);
-  if (event) {
+  const recipientEmail = (reg.email && String(reg.email).trim()) || (await getUserById(userId))?.email;
+  if (event && recipientEmail) {
+    await sendCancellationConfirmationEmail(
+      recipientEmail,
+      event.title,
+      event.date,
+      event.time,
+      event.location
+    );
     await promoteFromWaitlist(reg.event_id, async (entry, paymentLink) => {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
@@ -482,6 +512,19 @@ export const addGuestsToRegistration = async (
       phone: user.phone ?? reg.phone ?? '',
     };
     await addToGuestsWaitlist(userId, reg.event_id, registrationId, toWaitlist, formData);
+  }
+
+  if (toAdd > 0 || toWaitlist > 0) {
+    const recipientEmail = reg.email;
+    if (recipientEmail && event) {
+      await sendAddGuestsConfirmationEmail(
+        recipientEmail,
+        event.title,
+        `${event.date} ${event.time}`,
+        toAdd,
+        toWaitlist
+      );
+    }
   }
 
   return { added: toAdd, waitlisted: toWaitlist };

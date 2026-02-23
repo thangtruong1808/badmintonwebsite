@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaCoins, FaMoneyBillWave, FaExchangeAlt } from "react-icons/fa";
 import { getCurrentUser } from "../../utils/mockAuth";
-import { registerUserForEvents, getMyPendingPayments, confirmPaymentForPendingRegistration } from "../../utils/registrationService";
+import { registerUserForEvents, getMyPendingPayments, confirmPaymentForPendingRegistration, addGuestsToRegistration } from "../../utils/registrationService";
 import { selectAuthInitialized } from "../../store/authSlice";
 import { canUsePointsForBooking, formatPoints } from "../../utils/rewardPoints";
 import { usePointsForBooking } from "../../utils/rewardPointsService";
@@ -15,7 +15,12 @@ const PlayPaymentPage: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const pendingId = searchParams.get("pending") ?? undefined;
-  const eventsFromState: SocialEvent[] = (location.state as { events?: SocialEvent[] })?.events ?? [];
+  const state = location.state as {
+    events?: SocialEvent[];
+    addGuestsContext?: { registrationId: string; guestCount: number; event: SocialEvent; guestCountTotal?: number };
+  } | null;
+  const addGuestsContext = state?.addGuestsContext;
+  const eventsFromState: SocialEvent[] = state?.events ?? [];
   const user = getCurrentUser();
   const authInitialized = useSelector(selectAuthInitialized);
 
@@ -73,7 +78,18 @@ const PlayPaymentPage: React.FC = () => {
         status: "available",
         category: "regular",
       } as SocialEvent]
-    : eventsFromState;
+    : addGuestsContext
+      ? (() => {
+          const e = addGuestsContext.event;
+          const pricePer = Number(e.price ?? 0);
+          return Array.from({ length: addGuestsContext.guestCount }, () => ({
+            ...e,
+            id: e.id,
+            title: e.title,
+            price: pricePer,
+          })) as SocialEvent[];
+        })()
+      : eventsFromState;
 
   const [formData, setFormData] = useState({
     name: user ? `${user.firstName} ${user.lastName}`.trim() : "",
@@ -112,7 +128,7 @@ const PlayPaymentPage: React.FC = () => {
     );
   }
 
-  if (events.length === 0 && !submitStatus.type) {
+  if (events.length === 0 && !addGuestsContext && !submitStatus.type) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
@@ -147,10 +163,12 @@ const PlayPaymentPage: React.FC = () => {
     setSubmitStatus({ type: null, message: "" });
 
     try {
+      const isAddGuestsFlow = !!addGuestsContext;
       if (!pendingRegistration && user && (paymentMethod === "points" || paymentMethod === "mixed")) {
         const pts = paymentMethod === "points" ? totalPrice : pointsToUse;
+        const eventId = isAddGuestsFlow ? addGuestsContext!.event.id : events[0].id;
         if (pts > 0) {
-          const ok = await usePointsForBooking(user.id, events[0].id, pts);
+          const ok = await usePointsForBooking(user.id, eventId, pts);
           if (!ok) {
             setSubmitStatus({ type: "error", message: "Failed to process points. Please try again." });
             setIsSubmitting(false);
@@ -159,7 +177,19 @@ const PlayPaymentPage: React.FC = () => {
         }
       }
 
-      if (pendingRegistration) {
+      if (isAddGuestsFlow && addGuestsContext) {
+        const totalToAdd = addGuestsContext.guestCountTotal ?? addGuestsContext.guestCount;
+        const result = await addGuestsToRegistration(addGuestsContext.registrationId, totalToAdd);
+        if (!result.success) {
+          setSubmitStatus({ type: "error", message: result.message ?? "Failed to add friends. Please try again." });
+          setIsSubmitting(false);
+          return;
+        }
+        setSubmitStatus({
+          type: "success",
+          message: `Successfully added ${addGuestsContext.guestCount} friend${addGuestsContext.guestCount !== 1 ? "s" : ""} to your registration!`,
+        });
+      } else if (pendingRegistration) {
         const result = await confirmPaymentForPendingRegistration(pendingRegistration.id);
         if (!result.success) {
           setSubmitStatus({ type: "error", message: result.message });
@@ -203,7 +233,14 @@ const PlayPaymentPage: React.FC = () => {
         </h1>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {pendingRegistration && (
+          {addGuestsContext && (
+            <div className="p-4 bg-rose-50 border-b border-rose-200">
+              <p className="text-rose-800 font-calibri text-sm font-medium">
+                Adding {addGuestsContext.guestCount} friend{addGuestsContext.guestCount !== 1 ? "s" : ""} to your registration.
+              </p>
+            </div>
+          )}
+          {pendingRegistration && !addGuestsContext && (
             <div className="p-4 bg-amber-50 border-b border-amber-200">
               <p className="text-amber-800 font-calibri text-sm font-medium">
                 A spot opened for you! Complete payment within 24 hours to confirm your registration.
@@ -211,8 +248,8 @@ const PlayPaymentPage: React.FC = () => {
             </div>
           )}
           <div className="p-6 space-y-4 border-b border-gray-200">
-            {events.map((e) => (
-              <div key={e.id} className="text-gray-700 font-calibri text-lg">
+            {events.map((e, i) => (
+              <div key={addGuestsContext ? `add-guest-${e.id}-${i}` : e.id} className="text-gray-700 font-calibri text-lg">
                 <p className="font-medium text-gray-900 font-calibri text-lg">{e.title}</p>
                 <p className="text-gray-600 font-calibri text-lg">{formatDate(e.date)} - {e.time} </p>
                 <p className="text-gray-600 font-calibri text-lg">{e.location}</p>
@@ -317,7 +354,11 @@ const PlayPaymentPage: React.FC = () => {
             <div className="flex gap-3 pt-4">
               <button
                 type="button"
-                onClick={() => navigate(pendingRegistration ? "/profile" : "/play/checkout")}
+                onClick={() => {
+                  if (pendingRegistration) navigate("/profile");
+                  else if (addGuestsContext) navigate("/play/checkout", { state: { addGuestsContext, events } });
+                  else navigate("/play/checkout", { state: { events } });
+                }}
                 disabled={submitStatus.type === "success"}
                 className="flex-1 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 font-calibri disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -328,7 +369,7 @@ const PlayPaymentPage: React.FC = () => {
                 disabled={isSubmitting || submitStatus.type === "success"}
                 className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-calibri disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Processing…" : pendingRegistration ? "Confirm payment" : "Complete registration"}
+                {isSubmitting ? "Processing…" : pendingRegistration ? "Confirm payment" : addGuestsContext ? "Add friends and complete" : "Complete registration"}
               </button>
             </div>
           </form>
