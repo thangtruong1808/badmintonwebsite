@@ -4,6 +4,10 @@ import {
   registerForEvents,
   cancelRegistration,
   getEventRegistrations,
+  joinWaitlist,
+  getMyPendingPayments,
+  confirmPayment,
+  addGuestsToRegistration,
 } from '../controllers/registrationsController.js';
 import { authenticateToken } from '../middleware/auth.js';
 
@@ -36,5 +40,33 @@ router.post('/', authenticateToken, registerForEvents);
  * @access  Private
  */
 router.delete('/:registrationId', authenticateToken, cancelRegistration);
+
+/**
+ * @route   POST /api/registrations/waitlist
+ * @desc    Join waitlist when event is full
+ * @access  Private
+ */
+router.post('/waitlist', authenticateToken, joinWaitlist);
+
+/**
+ * @route   GET /api/registrations/my-pending-payments
+ * @desc    Get user's pending payment registrations (reserved spots)
+ * @access  Private
+ */
+router.get('/my-pending-payments', authenticateToken, getMyPendingPayments);
+
+/**
+ * @route   POST /api/registrations/:id/confirm-payment
+ * @desc    Confirm payment for pending_payment registration (after PayID/Stripe)
+ * @access  Private
+ */
+router.post('/:id/confirm-payment', authenticateToken, confirmPayment);
+
+/**
+ * @route   POST /api/registrations/:id/add-guests
+ * @desc    Add guests to existing registration (1–10)
+ * @access  Private
+ */
+router.post('/:id/add-guests', authenticateToken, addGuestsToRegistration);
 
 export default router;

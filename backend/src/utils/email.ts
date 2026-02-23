@@ -201,3 +201,75 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+/**
+ * Send waitlist promotion email - a spot opened, pay within 24 hours.
+ */
+export async function sendWaitlistPromotionEmail(
+  to: string,
+  eventTitle: string,
+  eventDate: string,
+  paymentLink: string,
+  expiresAt: Date
+): Promise<void> {
+  const trans = getTransporter();
+  if (!trans) return;
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  const subject = 'A spot opened - ChibiBadminton Play Session';
+  const text = [
+    `Good news! A spot has opened for "${eventTitle}" (${eventDate}).`,
+    '',
+    'Please complete your payment within 24 hours to confirm your registration:',
+    paymentLink,
+    '',
+    `This offer expires at ${expiresAt.toLocaleString()}.`,
+  ].join('\n');
+  const html = [
+    `<p>Good news! A spot has opened for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(eventDate)}).</p>`,
+    '<p>Please complete your payment within 24 hours to confirm your registration:</p>',
+    `<p><a href="${escapeHtml(paymentLink)}">Complete payment</a></p>`,
+    `<p>This offer expires at ${escapeHtml(expiresAt.toLocaleString())}.</p>`,
+  ].join('\n');
+  try {
+    await trans.sendMail({ from, to, subject, text, html });
+  } catch (err) {
+    console.error('[email] Failed to send waitlist promotion email:', err);
+  }
+}
+
+/**
+ * Send registration confirmation email after successful payment.
+ */
+export async function sendRegistrationConfirmationEmail(
+  to: string,
+  eventTitle: string,
+  eventDate: string,
+  eventTime?: string,
+  eventLocation?: string
+): Promise<void> {
+  const trans = getTransporter();
+  if (!trans) return;
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  const subject = 'Registration confirmed - ChibiBadminton';
+  const details: string[] = [eventDate];
+  if (eventTime) details.push(eventTime);
+  if (eventLocation) details.push(eventLocation);
+  const detailsStr = details.join(' at ');
+  const text = [
+    `Your registration for "${eventTitle}" is confirmed.`,
+    '',
+    `Session: ${detailsStr}`,
+    '',
+    'See you on the court!',
+  ].join('\n');
+  const html = [
+    `<p>Your registration for <strong>${escapeHtml(eventTitle)}</strong> is confirmed.</p>`,
+    `<p>Session: ${escapeHtml(detailsStr)}</p>`,
+    '<p>See you on the court!</p>',
+  ].join('\n');
+  try {
+    await trans.sendMail({ from, to, subject, text, html });
+  } catch (err) {
+    console.error('[email] Failed to send registration confirmation email:', err);
+  }
+}

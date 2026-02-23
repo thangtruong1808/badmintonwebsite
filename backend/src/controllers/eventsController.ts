@@ -8,6 +8,7 @@ import {
   generateEventsFromSlots,
 } from '../services/eventService.js';
 import { getEventRegistrationsPublic as getEventRegistrationsPublicService } from '../services/registrationService.js';
+import { getEventWaitlistPublic as getEventWaitlistPublicService } from '../services/waitlistService.js';
 import { createError } from '../middleware/errorHandler.js';
 import type { SocialEvent } from '../types/index.js';
 
@@ -52,6 +53,21 @@ export const getEventRegistrationsPublic = async (
     if (isNaN(eventId)) throw createError('Invalid event ID', 400);
     const registrations = await getEventRegistrationsPublicService(eventId);
     res.json({ registrations });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getEventWaitlistPublic = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const eventId = parseInt(req.params.id);
+    if (isNaN(eventId)) throw createError('Invalid event ID', 400);
+    const waitlist = await getEventWaitlistPublicService(eventId);
+    res.json({ waitlist });
   } catch (error) {
     next(error);
   }

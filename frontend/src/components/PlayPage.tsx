@@ -207,11 +207,16 @@ const PlayPage: React.FC = () => {
               isInCart={selectedEvent ? selectedEventIds.includes(selectedEvent.id) : false}
               selectedCount={selectedEventIds.length}
               canCancel={!!regId}
+              myRegistrationId={regId ?? undefined}
               onCancelRegistration={
                 regId && selectedEvent
                   ? () => handleCancelRegistrationForEvent(selectedEvent.id)
                   : undefined
               }
+              onGuestsAdded={() => {
+                fetchMyRegistrations();
+                fetchEvents();
+              }}
               isCancelling={!!regId && regId === cancellingRegistrationId}
             />
           );

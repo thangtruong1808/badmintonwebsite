@@ -112,6 +112,98 @@ export async function registerUserForEventIds(
 }
 
 /**
+ * Join waitlist when event is full (requires auth).
+ */
+export async function joinWaitlist(
+  eventId: number,
+  formData: RegistrationFormData
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await apiFetch("/api/registrations/waitlist", {
+      method: "POST",
+      body: JSON.stringify({ eventId, formData }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return { success: true, message: data.message ?? "You've been added to the waitlist." };
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in to join the waitlist." : (data.message ?? data.error ?? "Failed to join waitlist."),
+    };
+  } catch {
+    return { success: false, message: "Could not join waitlist. Please try again." };
+  }
+}
+
+/**
+ * Get user's pending payment registrations (reserved spots awaiting payment).
+ */
+export async function getMyPendingPayments(
+  userId: string | undefined
+): Promise<RegistrationWithEventDetails[]> {
+  if (!userId) return [];
+  try {
+    const res = await apiFetch("/api/registrations/my-pending-payments");
+    if (res.ok) {
+      const list = await res.json();
+      return Array.isArray(list) ? list : [];
+    }
+  } catch {
+    // ignore
+  }
+  return [];
+}
+
+/**
+ * Confirm payment for a pending_payment registration (after PayID/Stripe).
+ */
+export async function confirmPaymentForPendingRegistration(
+  registrationId: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await apiFetch(`/api/registrations/${registrationId}/confirm-payment`, {
+      method: "POST",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return { success: true, message: data.message ?? "Payment confirmed. Your registration is complete." };
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in." : (data.message ?? data.error ?? "Failed to confirm payment."),
+    };
+  } catch {
+    return { success: false, message: "Could not confirm payment. Please try again." };
+  }
+}
+
+/**
+ * Add guests to an existing registration (1–10).
+ */
+export async function addGuestsToRegistration(
+  registrationId: string,
+  guestCount: number
+): Promise<{ success: boolean; message?: string; added?: number; waitlisted?: number }> {
+  try {
+    const res = await apiFetch(`/api/registrations/${registrationId}/add-guests`, {
+      method: "POST",
+      body: JSON.stringify({ guestCount }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return {
+        success: true,
+        added: data.added ?? 0,
+        waitlisted: data.waitlisted ?? 0,
+      };
+    }
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in." : (data.message ?? data.error ?? "Failed to add guests."),
+    };
+  } catch {
+    return { success: false, message: "Could not add guests. Please try again." };
+  }
+}
+
+/**
  * Get a single event by ID (caller should use GET /api/events/:id if needed).
  * Kept for backward compatibility; prefer fetching from API in the component.
  */

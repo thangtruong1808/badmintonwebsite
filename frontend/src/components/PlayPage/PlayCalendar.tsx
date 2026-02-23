@@ -10,6 +10,7 @@ interface RegisteredPlayer {
   name: string;
   email?: string;
   avatar?: string | null;
+  guestCount?: number;
 }
 
 const registrationsCache = new Map<number, RegisteredPlayer[]>();
@@ -192,21 +193,25 @@ function PlayCalendarEvent(props: {
           {loading ? (
             <span className="text-xs opacity-90">Loading…</span>
           ) : (
-            players.slice(0, 8).map((p, i) => (
-              <span key={i} title={p.name} className="flex-shrink-0">
-                {p.avatar && String(p.avatar).trim() ? (
-                  <img
-                    src={p.avatar}
-                    alt={p.name}
-                    className="w-5 h-5 rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center text-[10px] font-bold">
-                    {getInitials(p.name)}
-                  </span>
-                )}
-              </span>
-            ))
+            players.slice(0, 8).map((p, i) => {
+              const hasGuests = (p.guestCount ?? 0) >= 1;
+              const borderClass = hasGuests ? "ring-1 ring-amber-400" : "";
+              return (
+                <span key={i} title={p.name + (hasGuests ? ` (+${p.guestCount} guest)` : "")} className={`flex-shrink-0 rounded-full ${borderClass}`}>
+                  {p.avatar && String(p.avatar).trim() ? (
+                    <img
+                      src={p.avatar}
+                      alt={p.name}
+                      className="w-5 h-5 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center text-[10px] font-bold">
+                      {getInitials(p.name)}
+                    </span>
+                  )}
+                </span>
+              );
+            })
           )}
           {!loading && players.length > 8 && (
             <span className="text-[10px] opacity-90">+{players.length - 8}</span>

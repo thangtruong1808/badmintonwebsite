@@ -8,6 +8,8 @@ import {
   decrementEventAttendees,
 } from './eventService.js';
 import { getUserById } from './userService.js';
+import { promoteFromWaitlist } from './waitlistService.js';
+import { sendWaitlistPromotionEmail, sendRegistrationConfirmationEmail } from '../utils/email.js';
 import pool from '../db/connection.js';
 
 export interface RegistrationRow {
@@ -32,6 +34,7 @@ export interface PublicRegistrationPlayer {
   name: string;
   email?: string;
   avatar?: string | null;
+  guestCount?: number;
 }
 
 interface RegRow extends RowDataPacket {
@@ -48,6 +51,8 @@ interface RegRow extends RowDataPacket {
   points_claimed: boolean;
   payment_method: string | null;
   points_used: number;
+  guest_count?: number;
+  pending_payment_expires_at?: Date | string | null;
   created_at: Date | string | null;
   updated_at: Date | string | null;
 }
@@ -56,6 +61,7 @@ function rowToRegistration(r: RegRow): Registration {
   const regDate = r.registration_date instanceof Date
     ? r.registration_date.toISOString()
     : String(r.registration_date);
+  const expiresAt = r.pending_payment_expires_at;
   return {
     id: r.id,
     eventId: r.event_id,
@@ -70,6 +76,8 @@ function rowToRegistration(r: RegRow): Registration {
     pointsClaimed: Boolean(r.points_claimed),
     paymentMethod: (r.payment_method ?? 'stripe') as Registration['paymentMethod'],
     pointsUsed: r.points_used ?? 0,
+    guestCount: r.guest_count ?? 0,
+    pendingPaymentExpiresAt: expiresAt ? (expiresAt instanceof Date ? expiresAt.toISOString() : String(expiresAt)) : undefined,
   };
 }
 
@@ -111,6 +119,7 @@ interface RegWithEventRow extends RegRow {
   event_time: string | null;
   event_location: string | null;
   event_category: string | null;
+  event_price?: number | null;
 }
 
 export interface RegistrationWithEventDetails extends Registration {
@@ -145,6 +154,7 @@ export const getRegistrationsWithEventDetails = async (
   const [rows] = await pool.execute<RegWithEventRow[]>(
     `SELECT r.id, r.event_id, r.user_id, r.name, r.email, r.phone, r.registration_date,
             r.status, r.attendance_status, r.points_earned, r.points_claimed, r.payment_method, r.points_used,
+            r.guest_count, r.pending_payment_expires_at,
             e.title AS event_title, e.date AS event_date, e.time AS event_time, e.location AS event_location, e.category AS event_category
      FROM registrations r
      LEFT JOIN events e ON r.event_id = e.id
@@ -179,28 +189,37 @@ export const getEventRegistrations = async (eventId: number): Promise<Registrati
   return rows.map(rowToRegistration);
 };
 
-/** Public: returns list of registered players (name, avatar) for displaying on play page. No auth required. */
+/** Public: returns list of registered players (name, avatar, guestCount) for displaying on play page. Only confirmed. */
 export const getEventRegistrationsPublic = async (eventId: number): Promise<PublicRegistrationPlayer[]> => {
   const [rows] = await pool.execute<(RegRow & { avatar?: string | null })[]>(
-    `SELECT r.name, r.email, u.avatar
+    `SELECT r.name, r.email, r.guest_count, u.avatar
      FROM registrations r
      LEFT JOIN users u ON r.user_id = u.id
-     WHERE r.event_id = ? AND r.status != ?
+     WHERE r.event_id = ? AND r.status = ?
      ORDER BY r.registration_date ASC`,
-    [eventId, 'cancelled']
+    [eventId, 'confirmed']
   );
-  return rows.map((r) => ({ name: r.name, email: r.email, avatar: r.avatar ?? null }));
+  return rows.map((r) => ({
+    name: r.name,
+    email: r.email,
+    avatar: r.avatar ?? null,
+    guestCount: r.guest_count ?? 0,
+  }));
 };
 
 export const registerForEvents = async (
   userId: string,
   eventIds: number[],
-  formData: RegistrationFormData
+  formData: RegistrationFormData,
+  options?: { guestCount?: number }
 ): Promise<{ success: boolean; message: string; registrations: Registration[] }> => {
   const user = await getUserById(userId);
   if (!user) {
     throw createError('User not found', 404);
   }
+
+  const guestCount = Math.min(Math.max(0, options?.guestCount ?? 0), 10);
+  const spotsPerRegistration = 1 + guestCount;
 
   const newRegistrations: Registration[] = [];
 
@@ -218,17 +237,24 @@ export const registerForEvents = async (
     if (existingAny.length > 0) {
       const existing = existingAny[0];
       if (existing.status === 'confirmed') continue;
+      if (existing.status === 'pending_payment') {
+        throw createError(`You have a reserved spot for '${event.title}' - please complete payment first`, 400);
+      }
 
       if (existing.status === 'cancelled') {
         if (event.currentAttendees >= event.maxCapacity) {
           throw createError(`Event '${event.title}' is full`, 400);
         }
+        const spotsLeft = event.maxCapacity - event.currentAttendees;
+        if (spotsLeft < spotsPerRegistration) {
+          throw createError(`Event '${event.title}' has only ${spotsLeft} spot(s) left`, 400);
+        }
         const registrationDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
         await pool.execute(
           `UPDATE registrations SET status = 'confirmed', attendance_status = 'upcoming',
-            name = ?, email = ?, phone = ?, registration_date = ?
+            name = ?, email = ?, phone = ?, registration_date = ?, guest_count = ?
            WHERE id = ?`,
-          [formData.name, formData.email, formData.phone, registrationDate, existing.id]
+          [formData.name, formData.email, formData.phone, registrationDate, guestCount, existing.id]
         );
         newRegistrations.push({
           id: existing.id,
@@ -240,23 +266,28 @@ export const registerForEvents = async (
           registrationDate: new Date().toISOString(),
           status: 'confirmed',
           attendanceStatus: 'upcoming',
+          guestCount,
         });
-        await incrementEventAttendees(eventId);
+        await incrementEventAttendees(eventId, spotsPerRegistration);
       }
-      continue; // other statuses (e.g. pending): skip to avoid duplicate row
+      continue;
     }
 
     if (event.currentAttendees >= event.maxCapacity) {
       throw createError(`Event '${event.title}' is full`, 400);
+    }
+    const spotsLeft = event.maxCapacity - event.currentAttendees;
+    if (spotsLeft < spotsPerRegistration) {
+      throw createError(`Event '${event.title}' has only ${spotsLeft} spot(s) left`, 400);
     }
 
     const id = uuidv4();
     const registrationDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
     await pool.execute(
-      `INSERT INTO registrations (id, event_id, user_id, name, email, phone, registration_date, status, attendance_status, payment_method)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'confirmed', 'upcoming', 'stripe')`,
-      [id, eventId, userId, formData.name, formData.email, formData.phone, registrationDate]
+      `INSERT INTO registrations (id, event_id, user_id, name, email, phone, registration_date, status, attendance_status, payment_method, guest_count)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'confirmed', 'upcoming', 'stripe', ?)`,
+      [id, eventId, userId, formData.name, formData.email, formData.phone, registrationDate, guestCount]
     );
 
     newRegistrations.push({
@@ -269,9 +300,10 @@ export const registerForEvents = async (
       registrationDate: new Date().toISOString(),
       status: 'confirmed',
       attendanceStatus: 'upcoming',
+      guestCount,
     });
 
-    await incrementEventAttendees(eventId);
+    await incrementEventAttendees(eventId, spotsPerRegistration);
   }
 
   return {
@@ -293,11 +325,30 @@ export const cancelRegistration = async (
   if (rows.length === 0) return false;
 
   const reg = rows[0];
+  const guestCount = reg.guest_count ?? 0;
+  const delta = 1 + guestCount;
+
   await pool.execute(
     'UPDATE registrations SET status = ? WHERE id = ?',
     ['cancelled', registrationId]
   );
-  await decrementEventAttendees(reg.event_id);
+  await decrementEventAttendees(reg.event_id, delta);
+
+  const event = await getEventById(reg.event_id);
+  if (event) {
+    await promoteFromWaitlist(reg.event_id, async (entry, paymentLink) => {
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+      await sendWaitlistPromotionEmail(
+        entry.email,
+        event.title,
+        `${event.date} ${event.time}`,
+        paymentLink,
+        expiresAt
+      );
+    });
+  }
+
   return true;
 };
 
@@ -329,3 +380,139 @@ export const getRegistrationsCount = async (): Promise<number> => {
   );
   return Number(rows[0]?.count ?? 0);
 };
+
+/**
+ * Get user's registrations with status pending_payment (reserved spots awaiting payment).
+ */
+export const getMyPendingPaymentRegistrations = async (userId: string): Promise<RegistrationWithEventDetails[]> => {
+  const [rows] = await pool.execute<RegWithEventRow[]>(
+    `SELECT r.id, r.event_id, r.user_id, r.name, r.email, r.phone, r.registration_date,
+            r.status, r.attendance_status, r.points_earned, r.points_claimed, r.payment_method, r.points_used,
+            r.guest_count, r.pending_payment_expires_at,
+            e.title AS event_title, e.date AS event_date, e.time AS event_time, e.location AS event_location, e.category AS event_category, e.price AS event_price
+     FROM registrations r
+     LEFT JOIN events e ON r.event_id = e.id
+     WHERE r.user_id = ? AND r.status = ?
+     ORDER BY r.pending_payment_expires_at ASC`,
+    [userId, 'pending_payment']
+  );
+  return rows.map((r) => {
+    const reg = rowToRegistration(r);
+    return {
+      ...reg,
+      eventTitle: r.event_title ?? null,
+      eventDate: r.event_date ?? null,
+      eventTime: r.event_time ?? null,
+      eventLocation: r.event_location ?? null,
+      eventCategory: r.event_category ?? null,
+      eventPrice: r.event_price ?? null,
+    };
+  });
+};
+
+/**
+ * Confirm payment for a pending_payment registration (called after Stripe webhook or success).
+ */
+export const confirmPaymentForPendingRegistration = async (registrationId: string): Promise<boolean> => {
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations WHERE id = ? AND status = ?',
+    [registrationId, 'pending_payment']
+  );
+  if (rows.length === 0) return false;
+
+  const reg = rows[0];
+  const event = await getEventById(reg.event_id);
+  if (!event) return false;
+
+  await pool.execute(
+    `UPDATE registrations SET status = 'confirmed', pending_payment_expires_at = NULL WHERE id = ?`,
+    [registrationId]
+  );
+  await incrementEventAttendees(reg.event_id, 1);
+  await sendRegistrationConfirmationEmail(
+    reg.email,
+    event.title,
+    event.date,
+    event.time,
+    event.location
+  );
+  return true;
+};
+
+/**
+ * Add guests to an existing confirmed registration.
+ */
+export const addGuestsToRegistration = async (
+  userId: string,
+  registrationId: string,
+  requestedCount: number
+): Promise<{ added: number; waitlisted: number }> => {
+  const count = Math.min(Math.max(1, requestedCount), 10);
+
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations WHERE id = ? AND user_id = ? AND status = ?',
+    [registrationId, userId, 'confirmed']
+  );
+  if (rows.length === 0) throw createError('Registration not found or unauthorized', 404);
+
+  const reg = rows[0];
+  const event = await getEventById(reg.event_id);
+  if (!event) throw createError('Event not found', 404);
+
+  const spotsLeft = event.maxCapacity - event.currentAttendees;
+  const toAdd = Math.min(count, spotsLeft);
+  const toWaitlist = count - toAdd;
+
+  if (toAdd > 0) {
+    const newGuestCount = (reg.guest_count ?? 0) + toAdd;
+    await pool.execute(
+      'UPDATE registrations SET guest_count = ? WHERE id = ?',
+      [newGuestCount, registrationId]
+    );
+    await incrementEventAttendees(reg.event_id, toAdd);
+  }
+
+  if (toWaitlist > 0) {
+    const { addToGuestsWaitlist } = await import('./waitlistService.js');
+    const user = await getUserById(userId);
+    if (!user) throw createError('User not found', 404);
+    const formData = {
+      name: `${user.firstName} ${user.lastName}`.trim() || reg.name,
+      email: user.email || reg.email,
+      phone: user.phone ?? reg.phone ?? '',
+    };
+    await addToGuestsWaitlist(userId, reg.event_id, registrationId, toWaitlist, formData);
+  }
+
+  return { added: toAdd, waitlisted: toWaitlist };
+}
+
+/**
+ * Expire pending_payment registrations past their deadline, cancel them, and promote next from waitlist.
+ * Called by cron. For pending_payment we never incremented attendees, so no decrement needed.
+ */
+export const expirePendingPromotions = async (): Promise<{ expired: number; promoted: number }> => {
+  const [rows] = await pool.execute<RegRow[]>(
+    `SELECT id, event_id FROM registrations
+     WHERE status = 'pending_payment' AND pending_payment_expires_at IS NOT NULL AND pending_payment_expires_at < NOW()`
+  );
+
+  let expired = 0;
+  let promoted = 0;
+
+  for (const r of rows) {
+    await pool.execute('UPDATE registrations SET status = ? WHERE id = ?', ['cancelled', r.id]);
+    expired += 1;
+
+    const { promoteFromWaitlist } = await import('./waitlistService.js');
+    const result = await promoteFromWaitlist(r.event_id, async (entry, link) => {
+      const event = await getEventById(r.event_id);
+      if (event) {
+        await sendWaitlistPromotionEmail(entry.email, event.title, event.date, link, new Date(Date.now() + 24 * 60 * 60 * 1000));
+      }
+    });
+    if (result.promoted) promoted += 1;
+  }
+
+  return { expired, promoted };
+}

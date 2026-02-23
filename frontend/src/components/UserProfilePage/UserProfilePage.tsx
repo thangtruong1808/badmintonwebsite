@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import { setCredentials } from "../../store/authSlice";
 import { apiFetch } from "../../utils/api";
 import {
   getUserTransactions,
   getUserEventHistory,
 } from "../../utils/rewardPointsService";
-import { getUserRegistrations } from "../../utils/registrationService";
+import { getUserRegistrations, getMyPendingPayments } from "../../utils/registrationService";
 import type { User, RewardPointTransaction, UserEventHistory } from "../../types/user";
 import type { RegistrationWithEventDetails } from "../../types/socialEvent";
 import ProfileHeader from "./ProfileHeader";
@@ -36,6 +37,7 @@ const UserProfilePage: React.FC = () => {
   const [transactions, setTransactions] = useState<RewardPointTransaction[]>([]);
   const [eventHistory, setEventHistory] = useState<UserEventHistory[]>([]);
   const [registrations, setRegistrations] = useState<RegistrationWithEventDetails[]>([]);
+  const [pendingPayments, setPendingPayments] = useState<RegistrationWithEventDetails[]>([]);
   const [includeCancelled, setIncludeCancelled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,14 +61,16 @@ const UserProfilePage: React.FC = () => {
       setUser(profileUser);
       dispatch(setCredentials({ user: profileUser }));
 
-      const [txs, history, regs] = await Promise.all([
+      const [txs, history, regs, pending] = await Promise.all([
         getUserTransactions(profileUser.id),
         getUserEventHistory(profileUser.id),
         getUserRegistrations(profileUser.id, { includeCancelled: true }),
+        getMyPendingPayments(profileUser.id),
       ]);
       setTransactions(txs);
       setEventHistory(history);
       setRegistrations(regs);
+      setPendingPayments(pending);
     } catch {
       setUser(null);
       setError("Could not load profile.");
@@ -121,6 +125,27 @@ const UserProfilePage: React.FC = () => {
         <div className="mb-8">
           <ProfileHeader user={user} onAvatarUpdate={handleAvatarUpdate} />
         </div>
+
+        {pendingPayments.length > 0 && (
+          <div className="mb-6 p-4 bg-amber-50 border-2 border-amber-500 rounded-xl">
+            <p className="font-semibold text-amber-800 font-calibri mb-2">
+              You have {pendingPayments.length} reserved spot{pendingPayments.length > 1 ? "s" : ""} – pay within 24 hours
+            </p>
+            <ul className="space-y-1 mb-3">
+              {pendingPayments.map((r) => (
+                <li key={r.id} className="text-amber-800 font-calibri">
+                  {r.eventTitle} – {r.eventDate} {r.eventTime ?? ""}
+                </li>
+              ))}
+            </ul>
+            <Link
+              to={`/play/payment?pending=${pendingPayments[0]?.id}`}
+              className="inline-block py-2 px-4 bg-amber-500 text-white font-medium rounded-lg hover:bg-amber-600 transition-colors font-calibri"
+            >
+              Pay now
+            </Link>
+          </div>
+        )}
 
         {/* Transaction History and Event History Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">

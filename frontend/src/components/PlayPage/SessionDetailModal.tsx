@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes, FaUsers, FaCheckCircle } from "react-icons/fa";
+import { FaTimes, FaUsers, FaCheckCircle, FaList } from "react-icons/fa";
 import type { SocialEvent } from "../../types/socialEvent";
 import { API_BASE } from "../../utils/api";
 import { getCurrentUser } from "../../utils/mockAuth";
 import ConfirmDialog from "../Dashboard/Shared/ConfirmDialog";
+import { joinWaitlist, addGuestsToRegistration } from "../../utils/registrationService";
 
 interface RegisteredPlayer {
   name: string;
   email?: string;
   avatar?: string | null;
+  guestCount?: number;
+}
+
+interface WaitlistPlayer {
+  name: string;
+  guestCount: number;
 }
 
 interface SessionDetailModalProps {
@@ -20,8 +27,12 @@ interface SessionDetailModalProps {
   selectedCount: number;
   /** When true, current user has a registration for this session */
   canCancel?: boolean;
+  /** Current user's registration ID (for add-guests) */
+  myRegistrationId?: string;
   /** Called when user clicks 'Cancel my registration'. May return a Promise; modal refetches registrations after it resolves. */
   onCancelRegistration?: () => void | Promise<void>;
+  /** Called after adding guests (to refetch registrations/events) */
+  onGuestsAdded?: () => void | Promise<void>;
   /** Optional loading flag while cancellation is in progress */
   isCancelling?: boolean;
 }
@@ -34,17 +45,33 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   isInCart,
   selectedCount,
   canCancel,
+  myRegistrationId,
   onCancelRegistration,
+  onGuestsAdded,
   isCancelling = false,
 }) => {
   const [players, setPlayers] = useState<RegisteredPlayer[]>([]);
+  const [waitlistPlayers, setWaitlistPlayers] = useState<WaitlistPlayer[]>([]);
   const [playersLoading, setPlayersLoading] = useState(false);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showWaitlistForm, setShowWaitlistForm] = useState(false);
+  const [waitlistForm, setWaitlistForm] = useState({ name: "", email: "", phone: "" });
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
+  const [waitlistMessage, setWaitlistMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [guestCountToAdd, setGuestCountToAdd] = useState<number>(1);
+  const [addGuestsSubmitting, setAddGuestsSubmitting] = useState(false);
+  const [addGuestsMessage, setAddGuestsMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [showPartialGuestsConfirm, setShowPartialGuestsConfirm] = useState(false);
+  const [pendingGuestAdd, setPendingGuestAdd] = useState<{ registrationId: string; count: number; toAdd: number; toWaitlist: number } | null>(null);
 
   const user = getCurrentUser();
   const isAlreadyRegistered =
     !!user?.email &&
     players.some((p) => p.email?.toLowerCase() === user.email.toLowerCase());
+
+  const spotsAvailable = event ? event.maxCapacity - event.currentAttendees : 0;
+  const isFull = spotsAvailable <= 0 || event?.status === "full";
 
   const fetchRegistrations = React.useCallback(() => {
     if (!event?.id) {
@@ -59,9 +86,26 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
       .finally(() => setPlayersLoading(false));
   }, [event?.id]);
 
+  const fetchWaitlist = React.useCallback(() => {
+    if (!event?.id) {
+      setWaitlistPlayers([]);
+      return;
+    }
+    setWaitlistLoading(true);
+    fetch(`${API_BASE}/api/events/${event.id}/waitlist`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : { waitlist: [] }))
+      .then((data) => setWaitlistPlayers(data.waitlist || []))
+      .catch(() => setWaitlistPlayers([]))
+      .finally(() => setWaitlistLoading(false));
+  }, [event?.id]);
+
   useEffect(() => {
     fetchRegistrations();
   }, [fetchRegistrations]);
+
+  useEffect(() => {
+    fetchWaitlist();
+  }, [fetchWaitlist]);
 
   const handleCancelRegistration = async () => {
     if (!onCancelRegistration) return;
@@ -69,6 +113,79 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     const result = onCancelRegistration();
     await (result instanceof Promise ? result : Promise.resolve());
     fetchRegistrations();
+    fetchWaitlist();
+  };
+
+  const openWaitlistForm = () => {
+    const u = getCurrentUser();
+    setWaitlistForm({
+      name: u ? `${u.firstName || ""} ${u.lastName || ""}`.trim() || "" : "",
+      email: u?.email ?? "",
+      phone: u?.phone ?? "",
+    });
+    setWaitlistMessage(null);
+    setShowWaitlistForm(true);
+  };
+
+  const handleJoinWaitlist = async () => {
+    if (!event || !waitlistForm.name.trim() || !waitlistForm.email.trim()) {
+      setWaitlistMessage({ type: "error", text: "Name and email are required." });
+      return;
+    }
+    setWaitlistSubmitting(true);
+    setWaitlistMessage(null);
+    const result = await joinWaitlist(event.id, waitlistForm);
+    setWaitlistSubmitting(false);
+    if (result.success) {
+      setWaitlistMessage({ type: "success", text: result.message });
+      fetchWaitlist();
+      setTimeout(() => {
+        setShowWaitlistForm(false);
+      }, 1500);
+    } else {
+      setWaitlistMessage({ type: "error", text: result.message });
+    }
+  };
+
+  const handleAddGuestsClick = () => {
+    if (!event || !myRegistrationId) return;
+    const spotsLeft = event.maxCapacity - event.currentAttendees;
+    const count = Math.min(Math.max(1, guestCountToAdd), 10);
+    if (count <= spotsLeft) {
+      doAddGuests(myRegistrationId, count);
+    } else {
+      const toAdd = spotsLeft;
+      const toWaitlist = count - spotsLeft;
+      setPendingGuestAdd({ registrationId: myRegistrationId, count, toAdd, toWaitlist });
+      setShowPartialGuestsConfirm(true);
+    }
+  };
+
+  const doAddGuests = async (registrationId: string, count: number) => {
+    setAddGuestsSubmitting(true);
+    setAddGuestsMessage(null);
+    const result = await addGuestsToRegistration(registrationId, count);
+    setAddGuestsSubmitting(false);
+    if (result.success) {
+      const added = result.added ?? count;
+      const waitlisted = result.waitlisted ?? 0;
+      const msg = waitlisted > 0
+        ? `${added} guest(s) added. ${waitlisted} on the waitlist.`
+        : `${added} guest(s) added.`;
+      setAddGuestsMessage({ type: "success", text: msg });
+      fetchRegistrations();
+      fetchWaitlist();
+      onGuestsAdded?.();
+    } else {
+      setAddGuestsMessage({ type: "error", text: result.message ?? "Failed to add guests." });
+    }
+  };
+
+  const handlePartialGuestsConfirm = () => {
+    if (!pendingGuestAdd) return;
+    setShowPartialGuestsConfirm(false);
+    doAddGuests(pendingGuestAdd.registrationId, pendingGuestAdd.count);
+    setPendingGuestAdd(null);
   };
 
   if (!event) return null;
@@ -130,8 +247,10 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                       : parts.length === 1
                         ? parts[0].charAt(0).toUpperCase()
                         : (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+                  const hasGuests = (p.guestCount ?? 0) >= 1;
+                  const borderClass = hasGuests ? "ring-2 ring-amber-500" : "";
                   return (
-                    <li key={i} className="flex-shrink-0" title={p.name}>
+                    <li key={i} className={`flex-shrink-0 rounded-full ${borderClass}`} title={p.name + (hasGuests ? ` (+${p.guestCount} guest${(p.guestCount ?? 0) > 1 ? "s" : ""})` : "")}>
                       {p.avatar && String(p.avatar).trim() ? (
                         <img
                           src={p.avatar}
@@ -148,10 +267,41 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 })}
               </ul>
             )}
+
+            <div className="border-t border-gray-200 pt-4 mt-4">
+              <h3 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-2">
+                <FaList className="text-amber-500" />
+                Waiting list ({waitlistPlayers.length})
+              </h3>
+              {waitlistLoading ? (
+                <p className="text-sm text-gray-500 py-2">Loading…</p>
+              ) : waitlistPlayers.length === 0 ? (
+                <p className="text-sm text-gray-500 py-2">No one on the waitlist.</p>
+              ) : (
+                <ul className="max-h-[min(200px,30vh)] overflow-y-auto pr-1 space-y-1.5">
+                  {waitlistPlayers.map((w, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center gap-2 text-sm text-gray-700 font-calibri py-1.5 px-3 rounded-lg bg-amber-50 border border-amber-200"
+                    >
+                      <span className="font-medium text-gray-900 truncate">{w.name}</span>
+                      <span className="text-amber-600 font-medium flex-shrink-0">
+                        +{w.guestCount}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
 
-          {event.status === "available" && (
+          {(event.status === "available" || event.status === "full") && (
             <div className="flex flex-col gap-3 pt-4">
+              {isFull && !isAlreadyRegistered && (
+                <p className="text-amber-700 text-sm font-medium bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  This session is full. Join the waitlist to be notified when a spot opens.
+                </p>
+              )}
               {isAlreadyRegistered && (
                 <div
                   className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200 text-green-800 font-calibri text-sm"
@@ -160,6 +310,34 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 >
                   <FaCheckCircle size={18} className="flex-shrink-0 text-green-600" />
                   <span>You&apos;re already registered for this session.</span>
+                </div>
+              )}
+              {isAlreadyRegistered && myRegistrationId && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                  <span className="text-sm text-gray-700 font-calibri">Add guests (+1 to +10):</span>
+                  <select
+                    value={guestCountToAdd}
+                    onChange={(e) => setGuestCountToAdd(Number(e.target.value))}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-calibri"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                      <option key={n} value={n}>
+                        +{n}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={handleAddGuestsClick}
+                    disabled={addGuestsSubmitting}
+                    className="py-1.5 px-4 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri"
+                  >
+                    {addGuestsSubmitting ? "Adding…" : "Add guests"}
+                  </button>
+                  {addGuestsMessage && (
+                    <span className={`text-sm ${addGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                      {addGuestsMessage.text}
+                    </span>
+                  )}
                 </div>
               )}
               {isAlreadyRegistered && canCancel && onCancelRegistration && (
@@ -172,12 +350,20 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 </button>
               )}
               <div className="flex flex-wrap gap-2">
-                {!isAlreadyRegistered && (
+                {!isAlreadyRegistered && !isFull && (
                   <button
                     onClick={() => onAddToCart(event.id)}
                     className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-rose-500 text-rose-600 hover:bg-rose-50 font-medium transition-colors font-calibri text-sm sm:text-base"
                   >
                     {isInCart ? "Remove from selection" : "Add to selection"}
+                  </button>
+                )}
+                {!isAlreadyRegistered && isFull && (
+                  <button
+                    onClick={openWaitlistForm}
+                    className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium transition-colors font-calibri text-sm sm:text-base"
+                  >
+                    Join waitlist
                   </button>
                 )}
                 {isAlreadyRegistered && isInCart && (
@@ -208,6 +394,23 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
         </div>
       </div>
       <ConfirmDialog
+        open={showPartialGuestsConfirm}
+        title="Partial availability"
+        message={
+          pendingGuestAdd
+            ? `Only ${pendingGuestAdd.toAdd} of your friends will be added to the list. The remaining ${pendingGuestAdd.toWaitlist} will be on the waiting list. Continue?`
+            : ""
+        }
+        confirmLabel="Yes, continue"
+        cancelLabel="Cancel"
+        variant="default"
+        onConfirm={handlePartialGuestsConfirm}
+        onCancel={() => {
+          setShowPartialGuestsConfirm(false);
+          setPendingGuestAdd(null);
+        }}
+      />
+      <ConfirmDialog
         open={showCancelConfirm}
         title="Cancel registration"
         message="Are you sure you want to cancel your registration for this session? Your spot will be released for others."
@@ -217,6 +420,62 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
         onConfirm={handleCancelRegistration}
         onCancel={() => setShowCancelConfirm(false)}
       />
+
+      {showWaitlistForm && event && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 font-calibri mb-4">Join waitlist</h3>
+            <p className="text-gray-700 text-lg mb-4 font-calibri">
+              This session is full. We&apos;ll email you when a spot opens for &quot;{event.title}&quot;.
+            </p>
+            <div className="space-y-3 font-calibri">
+              <input
+                type="text"
+                placeholder="Name *"
+                value={waitlistForm.name}
+                onChange={(e) => setWaitlistForm((f) => ({ ...f, name: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-calibri text-md"
+              />
+              <input
+                type="email"
+                placeholder="Email *"
+                value={waitlistForm.email}
+                onChange={(e) => setWaitlistForm((f) => ({ ...f, email: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-calibri text-md"
+              />
+              <input
+                type="tel"
+                placeholder="Phone"
+                value={waitlistForm.phone}
+                onChange={(e) => setWaitlistForm((f) => ({ ...f, phone: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-calibri text-md"
+              />
+            </div>
+            {waitlistMessage && (
+              <p
+                className={`mt-3 text-sm ${waitlistMessage.type === "success" ? "text-green-600" : "text-red-600"}`}
+              >
+                {waitlistMessage.text}
+              </p>
+            )}
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={() => setShowWaitlistForm(false)}
+                className="flex-1 py-2 px-3 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium font-calibri text-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleJoinWaitlist}
+                disabled={waitlistSubmitting}
+                className="flex-1 py-2 px-3 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium disabled:opacity-60 disabled:cursor-not-allowed font-calibri text-md hover:text-amber-700"
+              >
+                {waitlistSubmitting ? "Submitting…" : "Join waitlist"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

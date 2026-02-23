@@ -265,7 +265,10 @@ export const deleteEvent = async (eventId: number): Promise<boolean> => {
   return Number((result as { affectedRows?: number })?.affectedRows) > 0;
 };
 
-export const incrementEventAttendees = async (eventId: number): Promise<SocialEvent | null> => {
+export const incrementEventAttendees = async (
+  eventId: number,
+  delta: number = 1
+): Promise<SocialEvent | null> => {
   const event = await getEventById(eventId);
   if (!event) return null;
 
@@ -273,7 +276,7 @@ export const incrementEventAttendees = async (eventId: number): Promise<SocialEv
     throw createError('Event is full', 400);
   }
 
-  const newCount = event.currentAttendees + 1;
+  const newCount = Math.min(event.currentAttendees + delta, event.maxCapacity);
   const newStatus = newCount >= event.maxCapacity ? 'full' : event.status;
 
   await pool.execute(
@@ -283,13 +286,16 @@ export const incrementEventAttendees = async (eventId: number): Promise<SocialEv
   return getEventById(eventId);
 };
 
-export const decrementEventAttendees = async (eventId: number): Promise<SocialEvent | null> => {
+export const decrementEventAttendees = async (
+  eventId: number,
+  delta: number = 1
+): Promise<SocialEvent | null> => {
   const event = await getEventById(eventId);
   if (!event) return null;
 
   if (event.currentAttendees <= 0) return event;
 
-  const newCount = event.currentAttendees - 1;
+  const newCount = Math.max(0, event.currentAttendees - delta);
   const newStatus = 'available';
 
   await pool.execute(

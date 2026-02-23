@@ -21,6 +21,7 @@ import uploadRoutes from './routes/upload.js';
 import serviceOptionsRoutes from './routes/serviceOptions.js';
 import contactRoutes from './routes/contact.js';
 import serviceRequestsRoutes from './routes/serviceRequests.js';
+import cronRoutes from './routes/cron.js';
 import { seedPlaySlotsIfEmpty } from './utils/initializeData.js';
 
 // Seed play_slots on startup if empty
@@ -78,6 +79,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/service-options', serviceOptionsRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/service-requests', serviceRequestsRoutes);
+app.use('/api/cron', cronRoutes);
 
 // 404 handler
 app.use((req, res) => {

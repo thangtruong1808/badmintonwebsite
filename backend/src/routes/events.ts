@@ -7,6 +7,7 @@ import {
   deleteEvent,
   generateEvents,
   getEventRegistrationsPublic,
+  getEventWaitlistPublic,
 } from '../controllers/eventsController.js';
 import { authenticateToken } from '../middleware/auth.js';
 
@@ -32,6 +33,13 @@ router.get('/generate', generateEvents);
  * @access  Public
  */
 router.get('/:id/registrations', getEventRegistrationsPublic);
+
+/**
+ * @route   GET /api/events/:id/waitlist
+ * @desc    Get waitlist entries for event (public)
+ * @access  Public
+ */
+router.get('/:id/waitlist', getEventWaitlistPublic);
 
 /**
  * @route   GET /api/events/:id

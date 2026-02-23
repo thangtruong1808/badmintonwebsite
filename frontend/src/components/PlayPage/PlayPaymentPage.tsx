@@ -1,8 +1,8 @@
 import React, { useState, useEffect, type FormEvent } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaCoins, FaMoneyBillWave, FaExchangeAlt } from "react-icons/fa";
 import { getCurrentUser } from "../../utils/mockAuth";
-import { registerUserForEvents } from "../../utils/registrationService";
+import { registerUserForEvents, getMyPendingPayments, confirmPaymentForPendingRegistration } from "../../utils/registrationService";
 import { canUsePointsForBooking, formatPoints } from "../../utils/rewardPoints";
 import { usePointsForBooking } from "../../utils/rewardPointsService";
 import { clearCart } from "../../utils/cartStorage";
@@ -11,8 +11,60 @@ import type { SocialEvent } from "../../types/socialEvent";
 const PlayPaymentPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const events: SocialEvent[] = (location.state as { events?: SocialEvent[] })?.events ?? [];
+  const [searchParams] = useSearchParams();
+  const pendingId = searchParams.get("pending") ?? undefined;
+  const eventsFromState: SocialEvent[] = (location.state as { events?: SocialEvent[] })?.events ?? [];
   const user = getCurrentUser();
+
+  const [pendingRegistration, setPendingRegistration] = useState<{
+    id: string;
+    eventId: number;
+    eventTitle: string;
+    eventDate: string;
+    eventTime?: string;
+    eventLocation?: string;
+    price?: number;
+  } | null>(null);
+  const [pendingLoading, setPendingLoading] = useState(!!pendingId);
+
+  useEffect(() => {
+    if (!pendingId || !user?.id) {
+      setPendingLoading(false);
+      return;
+    }
+    getMyPendingPayments(user.id).then((list) => {
+      const found = list.find((r) => r.id === pendingId);
+      if (found && found.eventId && found.eventTitle && found.eventDate) {
+        setPendingRegistration({
+          id: found.id!,
+          eventId: found.eventId,
+          eventTitle: found.eventTitle,
+          eventDate: found.eventDate,
+          eventTime: found.eventTime ?? undefined,
+          eventLocation: found.eventLocation ?? undefined,
+          price: (found as { eventPrice?: number }).eventPrice,
+        });
+      }
+      setPendingLoading(false);
+    }).catch(() => setPendingLoading(false));
+  }, [pendingId, user?.id]);
+
+  const events: SocialEvent[] = pendingRegistration
+    ? [{
+        id: pendingRegistration.eventId,
+        title: pendingRegistration.eventTitle,
+        date: pendingRegistration.eventDate,
+        time: pendingRegistration.eventTime ?? "",
+        dayOfWeek: "",
+        location: pendingRegistration.eventLocation ?? "",
+        description: "",
+        maxCapacity: 0,
+        currentAttendees: 0,
+        price: pendingRegistration.price,
+        status: "available",
+        category: "regular",
+      } as SocialEvent]
+    : eventsFromState;
 
   const [formData, setFormData] = useState({
     name: user ? `${user.firstName} ${user.lastName}`.trim() : "",
@@ -40,12 +92,23 @@ const PlayPaymentPage: React.FC = () => {
   const userPoints = user?.rewardPoints ?? 0;
   const canPayWithPoints = canUsePointsForBooking(totalPrice, userPoints);
 
+  if (pendingLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-rose-500 border-t-transparent" />
+          <p className="text-gray-600 font-calibri">Loading…</p>
+        </div>
+      </div>
+    );
+  }
+
   if (events.length === 0 && !submitStatus.type) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
           <h1 className="text-2xl font-bold text-gray-900 font-calibri mb-4">No sessions selected</h1>
-          <p className="text-gray-600 font-calibri mb-6">Please select sessions from the play page.</p>
+          <p className="text-gray-600 font-calibri mb-6">Please select sessions from the play page or use the payment link from your profile.</p>
           <button
             onClick={() => navigate("/play")}
             className="bg-rose-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-rose-600 transition-colors font-calibri"
@@ -75,7 +138,7 @@ const PlayPaymentPage: React.FC = () => {
     setSubmitStatus({ type: null, message: "" });
 
     try {
-      if (user && (paymentMethod === "points" || paymentMethod === "mixed")) {
+      if (!pendingRegistration && user && (paymentMethod === "points" || paymentMethod === "mixed")) {
         const pts = paymentMethod === "points" ? totalPrice : pointsToUse;
         if (pts > 0) {
           const ok = await usePointsForBooking(user.id, events[0].id, pts);
@@ -87,6 +150,18 @@ const PlayPaymentPage: React.FC = () => {
         }
       }
 
+      if (pendingRegistration) {
+        const result = await confirmPaymentForPendingRegistration(pendingRegistration.id);
+        if (!result.success) {
+          setSubmitStatus({ type: "error", message: result.message });
+          setIsSubmitting(false);
+          return;
+        }
+        setSubmitStatus({
+          type: "success",
+          message: "Payment confirmed! Your registration is complete.",
+        });
+      } else {
       const result = await registerUserForEvents(events, formData);
       if (!result.success) {
         setSubmitStatus({ type: "error", message: result.message });
@@ -98,6 +173,7 @@ const PlayPaymentPage: React.FC = () => {
         type: "success",
         message: `Successfully registered for ${events.length} session${events.length !== 1 ? "s" : ""}!`,
       });
+      }
       clearCart();
       setTimeout(() => navigate("/profile"), 2000);
     } catch {
@@ -118,6 +194,13 @@ const PlayPaymentPage: React.FC = () => {
         </h1>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          {pendingRegistration && (
+            <div className="p-4 bg-amber-50 border-b border-amber-200">
+              <p className="text-amber-800 font-calibri text-sm font-medium">
+                A spot opened for you! Complete payment within 24 hours to confirm your registration.
+              </p>
+            </div>
+          )}
           <div className="p-6 space-y-4 border-b border-gray-200">
             {events.map((e) => (
               <div key={e.id} className="text-gray-700 font-calibri text-lg">
@@ -225,7 +308,7 @@ const PlayPaymentPage: React.FC = () => {
             <div className="flex gap-3 pt-4">
               <button
                 type="button"
-                onClick={() => navigate("/play/checkout")}
+                onClick={() => navigate(pendingRegistration ? "/profile" : "/play/checkout")}
                 disabled={submitStatus.type === "success"}
                 className="flex-1 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 font-calibri disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -236,7 +319,7 @@ const PlayPaymentPage: React.FC = () => {
                 disabled={isSubmitting || submitStatus.type === "success"}
                 className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-calibri disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Processing…" : "Complete registration"}
+                {isSubmitting ? "Processing…" : pendingRegistration ? "Confirm payment" : "Complete registration"}
               </button>
             </div>
           </form>

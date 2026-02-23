@@ -59,12 +59,14 @@ export interface Registration {
   email: string;
   phone: string;
   registrationDate: string;
-  status: "pending" | "confirmed" | "cancelled";
+  status: "pending" | "confirmed" | "cancelled" | "pending_payment";
   attendanceStatus?: "attended" | "no-show" | "cancelled" | "upcoming";
   pointsEarned?: number;
   pointsClaimed?: boolean;
   paymentMethod?: "stripe" | "points" | "mixed";
   pointsUsed?: number;
+  guestCount?: number;
+  pendingPaymentExpiresAt?: string;
 }
 
 export interface RegistrationFormData {

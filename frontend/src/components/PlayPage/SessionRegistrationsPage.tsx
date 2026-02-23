@@ -6,6 +6,7 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
 interface RegisteredPlayer {
   name: string;
   email?: string;
+  guestCount?: number;
 }
 
 const SessionRegistrationsPage: React.FC = () => {
@@ -96,12 +97,25 @@ const SessionRegistrationsPage: React.FC = () => {
               <p className="font-calibri text-gray-600">No players registered yet.</p>
             ) : (
               <ul className="space-y-2">
-                {players.map((p, i) => (
-                  <li key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg font-calibri text-lg">
-                    <span className="font-medium text-gray-900 font-calibri text-lg">{p.name}</span>
-                    {p.email && <span className="text-gray-500 font-calibri text-lg truncate max-w-[60%]">{p.email}</span>}
-                  </li>
-                ))}
+                {players.map((p, i) => {
+                  const hasGuests = (p.guestCount ?? 0) >= 1;
+                  return (
+                    <li
+                      key={i}
+                      className={`flex items-center justify-between p-3 rounded-lg font-calibri text-lg ${
+                        hasGuests ? "bg-amber-50 border-2 border-amber-500" : "bg-gray-50"
+                      }`}
+                    >
+                      <span className="font-medium text-gray-900 font-calibri text-lg">
+                        {p.name}
+                        {hasGuests && (
+                          <span className="ml-2 text-amber-600 text-sm font-normal">+{(p.guestCount ?? 0)} guest{(p.guestCount ?? 0) > 1 ? "s" : ""}</span>
+                        )}
+                      </span>
+                      {p.email && <span className="text-gray-500 font-calibri text-lg truncate max-w-[60%]">{p.email}</span>}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
