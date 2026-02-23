@@ -42,7 +42,7 @@ const PlayPage: React.FC = () => {
     if (selectedEvent) fetchMyRegistrations();
   }, [selectedEvent?.id, fetchMyRegistrations]);
 
-  const fetchEvents = useCallback(async () => {
+  const fetchEvents = useCallback(async (): Promise<SocialEvent[]> => {
     setEventsLoading(true);
     try {
       const from = new Date();
@@ -56,12 +56,15 @@ const PlayPage: React.FC = () => {
       );
       if (res.ok) {
         const list = await res.json();
-        setAllEvents(Array.isArray(list) ? list : []);
-      } else {
-        setAllEvents([]);
+        const events = Array.isArray(list) ? list : [];
+        setAllEvents(events);
+        return events;
       }
+      setAllEvents([]);
+      return [];
     } catch {
       setAllEvents([]);
+      return [];
     } finally {
       setEventsLoading(false);
     }
@@ -98,8 +101,10 @@ const PlayPage: React.FC = () => {
     });
   };
 
-  const handleViewSession = (event: SocialEvent) => {
-    setSelectedEvent(event);
+  const handleViewSession = async (event: SocialEvent) => {
+    const freshEvents = await fetchEvents();
+    const fresh = freshEvents.find((e) => e.id === event.id) ?? event;
+    setSelectedEvent(fresh);
   };
 
   const handleCancelRegistrationForEvent = async (eventId: number) => {
@@ -213,9 +218,20 @@ const PlayPage: React.FC = () => {
                   ? () => handleCancelRegistrationForEvent(selectedEvent.id)
                   : undefined
               }
-              onGuestsAdded={() => {
-                fetchMyRegistrations();
-                fetchEvents();
+              onGuestsAdded={async () => {
+                await fetchMyRegistrations();
+                const events = await fetchEvents();
+                if (selectedEvent) {
+                  const fresh = events.find((e) => e.id === selectedEvent.id) ?? selectedEvent;
+                  setSelectedEvent(fresh);
+                }
+              }}
+              onRefetchRequested={async () => {
+                const events = await fetchEvents();
+                if (selectedEvent) {
+                  const fresh = events.find((e) => e.id === selectedEvent.id) ?? selectedEvent;
+                  setSelectedEvent(fresh);
+                }
               }}
               isCancelling={!!regId && regId === cancellingRegistrationId}
             />

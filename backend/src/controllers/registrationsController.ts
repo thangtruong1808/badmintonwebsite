@@ -9,8 +9,19 @@ import {
   getMyPendingPaymentRegistrations,
   confirmPaymentForPendingRegistration,
   addGuestsToRegistration as addGuestsToRegistrationService,
+  removeGuestsFromRegistration as removeGuestsFromRegistrationService,
 } from '../services/registrationService.js';
-import { joinWaitlist as joinWaitlistService } from '../services/waitlistService.js';
+import {
+  joinWaitlist as joinWaitlistService,
+  getMyAddGuestsWaitlistEntry,
+  reduceAddGuestsWaitlist as reduceAddGuestsWaitlistService,
+} from '../services/waitlistService.js';
+import {
+  getRegistrationByEventAndUser,
+  getRegistrationById,
+} from '../services/registrationService.js';
+import { getEventById } from '../services/eventService.js';
+import { sendWaitlistFriendsUpdateConfirmationEmail } from '../utils/email.js';
 import { createError } from '../middleware/errorHandler.js';
 import type { RegistrationFormData } from '../types/index.js';
 
@@ -178,6 +189,106 @@ export const addGuestsToRegistration = async (
     }
 
     const result = await addGuestsToRegistrationService(req.userId, registrationId, guestCount);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const removeGuestsFromRegistration = async (
+  req: AuthRequest<{ id: string }, {}, { guestCount: number }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const registrationId = req.params.id;
+    const guestCount = req.body?.guestCount ?? 0;
+
+    if (!registrationId || guestCount < 1 || guestCount > 10) {
+      throw createError('Valid registration ID and guestCount (1-10) are required', 400);
+    }
+
+    const result = await removeGuestsFromRegistrationService(req.userId, registrationId, guestCount);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyAddGuestsWaitlist = async (
+  req: AuthRequest<object, object, object, { eventId?: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const eventId = parseInt(req.query.eventId as string);
+    if (isNaN(eventId)) {
+      throw createError('Valid eventId is required', 400);
+    }
+
+    const reg = await getRegistrationByEventAndUser(eventId, req.userId);
+    if (!reg || !reg.id) {
+      res.json({ count: 0 });
+      return;
+    }
+
+    const entry = await getMyAddGuestsWaitlistEntry(req.userId, eventId, reg.id);
+    if (!entry) {
+      res.json({ count: 0 });
+      return;
+    }
+
+    res.json({ count: entry.count, registrationId: reg.id });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const reduceWaitlistFriends = async (
+  req: AuthRequest<{ id: string }, {}, { guestCount: number }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const registrationId = req.params.id;
+    const guestCount = req.body?.guestCount ?? 0;
+
+    if (!registrationId || guestCount < 1 || guestCount > 10) {
+      throw createError('Valid registration ID and guestCount (1-10) are required', 400);
+    }
+
+    const registration = await getRegistrationById(registrationId);
+    if (!registration || registration.userId !== req.userId) {
+      throw createError('Registration not found or unauthorized', 404);
+    }
+
+    const result = await reduceAddGuestsWaitlistService(
+      req.userId,
+      registrationId,
+      registration.eventId,
+      guestCount
+    );
+    const event = await getEventById(registration.eventId);
+    if (event && registration.email && result.reduced) {
+      await sendWaitlistFriendsUpdateConfirmationEmail(
+        registration.email,
+        event.title,
+        `${event.date} ${event.time}`,
+        result.reduced
+      );
+    }
     res.json(result);
   } catch (error) {
     next(error);

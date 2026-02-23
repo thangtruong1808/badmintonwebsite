@@ -109,7 +109,7 @@ const SessionRegistrationsPage: React.FC = () => {
                       <span className="font-medium text-gray-900 font-calibri text-lg">
                         {p.name}
                         {hasGuests && (
-                          <span className="ml-2 text-amber-600 text-sm font-normal">+{(p.guestCount ?? 0)} guest{(p.guestCount ?? 0) > 1 ? "s" : ""}</span>
+                          <span className="ml-2 text-amber-600 text-sm font-normal">+{(p.guestCount ?? 0)} friend{(p.guestCount ?? 0) > 1 ? "s" : ""}</span>
                         )}
                       </span>
                       {p.email && <span className="text-gray-500 font-calibri text-lg truncate max-w-[60%]">{p.email}</span>}

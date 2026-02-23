@@ -273,3 +273,63 @@ export async function sendRegistrationConfirmationEmail(
     console.error('[email] Failed to send registration confirmation email:', err);
   }
 }
+
+/**
+ * Send email to registered player when their friends on the add-guests waitlist are promoted.
+ */
+export async function sendFriendsPromotedEmail(
+  to: string,
+  eventTitle: string,
+  eventDate: string,
+  count: number
+): Promise<void> {
+  const trans = getTransporter();
+  if (!trans) return;
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  const friendText = count === 1 ? 'friend has' : 'friends have';
+  const subject = 'Your friend(s) have been added - ChibiBadminton';
+  const text = [
+    `Good news! ${count} of your ${friendText} been added to your registration for "${eventTitle}" (${eventDate}).`,
+    '',
+    'No further action is required. See you on the court!',
+  ].join('\n');
+  const html = [
+    `<p>Good news! ${count} of your ${friendText} been added to your registration for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(eventDate)}).</p>`,
+    '<p>No further action is required. See you on the court!</p>',
+  ].join('\n');
+  try {
+    await trans.sendMail({ from, to, subject, text, html });
+  } catch (err) {
+    console.error('[email] Failed to send friends promoted email:', err);
+  }
+}
+
+/**
+ * Send confirmation email when registered player updates or removes friends from the waitlist.
+ */
+export async function sendWaitlistFriendsUpdateConfirmationEmail(
+  to: string,
+  eventTitle: string,
+  eventDate: string,
+  reduced: number
+): Promise<void> {
+  const trans = getTransporter();
+  if (!trans) return;
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  const subject = 'Waitlist update confirmed - ChibiBadminton';
+  const friendText = reduced === 1 ? 'friend has' : 'friends have';
+  const text = [
+    `Your waitlist update for "${eventTitle}" (${eventDate}) is confirmed.`,
+    '',
+    `${reduced} ${friendText} been removed from the waitlist.`,
+  ].join('\n');
+  const html = [
+    `<p>Your waitlist update for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(eventDate)}) is confirmed.</p>`,
+    `<p>${reduced} ${friendText} been removed from the waitlist.</p>`,
+  ].join('\n');
+  try {
+    await trans.sendMail({ from, to, subject, text, html });
+  } catch (err) {
+    console.error('[email] Failed to send waitlist friends update confirmation email:', err);
+  }
+}

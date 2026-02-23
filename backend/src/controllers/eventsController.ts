@@ -7,6 +7,7 @@ import {
   deleteEvent as deleteEventService,
   generateEventsFromSlots,
 } from '../services/eventService.js';
+import { processWaitlistsForAvailableSpots } from '../services/registrationService.js';
 import { getEventRegistrationsPublic as getEventRegistrationsPublicService } from '../services/registrationService.js';
 import { getEventWaitlistPublic as getEventWaitlistPublicService } from '../services/waitlistService.js';
 import { createError } from '../middleware/errorHandler.js';
@@ -122,6 +123,10 @@ export const updateEvent = async (
     const event = await updateEventService(eventId, req.body);
     if (!event) {
       throw createError('Event not found', 404);
+    }
+
+    if (req.body.maxCapacity != null) {
+      await processWaitlistsForAvailableSpots(eventId);
     }
 
     res.json(event);

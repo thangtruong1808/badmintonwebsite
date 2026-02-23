@@ -8,6 +8,9 @@ import {
   getMyPendingPayments,
   confirmPayment,
   addGuestsToRegistration,
+  removeGuestsFromRegistration,
+  getMyAddGuestsWaitlist,
+  reduceWaitlistFriends,
 } from '../controllers/registrationsController.js';
 import { authenticateToken } from '../middleware/auth.js';
 
@@ -56,6 +59,13 @@ router.post('/waitlist', authenticateToken, joinWaitlist);
 router.get('/my-pending-payments', authenticateToken, getMyPendingPayments);
 
 /**
+ * @route   GET /api/registrations/my-add-guests-waitlist?eventId=
+ * @desc    Get current user's add-guests waitlist count for an event
+ * @access  Private
+ */
+router.get('/my-add-guests-waitlist', authenticateToken, getMyAddGuestsWaitlist);
+
+/**
  * @route   POST /api/registrations/:id/confirm-payment
  * @desc    Confirm payment for pending_payment registration (after PayID/Stripe)
  * @access  Private
@@ -68,5 +78,19 @@ router.post('/:id/confirm-payment', authenticateToken, confirmPayment);
  * @access  Private
  */
 router.post('/:id/add-guests', authenticateToken, addGuestsToRegistration);
+
+/**
+ * @route   POST /api/registrations/:id/remove-guests
+ * @desc    Remove friends from existing registration (1–10)
+ * @access  Private
+ */
+router.post('/:id/remove-guests', authenticateToken, removeGuestsFromRegistration);
+
+/**
+ * @route   POST /api/registrations/:id/reduce-waitlist-friends
+ * @desc    Reduce friends from add-guests waitlist (1–10)
+ * @access  Private
+ */
+router.post('/:id/reduce-waitlist-friends', authenticateToken, reduceWaitlistFriends);
 
 export default router;

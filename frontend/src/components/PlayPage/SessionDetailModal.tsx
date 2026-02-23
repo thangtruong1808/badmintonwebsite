@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { FaTimes, FaUsers, FaCheckCircle, FaList } from "react-icons/fa";
 import type { SocialEvent } from "../../types/socialEvent";
 import { API_BASE } from "../../utils/api";
-import { getCurrentUser } from "../../utils/mockAuth";
+import { selectUser } from "../../store/authSlice";
 import ConfirmDialog from "../Dashboard/Shared/ConfirmDialog";
-import { joinWaitlist, addGuestsToRegistration } from "../../utils/registrationService";
+import {
+  joinWaitlist,
+  addGuestsToRegistration,
+  removeGuestsToRegistration,
+  getMyAddGuestsWaitlist,
+  reduceWaitlistFriends,
+} from "../../utils/registrationService";
 
 interface RegisteredPlayer {
   name: string;
@@ -16,6 +23,8 @@ interface RegisteredPlayer {
 interface WaitlistPlayer {
   name: string;
   guestCount: number;
+  /** 'new_spot' = waiting for a spot (not registered); 'add_guests' = registered, friends waiting */
+  type?: "new_spot" | "add_guests";
 }
 
 interface SessionDetailModalProps {
@@ -33,6 +42,8 @@ interface SessionDetailModalProps {
   onCancelRegistration?: () => void | Promise<void>;
   /** Called after adding guests (to refetch registrations/events) */
   onGuestsAdded?: () => void | Promise<void>;
+  /** Called when spots became available (e.g. waitlist join rejected) to refetch events */
+  onRefetchRequested?: () => void | Promise<void>;
   /** Optional loading flag while cancellation is in progress */
   isCancelling?: boolean;
 }
@@ -48,6 +59,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   myRegistrationId,
   onCancelRegistration,
   onGuestsAdded,
+  onRefetchRequested,
   isCancelling = false,
 }) => {
   const [players, setPlayers] = useState<RegisteredPlayer[]>([]);
@@ -64,11 +76,23 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   const [addGuestsMessage, setAddGuestsMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showPartialGuestsConfirm, setShowPartialGuestsConfirm] = useState(false);
   const [pendingGuestAdd, setPendingGuestAdd] = useState<{ registrationId: string; count: number; toAdd: number; toWaitlist: number } | null>(null);
+  const [removeGuestsSubmitting, setRemoveGuestsSubmitting] = useState(false);
+  const [removeGuestsMessage, setRemoveGuestsMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [guestCountToRemove, setGuestCountToRemove] = useState<number>(1);
+  const [showRemoveGuestsConfirm, setShowRemoveGuestsConfirm] = useState(false);
+  const [myWaitlistFriendCount, setMyWaitlistFriendCount] = useState<number>(0);
+  const [reduceWaitlistSubmitting, setReduceWaitlistSubmitting] = useState(false);
+  const [reduceWaitlistMessage, setReduceWaitlistMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [waitlistCountToReduce, setWaitlistCountToReduce] = useState<number>(1);
+  const [showReduceWaitlistConfirm, setShowReduceWaitlistConfirm] = useState(false);
 
-  const user = getCurrentUser();
+  const user = useSelector(selectUser);
   const isAlreadyRegistered =
     !!user?.email &&
     players.some((p) => p.email?.toLowerCase() === user.email.toLowerCase());
+  const myGuestCount = isAlreadyRegistered
+    ? (players.find((p) => p.email?.toLowerCase() === user?.email?.toLowerCase())?.guestCount ?? 0)
+    : 0;
 
   const spotsAvailable = event ? event.maxCapacity - event.currentAttendees : 0;
   const isFull = spotsAvailable <= 0 || event?.status === "full";
@@ -107,6 +131,55 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     fetchWaitlist();
   }, [fetchWaitlist]);
 
+  const fetchMyWaitlistCount = React.useCallback(async () => {
+    if (!event?.id || !user?.id) {
+      setMyWaitlistFriendCount(0);
+      return;
+    }
+    const data = await getMyAddGuestsWaitlist(event.id);
+    setMyWaitlistFriendCount(data.count ?? 0);
+  }, [event?.id, user?.id]);
+
+  useEffect(() => {
+    if (event?.id && user?.id) {
+      fetchMyWaitlistCount();
+    } else {
+      setMyWaitlistFriendCount(0);
+    }
+  }, [event?.id, user?.id, fetchMyWaitlistCount]);
+
+  // Fallback: when API returns 0 but user is registered and waitlist shows add-guests entry for them
+  useEffect(() => {
+    if (myWaitlistFriendCount >= 1 || !user || !isAlreadyRegistered || waitlistPlayers.length === 0) return;
+    const addGuestsOnly = waitlistPlayers.filter((w) => w.type === "add_guests");
+    if (addGuestsOnly.length === 0) return;
+    const myPlayer = players.find((p) => p.email?.toLowerCase() === user.email?.toLowerCase());
+    const myDisplayName =
+      myPlayer?.name?.trim() ||
+      `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    if (!myDisplayName) return;
+    const normalize = (s: string) => (s || "").trim().toLowerCase();
+    const myNorm = normalize(myDisplayName);
+    const namesToTry = [myNorm];
+    if (myPlayer?.name) {
+      const parts = myPlayer.name.trim().split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) namesToTry.push(normalize(`${parts[parts.length - 1]} ${parts[0]}`));
+    }
+    const match = addGuestsOnly.find((w) => {
+      const wn = normalize(w.name);
+      return wn && namesToTry.some((n) => n && (wn === n || wn.includes(n) || n.includes(wn)));
+    });
+    if (match && match.guestCount >= 1) {
+      setMyWaitlistFriendCount(match.guestCount);
+    }
+  }, [
+    myWaitlistFriendCount,
+    user,
+    isAlreadyRegistered,
+    players,
+    waitlistPlayers,
+  ]);
+
   const handleCancelRegistration = async () => {
     if (!onCancelRegistration) return;
     setShowCancelConfirm(false);
@@ -117,11 +190,10 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   };
 
   const openWaitlistForm = () => {
-    const u = getCurrentUser();
     setWaitlistForm({
-      name: u ? `${u.firstName || ""} ${u.lastName || ""}`.trim() || "" : "",
-      email: u?.email ?? "",
-      phone: u?.phone ?? "",
+      name: user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || "" : "",
+      email: user?.email ?? "",
+      phone: user?.phone ?? "",
     });
     setWaitlistMessage(null);
     setShowWaitlistForm(true);
@@ -143,7 +215,12 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
         setShowWaitlistForm(false);
       }, 1500);
     } else {
-      setWaitlistMessage({ type: "error", text: result.message });
+      const isSpotsAvailable = result.message?.toLowerCase().includes("spots available");
+      const displayMessage = isSpotsAvailable
+        ? "Spots have opened up. Please add this session to your selection and register normally."
+        : result.message;
+      setWaitlistMessage({ type: "error", text: displayMessage });
+      if (isSpotsAvailable) onRefetchRequested?.();
     }
   };
 
@@ -170,14 +247,15 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
       const added = result.added ?? count;
       const waitlisted = result.waitlisted ?? 0;
       const msg = waitlisted > 0
-        ? `${added} guest(s) added. ${waitlisted} on the waitlist.`
-        : `${added} guest(s) added.`;
+        ? `${added} friend(s) added. ${waitlisted} on the waitlist (no payment required).`
+        : `${added} friend(s) added.`;
       setAddGuestsMessage({ type: "success", text: msg });
       fetchRegistrations();
       fetchWaitlist();
+      fetchMyWaitlistCount();
       onGuestsAdded?.();
     } else {
-      setAddGuestsMessage({ type: "error", text: result.message ?? "Failed to add guests." });
+      setAddGuestsMessage({ type: "error", text: result.message ?? "Failed to add friends." });
     }
   };
 
@@ -186,6 +264,58 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     setShowPartialGuestsConfirm(false);
     doAddGuests(pendingGuestAdd.registrationId, pendingGuestAdd.count);
     setPendingGuestAdd(null);
+  };
+
+  const handleRemoveGuestsClick = () => {
+    if (!myRegistrationId || myGuestCount < 1) return;
+    setShowRemoveGuestsConfirm(true);
+  };
+
+  const handleRemoveGuestsConfirm = async () => {
+    if (!myRegistrationId || myGuestCount < 1) return;
+    setShowRemoveGuestsConfirm(false);
+    const count = Math.min(Math.max(1, guestCountToRemove), myGuestCount);
+    setRemoveGuestsSubmitting(true);
+    setRemoveGuestsMessage(null);
+    const result = await removeGuestsToRegistration(myRegistrationId, count);
+    setRemoveGuestsSubmitting(false);
+    if (result.success) {
+      const removed = result.removed ?? count;
+      const promoted = result.promoted ?? 0;
+      const msg = promoted > 0
+        ? `${removed} friend(s) removed. ${promoted} spot(s) offered to the waitlist.`
+        : `${removed} friend(s) removed.`;
+      setRemoveGuestsMessage({ type: "success", text: msg });
+      fetchRegistrations();
+      fetchWaitlist();
+      onGuestsAdded?.();
+      setGuestCountToRemove(1);
+    } else {
+      setRemoveGuestsMessage({ type: "error", text: result.message ?? "Failed to remove friends." });
+    }
+  };
+
+  const handleReduceWaitlistClick = () => {
+    if (!myRegistrationId || myWaitlistFriendCount < 1) return;
+    setShowReduceWaitlistConfirm(true);
+  };
+
+  const handleReduceWaitlistConfirm = async () => {
+    if (!myRegistrationId || myWaitlistFriendCount < 1) return;
+    setShowReduceWaitlistConfirm(false);
+    const count = Math.min(Math.max(1, waitlistCountToReduce), myWaitlistFriendCount);
+    setReduceWaitlistSubmitting(true);
+    setReduceWaitlistMessage(null);
+    const result = await reduceWaitlistFriends(myRegistrationId, count);
+    setReduceWaitlistSubmitting(false);
+    if (result.success) {
+      setReduceWaitlistMessage({ type: "success", text: `${result.reduced ?? count} friend(s) removed from the waitlist.` });
+      fetchWaitlist();
+      fetchMyWaitlistCount();
+      setWaitlistCountToReduce(1);
+    } else {
+      setReduceWaitlistMessage({ type: "error", text: result.message ?? "Failed to update waitlist." });
+    }
   };
 
   if (!event) return null;
@@ -250,7 +380,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                   const hasGuests = (p.guestCount ?? 0) >= 1;
                   const borderClass = hasGuests ? "ring-2 ring-amber-500" : "";
                   return (
-                    <li key={i} className={`flex-shrink-0 rounded-full ${borderClass}`} title={p.name + (hasGuests ? ` (+${p.guestCount} guest${(p.guestCount ?? 0) > 1 ? "s" : ""})` : "")}>
+                    <li key={i} className={`flex-shrink-0 rounded-full ${borderClass}`} title={p.name + (hasGuests ? ` (+${p.guestCount} friend${(p.guestCount ?? 0) > 1 ? "s" : ""})` : "")}>
                       {p.avatar && String(p.avatar).trim() ? (
                         <img
                           src={p.avatar}
@@ -279,17 +409,24 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 <p className="text-sm text-gray-500 py-2">No one on the waitlist.</p>
               ) : (
                 <ul className="max-h-[min(200px,30vh)] overflow-y-auto pr-1 space-y-1.5">
-                  {waitlistPlayers.map((w, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center gap-2 text-sm text-gray-700 font-calibri py-1.5 px-3 rounded-lg bg-amber-50 border border-amber-200"
-                    >
-                      <span className="font-medium text-gray-900 truncate">{w.name}</span>
-                      <span className="text-amber-600 font-medium flex-shrink-0">
-                        +{w.guestCount}
-                      </span>
-                    </li>
-                  ))}
+                  {waitlistPlayers.map((w, i) => {
+                    const isAddGuests = w.type === "add_guests";
+                    const hasType = w.type != null;
+                    const label = hasType
+                      ? isAddGuests
+                        ? `+${w.guestCount} friend${w.guestCount !== 1 ? "s" : ""} waiting`
+                        : "waiting for spot"
+                      : `+${w.guestCount}`;
+                    return (
+                      <li
+                        key={i}
+                        className="flex items-center gap-2 text-sm text-gray-700 font-calibri py-1.5 px-3 rounded-lg bg-amber-50 border border-amber-200"
+                      >
+                        <span className="font-medium text-gray-900 truncate">{w.name}</span>
+                        <span className="text-amber-600 font-medium flex-shrink-0">{label}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
@@ -314,7 +451,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               )}
               {isAlreadyRegistered && myRegistrationId && (
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                  <span className="text-sm text-gray-700 font-calibri">Add guests (+1 to +10):</span>
+                  <span className="text-sm text-gray-700 font-calibri">Add friends (+1 to +10):</span>
                   <select
                     value={guestCountToAdd}
                     onChange={(e) => setGuestCountToAdd(Number(e.target.value))}
@@ -331,11 +468,67 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                     disabled={addGuestsSubmitting}
                     className="py-1.5 px-4 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri"
                   >
-                    {addGuestsSubmitting ? "Adding…" : "Add guests"}
+                    {addGuestsSubmitting ? "Adding…" : "Add friends"}
                   </button>
                   {addGuestsMessage && (
                     <span className={`text-sm ${addGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
                       {addGuestsMessage.text}
+                    </span>
+                  )}
+                </div>
+              )}
+              {isAlreadyRegistered && myRegistrationId && myGuestCount >= 1 && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                  <span className="text-sm text-gray-700 font-calibri">Manage friends (you have +{myGuestCount}):</span>
+                  <select
+                    value={guestCountToRemove}
+                    onChange={(e) => setGuestCountToRemove(Math.min(Number(e.target.value), myGuestCount))}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-calibri"
+                  >
+                    {Array.from({ length: myGuestCount }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>
+                        Remove {n}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={handleRemoveGuestsClick}
+                    disabled={removeGuestsSubmitting}
+                    className="py-1.5 px-4 rounded-lg border-2 border-gray-400 text-gray-700 hover:bg-gray-100 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri"
+                  >
+                    {removeGuestsSubmitting ? "Removing…" : "Remove friends"}
+                  </button>
+                  {removeGuestsMessage && (
+                    <span className={`text-sm ${removeGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                      {removeGuestsMessage.text}
+                    </span>
+                  )}
+                </div>
+              )}
+              {isAlreadyRegistered && myRegistrationId && myWaitlistFriendCount >= 1 && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <span className="text-sm text-gray-700 font-calibri">Friends on waitlist (you have +{myWaitlistFriendCount} waiting):</span>
+                  <select
+                    value={waitlistCountToReduce}
+                    onChange={(e) => setWaitlistCountToReduce(Math.min(Number(e.target.value), myWaitlistFriendCount))}
+                    className="px-3 py-1.5 border border-amber-300 rounded-lg text-sm font-calibri"
+                  >
+                    {Array.from({ length: myWaitlistFriendCount }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>
+                        Reduce by {n}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={handleReduceWaitlistClick}
+                    disabled={reduceWaitlistSubmitting}
+                    className="py-1.5 px-4 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-100 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri"
+                  >
+                    {reduceWaitlistSubmitting ? "Updating…" : "Update waitlist"}
+                  </button>
+                  {reduceWaitlistMessage && (
+                    <span className={`text-sm ${reduceWaitlistMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                      {reduceWaitlistMessage.text}
                     </span>
                   )}
                 </div>
@@ -411,6 +604,34 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
         }}
       />
       <ConfirmDialog
+        open={showReduceWaitlistConfirm}
+        title="Update waitlist"
+        message={
+          waitlistCountToReduce >= 1 && myWaitlistFriendCount >= 1
+            ? `Remove ${Math.min(waitlistCountToReduce, myWaitlistFriendCount)} friend(s) from the waitlist?`
+            : ""
+        }
+        confirmLabel="Yes, update"
+        cancelLabel="Cancel"
+        variant="default"
+        onConfirm={handleReduceWaitlistConfirm}
+        onCancel={() => setShowReduceWaitlistConfirm(false)}
+      />
+      <ConfirmDialog
+        open={showRemoveGuestsConfirm}
+        title="Remove friends"
+        message={
+          guestCountToRemove >= 1 && myGuestCount >= 1
+            ? `Remove ${Math.min(guestCountToRemove, myGuestCount)} friend(s)? Freed spot(s) may be offered to the waitlist.`
+            : ""
+        }
+        confirmLabel="Yes, remove"
+        cancelLabel="Cancel"
+        variant="default"
+        onConfirm={handleRemoveGuestsConfirm}
+        onCancel={() => setShowRemoveGuestsConfirm(false)}
+      />
+      <ConfirmDialog
         open={showCancelConfirm}
         title="Cancel registration"
         message="Are you sure you want to cancel your registration for this session? Your spot will be released for others."
@@ -426,7 +647,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <h3 className="text-xl font-bold text-gray-900 font-calibri mb-4">Join waitlist</h3>
             <p className="text-gray-700 text-lg mb-4 font-calibri">
-              This session is full. We&apos;ll email you when a spot opens for &quot;{event.title}&quot;.
+              This session is full. We&apos;ll email you when a spot opens for &quot;{event.title}&quot;. Please regularly check your email for updates.
             </p>
             <div className="space-y-3 font-calibri">
               <input

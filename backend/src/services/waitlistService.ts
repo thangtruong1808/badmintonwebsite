@@ -4,6 +4,7 @@ import type { RegistrationFormData } from '../types/index.js';
 import { createError } from '../middleware/errorHandler.js';
 import { getEventById } from './eventService.js';
 import { getUserById } from './userService.js';
+import { sendFriendsPromotedEmail } from '../utils/email.js';
 import pool from '../db/connection.js';
 
 export interface WaitlistEntry {
@@ -61,7 +62,13 @@ export const joinWaitlist = async (
   const event = await getEventById(eventId);
   if (!event) throw createError('Event not found', 404);
 
-  if (event.currentAttendees < event.maxCapacity) {
+  const [pendingRows] = await pool.execute<RowDataPacket[]>(
+    'SELECT COUNT(*) AS cnt FROM registrations WHERE event_id = ? AND status = ?',
+    [eventId, 'pending_payment']
+  );
+  const pendingCount = Number(pendingRows[0]?.cnt ?? 0);
+  const effectiveOccupancy = event.currentAttendees + pendingCount;
+  if (effectiveOccupancy < event.maxCapacity) {
     throw createError('Event has spots available - register normally', 400);
   }
 
@@ -155,20 +162,73 @@ export const getFirstWaitlistEntry = async (eventId: number): Promise<WaitlistEn
 };
 
 /**
- * Get waitlist entries for an event (public - name and guestCount for display).
+ * Get waitlist entries for an event (public - name, guestCount, type for display).
+ * type: 'new_spot' = waiting for a spot (not registered); 'add_guests' = registered, friends waiting.
  */
 export const getEventWaitlistPublic = async (
   eventId: number
-): Promise<{ name: string; guestCount: number }[]> => {
+): Promise<{ name: string; guestCount: number; type: 'new_spot' | 'add_guests' }[]> => {
   const [rows] = await pool.execute<WaitlistRow[]>(
-    `SELECT name, guest_count FROM event_waitlist WHERE event_id = ?
+    `SELECT name, guest_count, registration_id FROM event_waitlist WHERE event_id = ?
      ORDER BY position ASC, created_at ASC`,
     [eventId]
   );
   return rows.map((r) => ({
     name: r.name ?? '',
     guestCount: r.guest_count ?? 1,
+    type: r.registration_id ? 'add_guests' : 'new_spot',
   }));
+};
+
+/**
+ * Get current user's add-guests waitlist entry for an event (registration_id set).
+ */
+export const getMyAddGuestsWaitlistEntry = async (
+  userId: string,
+  eventId: number,
+  registrationId: string
+): Promise<{ id: string; count: number } | null> => {
+  const [rows] = await pool.execute<WaitlistRow[]>(
+    'SELECT id, guest_count FROM event_waitlist WHERE user_id = ? AND event_id = ? AND registration_id = ?',
+    [userId, eventId, registrationId]
+  );
+  if (rows.length === 0) return null;
+  const count = rows[0].guest_count ?? 0;
+  if (count < 1) return null;
+  return { id: rows[0].id, count };
+};
+
+/**
+ * Reduce friends from add-guests waitlist. User must own the registration.
+ */
+export const reduceAddGuestsWaitlist = async (
+  userId: string,
+  registrationId: string,
+  eventId: number,
+  count: number
+): Promise<{ reduced: number }> => {
+  const toReduce = Math.min(Math.max(1, count), 10);
+
+  const [rows] = await pool.execute<WaitlistRow[]>(
+    'SELECT id, guest_count FROM event_waitlist WHERE user_id = ? AND event_id = ? AND registration_id = ?',
+    [userId, eventId, registrationId]
+  );
+  if (rows.length === 0) throw createError('No friends on the waitlist for this registration', 404);
+
+  const entry = rows[0];
+  const current = entry.guest_count ?? 0;
+  if (current < 1) throw createError('No friends on the waitlist', 400);
+
+  const actualReduce = Math.min(toReduce, current);
+  const newCount = current - actualReduce;
+
+  if (newCount <= 0) {
+    await pool.execute('DELETE FROM event_waitlist WHERE id = ?', [entry.id]);
+  } else {
+    await pool.execute('UPDATE event_waitlist SET guest_count = ? WHERE id = ?', [newCount, entry.id]);
+  }
+
+  return { reduced: actualReduce };
 };
 
 /**
@@ -196,7 +256,7 @@ export const promoteFromWaitlist = async (
 
   if (entry.registrationId) {
     const [regRows] = await pool.execute<RowDataPacket[]>(
-      'SELECT id, guest_count FROM registrations WHERE id = ? AND event_id = ? AND status = ?',
+      'SELECT id, guest_count, email FROM registrations WHERE id = ? AND event_id = ? AND status = ?',
       [entry.registrationId, eventId, 'confirmed']
     );
     if (regRows.length === 0) {
@@ -218,6 +278,15 @@ export const promoteFromWaitlist = async (
       await pool.execute(
         'UPDATE event_waitlist SET guest_count = ? WHERE id = ?',
         [entry.guestCount - 1, entry.id]
+      );
+    }
+    const event = await getEventById(eventId);
+    if (event && reg.email) {
+      await sendFriendsPromotedEmail(
+        reg.email,
+        event.title,
+        `${event.date} ${event.time}`,
+        toAdd
       );
     }
     return { promoted: true, registrationId: entry.registrationId };

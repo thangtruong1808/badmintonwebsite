@@ -1,9 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { expirePendingPromotions } from '../services/registrationService.js';
+import {
+  expirePendingPromotions,
+  processWaitlistsForAvailableSpots,
+} from '../services/registrationService.js';
 import { createError } from '../middleware/errorHandler.js';
 
 /**
- * Cron endpoint to expire pending_payment registrations and promote next from waitlist.
+ * Cron endpoint to expire pending_payment registrations, promote next from waitlist,
+ * and process waitlists for events with available spots (e.g. after capacity increase).
  * Protected by CRON_SECRET in Authorization header or X-Cron-Secret.
  */
 export const expirePendingPromotionsCron = async (
@@ -24,8 +28,14 @@ export const expirePendingPromotionsCron = async (
       throw createError('Unauthorized', 401);
     }
 
-    const result = await expirePendingPromotions();
-    res.json({ success: true, ...result });
+    const expireResult = await expirePendingPromotions();
+    const processResult = await processWaitlistsForAvailableSpots();
+    res.json({
+      success: true,
+      ...expireResult,
+      waitlistProcessed: processResult.processed,
+      waitlistPromoted: processResult.promoted,
+    });
   } catch (error) {
     next(error);
   }

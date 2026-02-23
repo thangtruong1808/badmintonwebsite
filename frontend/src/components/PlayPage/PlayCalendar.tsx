@@ -197,7 +197,7 @@ function PlayCalendarEvent(props: {
               const hasGuests = (p.guestCount ?? 0) >= 1;
               const borderClass = hasGuests ? "ring-1 ring-amber-400" : "";
               return (
-                <span key={i} title={p.name + (hasGuests ? ` (+${p.guestCount} guest)` : "")} className={`flex-shrink-0 rounded-full ${borderClass}`}>
+                <span key={i} title={p.name + (hasGuests ? ` (+${p.guestCount} friend${(p.guestCount ?? 0) > 1 ? "s" : ""})` : "")} className={`flex-shrink-0 rounded-full ${borderClass}`}>
                   {p.avatar && String(p.avatar).trim() ? (
                     <img
                       src={p.avatar}

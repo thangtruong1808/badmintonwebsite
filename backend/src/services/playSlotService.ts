@@ -137,6 +137,7 @@ export const updatePlaySlot = async (
   );
   const updatedSlot = await getPlaySlotById(id);
   if (updatedSlot) {
+    const capacityChanged = updates.maxCapacity !== undefined && updates.maxCapacity !== slot.maxCapacity;
     await updateEventsForPlaySlot(
       { dayOfWeek: slot.dayOfWeek, time: slot.time, location: slot.location, title: slot.title },
       {
@@ -150,6 +151,10 @@ export const updatePlaySlot = async (
         imageUrl: updatedSlot.imageUrl,
       }
     );
+    if (capacityChanged) {
+      const { processWaitlistsForAvailableSpots } = await import('./registrationService.js');
+      await processWaitlistsForAvailableSpots();
+    }
   }
   return updatedSlot;
 };

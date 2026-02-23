@@ -488,6 +488,58 @@ export const addGuestsToRegistration = async (
 }
 
 /**
+ * Remove guests from an existing confirmed registration.
+ * Frees spots and promotes from waitlist (FIFO) for each freed spot.
+ */
+export const removeGuestsFromRegistration = async (
+  userId: string,
+  registrationId: string,
+  count: number
+): Promise<{ removed: number; promoted: number }> => {
+  const toRemove = Math.min(Math.max(1, count), 10);
+
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations WHERE id = ? AND user_id = ? AND status = ?',
+    [registrationId, userId, 'confirmed']
+  );
+  if (rows.length === 0) throw createError('Registration not found or unauthorized', 404);
+
+  const reg = rows[0];
+  const currentGuests = reg.guest_count ?? 0;
+  if (currentGuests < 1) throw createError('No friends to remove', 400);
+
+  const actualRemove = Math.min(toRemove, currentGuests);
+  const newGuestCount = currentGuests - actualRemove;
+
+  await pool.execute(
+    'UPDATE registrations SET guest_count = ? WHERE id = ?',
+    [newGuestCount, registrationId]
+  );
+  await decrementEventAttendees(reg.event_id, actualRemove);
+
+  let promoted = 0;
+  const { promoteFromWaitlist } = await import('./waitlistService.js');
+  const event = await getEventById(reg.event_id);
+  if (event) {
+    for (let i = 0; i < actualRemove; i++) {
+      const result = await promoteFromWaitlist(reg.event_id, async (entry, link) => {
+        await sendWaitlistPromotionEmail(
+          entry.email,
+          event.title,
+          event.date,
+          link,
+          new Date(Date.now() + 24 * 60 * 60 * 1000)
+        );
+      });
+      if (result.promoted) promoted += 1;
+      else break;
+    }
+  }
+
+  return { removed: actualRemove, promoted };
+};
+
+/**
  * Expire pending_payment registrations past their deadline, cancel them, and promote next from waitlist.
  * Called by cron. For pending_payment we never incremented attendees, so no decrement needed.
  */
@@ -515,4 +567,67 @@ export const expirePendingPromotions = async (): Promise<{ expired: number; prom
   }
 
   return { expired, promoted };
+}
+
+/**
+ * Process waitlists for events with available spots (first-in-first-out).
+ * Called when capacity increases or via cron. Promotes from waitlist until no spots or no waitlist.
+ */
+export const processWaitlistsForAvailableSpots = async (
+  eventId?: number
+): Promise<{ processed: number; promoted: number }> => {
+  const { promoteFromWaitlist, getFirstWaitlistEntry } = await import('./waitlistService.js');
+
+  let eventIds: number[];
+  if (eventId != null) {
+    eventIds = [eventId];
+  } else {
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      `SELECT e.id FROM events e
+       WHERE e.current_attendees < e.max_capacity
+         AND e.date >= CURDATE()
+         AND EXISTS (SELECT 1 FROM event_waitlist w WHERE w.event_id = e.id)`
+    );
+    eventIds = rows.map((r) => r.id);
+  }
+
+  let processed = 0;
+  let promoted = 0;
+
+  for (const eid of eventIds) {
+    const event = await getEventById(eid);
+    if (!event) continue;
+
+    const [pendingRows] = await pool.execute<RowDataPacket[]>(
+      'SELECT COUNT(*) AS cnt FROM registrations WHERE event_id = ? AND status = ?',
+      [eid, 'pending_payment']
+    );
+    const pendingCount = Number(pendingRows[0]?.cnt ?? 0);
+    let spotsAvailable = event.maxCapacity - event.currentAttendees - pendingCount;
+
+    while (spotsAvailable > 0) {
+      const entry = await getFirstWaitlistEntry(eid);
+      if (!entry) break;
+
+      const result = await promoteFromWaitlist(eid, async (entry, link) => {
+        await sendWaitlistPromotionEmail(
+          entry.email,
+          event.title,
+          event.date,
+          link,
+          new Date(Date.now() + 24 * 60 * 60 * 1000)
+        );
+      });
+
+      if (result.promoted) {
+        promoted += 1;
+        processed += 1;
+        spotsAvailable -= 1;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return { processed: eventIds.length, promoted };
 }

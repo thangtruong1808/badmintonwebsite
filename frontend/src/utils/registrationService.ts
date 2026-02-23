@@ -204,6 +204,76 @@ export async function addGuestsToRegistration(
 }
 
 /**
+ * Get current user's add-guests waitlist count for an event.
+ */
+export async function getMyAddGuestsWaitlist(eventId: number): Promise<{ count: number; registrationId?: string }> {
+  try {
+    const res = await apiFetch(`/api/registrations/my-add-guests-waitlist?eventId=${eventId}`);
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return { count: data.count ?? 0, registrationId: data.registrationId };
+    }
+  } catch {
+    // ignore
+  }
+  return { count: 0 };
+}
+
+/**
+ * Reduce friends from add-guests waitlist (1–10).
+ */
+export async function reduceWaitlistFriends(
+  registrationId: string,
+  guestCount: number
+): Promise<{ success: boolean; message?: string; reduced?: number }> {
+  try {
+    const res = await apiFetch(`/api/registrations/${registrationId}/reduce-waitlist-friends`, {
+      method: "POST",
+      body: JSON.stringify({ guestCount }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return { success: true, reduced: data.reduced ?? 0 };
+    }
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in." : (data.message ?? data.error ?? "Failed to reduce waitlist friends."),
+    };
+  } catch {
+    return { success: false, message: "Could not update waitlist. Please try again." };
+  }
+}
+
+/**
+ * Remove friends from an existing registration (1–10).
+ */
+export async function removeGuestsToRegistration(
+  registrationId: string,
+  guestCount: number
+): Promise<{ success: boolean; message?: string; removed?: number; promoted?: number }> {
+  try {
+    const res = await apiFetch(`/api/registrations/${registrationId}/remove-guests`, {
+      method: "POST",
+      body: JSON.stringify({ guestCount }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return {
+        success: true,
+        removed: data.removed ?? 0,
+        promoted: data.promoted ?? 0,
+      };
+    }
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in." : (data.message ?? data.error ?? "Failed to remove friends."),
+    };
+  } catch {
+    return { success: false, message: "Could not remove friends. Please try again." };
+  }
+}
+
+/**
  * Get a single event by ID (caller should use GET /api/events/:id if needed).
  * Kept for backward compatibility; prefer fetching from API in the component.
  */
