@@ -1,8 +1,10 @@
 import React, { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaCoins, FaMoneyBillWave, FaExchangeAlt } from "react-icons/fa";
 import { getCurrentUser } from "../../utils/mockAuth";
 import { registerUserForEvents, getMyPendingPayments, confirmPaymentForPendingRegistration } from "../../utils/registrationService";
+import { selectAuthInitialized } from "../../store/authSlice";
 import { canUsePointsForBooking, formatPoints } from "../../utils/rewardPoints";
 import { usePointsForBooking } from "../../utils/rewardPointsService";
 import { clearCart } from "../../utils/cartStorage";
@@ -15,6 +17,7 @@ const PlayPaymentPage: React.FC = () => {
   const pendingId = searchParams.get("pending") ?? undefined;
   const eventsFromState: SocialEvent[] = (location.state as { events?: SocialEvent[] })?.events ?? [];
   const user = getCurrentUser();
+  const authInitialized = useSelector(selectAuthInitialized);
 
   const [pendingRegistration, setPendingRegistration] = useState<{
     id: string;
@@ -28,8 +31,14 @@ const PlayPaymentPage: React.FC = () => {
   const [pendingLoading, setPendingLoading] = useState(!!pendingId);
 
   useEffect(() => {
-    if (!pendingId || !user?.id) {
+    if (!pendingId) {
       setPendingLoading(false);
+      return;
+    }
+    if (!authInitialized) return;
+    if (!user?.id) {
+      setPendingLoading(false);
+      navigate("/signin", { state: { from: `/play/payment?pending=${pendingId}` } });
       return;
     }
     getMyPendingPayments(user.id).then((list) => {
@@ -47,7 +56,7 @@ const PlayPaymentPage: React.FC = () => {
       }
       setPendingLoading(false);
     }).catch(() => setPendingLoading(false));
-  }, [pendingId, user?.id]);
+  }, [pendingId, user?.id, authInitialized, navigate]);
 
   const events: SocialEvent[] = pendingRegistration
     ? [{

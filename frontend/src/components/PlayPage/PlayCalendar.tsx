@@ -340,9 +340,10 @@ const PlayCalendar: React.FC<PlayCalendarProps> = ({
         eventPropGetter={(evt: unknown) => {
           const e = (evt as { resource: SocialEvent }).resource;
           const isSelected = selectedEventIds.includes(e.id);
+          const isFull = (e.currentAttendees ?? 0) >= (e.maxCapacity ?? 0);
           return {
             style: {
-              backgroundColor: isSelected ? "#be123c" : e.status === "full" ? "#9ca3af" : "#e11d48",
+              backgroundColor: isSelected ? "#be123c" : isFull ? "#9ca3af" : "#e11d48",
               color: "white",
               borderRadius: "4px",
               border: "none",

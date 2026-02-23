@@ -323,8 +323,8 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   const available = event.maxCapacity - event.currentAttendees;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 font-calibri">
+      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto font-calibri">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900 font-calibri">{event.title}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
@@ -356,17 +356,17 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             </p>
           )}
 
-          <p className="text-gray-600 text-sm">{event.description}</p>
+          <p className="text-gray-600 text-sm font-calibri">{event.description}</p>
 
           <div className="border-t border-gray-200 pt-4">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-2">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-2 font-calibri">
               <FaUsers className="text-rose-500" />
               Registered players ({players.length})
             </h3>
             {playersLoading ? (
-              <p className="text-sm text-gray-500 py-2">Loading…</p>
+              <p className="text-sm text-gray-500 py-2 font-calibri">Loading…</p>
             ) : players.length === 0 ? (
-              <p className="text-sm text-gray-500 py-2">No players registered yet.</p>
+              <p className="text-sm text-gray-500 py-2 font-calibri">No players registered yet.</p>
             ) : (
               <ul className="max-h-[min(360px,55vh)] overflow-y-auto pr-1 flex flex-wrap gap-2" title={players.map((p) => p.name).join(", ")}>
                 {players.map((p, i) => {
@@ -399,14 +399,14 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             )}
 
             <div className="border-t border-gray-200 pt-4 mt-4">
-              <h3 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-2">
-                <FaList className="text-amber-500" />
+            <h3 className="flex items-center gap-2 text-base font-semibold text-gray-800 mb-2 font-calibri">
+              <FaList className="text-amber-500" />
                 Waiting list ({waitlistPlayers.length})
               </h3>
               {waitlistLoading ? (
-                <p className="text-sm text-gray-500 py-2">Loading…</p>
+                <p className="text-sm text-gray-500 py-2 font-calibri">Loading…</p>
               ) : waitlistPlayers.length === 0 ? (
-                <p className="text-sm text-gray-500 py-2">No one on the waitlist.</p>
+                <p className="text-sm text-gray-500 py-2 font-calibri">No one on the waitlist.</p>
               ) : (
                 <ul className="max-h-[min(200px,30vh)] overflow-y-auto pr-1 space-y-1.5">
                   {waitlistPlayers.map((w, i) => {
@@ -674,7 +674,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             </div>
             {waitlistMessage && (
               <p
-                className={`mt-3 text-sm ${waitlistMessage.type === "success" ? "text-green-600" : "text-red-600"}`}
+                className={`mt-3 text-sm font-calibri ${waitlistMessage.type === "success" ? "text-green-600" : "text-red-600"}`}
               >
                 {waitlistMessage.text}
               </p>

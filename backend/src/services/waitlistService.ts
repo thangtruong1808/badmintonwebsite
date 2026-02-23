@@ -252,7 +252,7 @@ export const promoteFromWaitlist = async (
   if (!entry) return { promoted: false };
 
   const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
-  const paymentLink = `${frontendUrl}/play/payment?pending=`;
+  const paymentLink = `${frontendUrl}/play/checkout?pending=`;
 
   if (entry.registrationId) {
     const [regRows] = await pool.execute<RowDataPacket[]>(

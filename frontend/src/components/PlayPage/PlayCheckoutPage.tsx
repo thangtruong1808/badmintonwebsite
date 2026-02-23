@@ -1,36 +1,90 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { FaUserPlus, FaSignInAlt, FaTimes } from "react-icons/fa";
 import { getCurrentUser } from "../../utils/mockAuth";
+import { getMyPendingPayments } from "../../utils/registrationService";
+import { selectAuthInitialized } from "../../store/authSlice";
 import type { SocialEvent } from "../../types/socialEvent";
 
 const PlayCheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const pendingId = searchParams.get("pending") ?? undefined;
   const state = location.state as { events?: SocialEvent[]; checkoutState?: { events?: SocialEvent[] } } | null;
-  const events: SocialEvent[] = state?.events ?? state?.checkoutState?.events ?? [];
+  const eventsFromState: SocialEvent[] = state?.events ?? state?.checkoutState?.events ?? [];
   const user = getCurrentUser();
+  const authInitialized = useSelector(selectAuthInitialized);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [pendingEvents, setPendingEvents] = useState<SocialEvent[] | null>(null);
+  const [pendingLoading, setPendingLoading] = useState(!!pendingId);
 
+  useEffect(() => {
+    if (!pendingId) {
+      setPendingLoading(false);
+      return;
+    }
+    if (!authInitialized) return;
+    if (!user?.id) {
+      setPendingLoading(false);
+      navigate("/signin", { state: { from: `/play/checkout?pending=${pendingId}` } });
+      return;
+    }
+    getMyPendingPayments(user.id).then((list) => {
+      const found = list.find((r) => r.id === pendingId);
+      if (found && found.eventId && found.eventTitle && found.eventDate) {
+        setPendingEvents([{
+          id: found.eventId,
+          title: found.eventTitle,
+          date: found.eventDate,
+          time: found.eventTime ?? "",
+          dayOfWeek: "",
+          location: found.eventLocation ?? "",
+          description: "",
+          maxCapacity: 0,
+          currentAttendees: 0,
+          price: (found as { eventPrice?: number }).eventPrice,
+          status: "available",
+          category: "regular",
+        } as SocialEvent]);
+      }
+      setPendingLoading(false);
+    }).catch(() => setPendingLoading(false));
+  }, [pendingId, user?.id, authInitialized, navigate]);
+
+  const events: SocialEvent[] = pendingEvents ?? eventsFromState;
   const totalPrice = events.reduce((sum, e) => sum + Number(e.price ?? 0), 0);
+  const isPendingFlow = !!pendingId && !!pendingEvents?.length;
 
   const handleContinueToPayment = () => {
     if (!user) {
       setShowAuthDialog(true);
       return;
     }
-    navigate("/play/payment", { state: { events } });
+    navigate(pendingId ? `/play/payment?pending=${pendingId}` : "/play/payment", { state: { events } });
   };
 
   const handleGoToSignIn = () => {
     setShowAuthDialog(false);
-    navigate("/signin", { state: { from: "/play/checkout", checkoutState: { events } } });
+    navigate("/signin", { state: { from: pendingId ? `/play/checkout?pending=${pendingId}` : "/play/checkout", checkoutState: { events } } });
   };
 
   const handleGoToRegister = () => {
     setShowAuthDialog(false);
-    navigate("/register", { state: { from: "/play/checkout", checkoutState: { events } } });
+    navigate("/register", { state: { from: pendingId ? `/play/checkout?pending=${pendingId}` : "/play/checkout", checkoutState: { events } } });
   };
+
+  if (pendingLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-rose-500 border-t-transparent" />
+          <p className="text-gray-600 font-calibri">Loading…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (events.length === 0) {
     return (
@@ -40,7 +94,7 @@ const PlayCheckoutPage: React.FC = () => {
             No sessions selected
           </h1>
           <p className="text-gray-600 font-calibri mb-6">
-            Please go back and select one or more play sessions to register.
+            {pendingId ? "This reservation may have expired. Please select sessions from the play page or check your email for a valid link." : "Please go back and select one or more play sessions to register."}
           </p>
           <button
             onClick={() => navigate("/play")}
@@ -65,10 +119,17 @@ const PlayCheckoutPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 font-huglove mb-6 text-center">
-          Review your selection
+          {isPendingFlow ? "A spot opened for you!" : "Review your selection"}
         </h1>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          {isPendingFlow && (
+            <div className="p-4 bg-amber-50 border-b border-amber-200">
+              <p className="text-amber-800 font-calibri text-sm font-medium">
+                Complete your registration within 24 hours. Review below and continue to payment.
+              </p>
+            </div>
+          )}
           <div className="p-6 space-y-4">
             {events.map((e) => (
               <div

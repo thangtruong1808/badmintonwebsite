@@ -74,6 +74,14 @@ const PlayPage: React.FC = () => {
     fetchEvents();
   }, [fetchEvents]);
 
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") fetchEvents();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [fetchEvents]);
+
   const selectedEvents = allEvents.filter((e) => selectedEventIds.includes(e.id));
 
   // Map eventId -> registration so we know if the current user is registered for a given session
