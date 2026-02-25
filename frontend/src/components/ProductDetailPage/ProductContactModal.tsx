@@ -7,6 +7,7 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
   FaTimes,
+  FaSpinner,
 } from "react-icons/fa";
 import type { Product } from "../ShopPage";
 import type { FormData, FormErrors } from "./types";
@@ -179,8 +180,8 @@ const ProductContactModal = ({
               >
                 {isSubmitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span className="font-calibri text-lg">Sending...</span>
+                    <FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" />
+                    <span className="font-calibri text-lg">Sending…</span>
                   </>
                 ) : (
                   <>

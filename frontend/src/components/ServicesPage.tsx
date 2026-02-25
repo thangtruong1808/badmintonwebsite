@@ -8,6 +8,7 @@ import {
   FaExclamationCircle,
   FaArrowLeft,
   FaTimes,
+  FaSpinner,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { API_BASE, apiFetch } from "../utils/api";
@@ -723,8 +724,8 @@ const ServicesPage = () => {
                 >
                   {isSubmitting ? (
                     <>
-                      <span className="animate-spin">⏳</span>
-                      <span>Submitting...</span>
+                      <FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" />
+                      <span>Submitting…</span>
                     </>
                   ) : (
                     <>

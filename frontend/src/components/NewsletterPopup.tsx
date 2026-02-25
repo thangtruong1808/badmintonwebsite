@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaTimes, FaEnvelope, FaCheckCircle } from "react-icons/fa";
+import { FaTimes, FaEnvelope, FaCheckCircle, FaSpinner } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
 import { apiFetch } from "../utils/api";
 
@@ -138,9 +138,9 @@ const NewsletterPopup: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-calibri text-base xl:text-lg py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-calibri text-base xl:text-lg py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
                   >
-                    {isSubmitting ? "..." : "Subscribe"}
+                    {isSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Subscribing…</span></> : "Subscribe"}
                   </button>
                 </div>
                 {submitStatus.type === "error" && (

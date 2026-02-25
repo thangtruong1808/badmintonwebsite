@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { FaTimes, FaUsers, FaCheckCircle, FaList } from "react-icons/fa";
+import { FaTimes, FaUsers, FaCheckCircle, FaList, FaSpinner } from "react-icons/fa";
 import type { SocialEvent } from "../../types/socialEvent";
 import { API_BASE } from "../../utils/api";
 import { selectUser } from "../../store/authSlice";
@@ -507,9 +507,9 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                   <button
                     onClick={handleAddGuestsClick}
                     disabled={addGuestsSubmitting}
-                    className="py-1.5 px-4 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri"
+                    className="py-1.5 px-4 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri inline-flex items-center justify-center gap-2"
                   >
-                    {addGuestsSubmitting ? "Adding…" : "Add friends"}
+                    {addGuestsSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Adding…</span></> : "Add friends"}
                   </button>
                   {addGuestsMessage && (
                     <span className={`text-sm ${addGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
@@ -535,9 +535,9 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                   <button
                     onClick={handleRemoveGuestsClick}
                     disabled={removeGuestsSubmitting}
-                    className="py-1.5 px-4 rounded-lg border-2 border-gray-400 text-gray-700 hover:bg-gray-100 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri"
+                    className="py-1.5 px-4 rounded-lg border-2 border-gray-400 text-gray-700 hover:bg-gray-100 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri inline-flex items-center justify-center gap-2"
                   >
-                    {removeGuestsSubmitting ? "Removing…" : "Remove friends"}
+                    {removeGuestsSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Removing…</span></> : "Remove friends"}
                   </button>
                   {removeGuestsMessage && (
                     <span className={`text-sm ${removeGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
@@ -563,9 +563,9 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                   <button
                     onClick={handleReduceWaitlistClick}
                     disabled={reduceWaitlistSubmitting}
-                    className="py-1.5 px-4 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-100 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri"
+                    className="py-1.5 px-4 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-100 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri inline-flex items-center justify-center gap-2"
                   >
-                    {reduceWaitlistSubmitting ? "Updating…" : "Update waitlist"}
+                    {reduceWaitlistSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Updating…</span></> : "Update waitlist"}
                   </button>
                   {reduceWaitlistMessage && (
                     <span className={`text-sm ${reduceWaitlistMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
@@ -578,9 +578,9 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 <button
                   onClick={() => setShowCancelConfirm(true)}
                   disabled={isCancelling}
-                  className="w-full py-2.5 px-3 rounded-lg border-2 border-red-500 text-red-600 hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed font-medium transition-colors font-calibri text-sm sm:text-base"
+                  className="w-full py-2.5 px-3 rounded-lg border-2 border-red-500 text-red-600 hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed font-medium transition-colors font-calibri text-sm sm:text-base inline-flex items-center justify-center gap-2"
                 >
-                  {isCancelling ? "Cancelling…" : "Cancel my registration"}
+                  {isCancelling ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Cancelling…</span></> : "Cancel my registration"}
                 </button>
               )}
               <div className="flex flex-wrap gap-2">
@@ -596,9 +596,9 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                   <button
                     onClick={openWaitlistForm}
                     disabled={eventWaitlistStatusLoading}
-                    className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium transition-colors font-calibri text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium transition-colors font-calibri text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
                   >
-                    {eventWaitlistStatusLoading ? "Loading…" : "Join waitlist"}
+                    {eventWaitlistStatusLoading ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Loading…</span></> : "Join waitlist"}
                   </button>
                 )}
                 {isAlreadyRegistered && isInCart && (
@@ -663,6 +663,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
       <ConfirmDialog
         open={showRemoveGuestsConfirm}
         title="Remove friends"
+        titleClassName="font-calibri text-xl font-medium text-gray-800"
         message={
           guestCountToRemove >= 1 && myGuestCount >= 1
             ? `Remove ${Math.min(guestCountToRemove, myGuestCount)} friend(s)? Freed spot(s) may be offered to the waitlist.`
@@ -689,32 +690,51 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <h3 className="text-xl font-bold text-gray-900 font-calibri mb-4">Join waitlist</h3>
-            <p className="text-gray-700 text-lg mb-4 font-calibri">
+            <p className="text-gray-700 text-sm sm:text-base mb-4 font-calibri">
               This session is full. We&apos;ll email you when a spot opens for &quot;{event.title}&quot;. Please regularly check your email for updates.
             </p>
-            <div className="space-y-3 font-calibri">
-              <input
-                type="text"
-                placeholder="Name *"
-                value={waitlistForm.name}
-                onChange={(e) => setWaitlistForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-calibri text-md"
-              />
-              <input
-                type="email"
-                placeholder="Email *"
-                value={waitlistForm.email}
-                onChange={(e) => setWaitlistForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-calibri text-md"
-              />
-              <input
-                type="tel"
-                placeholder="Phone"
-                value={waitlistForm.phone}
-                onChange={(e) => setWaitlistForm((f) => ({ ...f, phone: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-calibri text-md"
-              />
-            </div>
+            {user ? (
+              <div className="space-y-2 rounded-lg bg-gray-50 border border-gray-200 p-4 font-calibri">
+                <p className="text-gray-700 text-sm">
+                  <span className="font-medium text-gray-600">Name:</span>{" "}
+                  {waitlistForm.name || "—"}
+                </p>
+                <p className="text-gray-700 text-sm">
+                  <span className="font-medium text-gray-600">Email:</span>{" "}
+                  {waitlistForm.email || "—"}
+                </p>
+                {waitlistForm.phone ? (
+                  <p className="text-gray-700 text-sm">
+                    <span className="font-medium text-gray-600">Phone:</span>{" "}
+                    {waitlistForm.phone}
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <div className="space-y-3 font-calibri">
+                <input
+                  type="text"
+                  placeholder="Name *"
+                  value={waitlistForm.name}
+                  onChange={(e) => setWaitlistForm((f) => ({ ...f, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-calibri text-sm sm:text-base"
+                />
+                <input
+                  type="email"
+                  placeholder="Email *"
+                  value={waitlistForm.email}
+                  onChange={(e) => setWaitlistForm((f) => ({ ...f, email: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-calibri text-sm sm:text-base"
+                />
+                <input
+                  type="tel"
+                  placeholder="Phone"
+                  value={waitlistForm.phone}
+                  onChange={(e) => setWaitlistForm((f) => ({ ...f, phone: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-calibri text-sm sm:text-base"
+                />
+              </div>
+            )}
             {waitlistMessage && (
               <p
                 className={`mt-3 text-sm font-calibri ${waitlistMessage.type === "success" ? "text-green-600" : "text-red-600"}`}
@@ -732,9 +752,9 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               <button
                 onClick={handleJoinWaitlist}
                 disabled={waitlistSubmitting}
-                className="flex-1 py-2 px-3 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium disabled:opacity-60 disabled:cursor-not-allowed font-calibri text-md hover:text-amber-700"
+                className="flex-1 py-2 px-3 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium disabled:opacity-60 disabled:cursor-not-allowed font-calibri text-md hover:text-amber-700 inline-flex items-center justify-center gap-2"
               >
-                {waitlistSubmitting ? "Submitting…" : "Join waitlist"}
+                {waitlistSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Submitting…</span></> : "Join waitlist"}
               </button>
             </div>
           </div>

@@ -8,6 +8,7 @@ import {
   FaExchangeAlt,
   FaListUl,
   FaUserPlus,
+  FaSpinner,
 } from "react-icons/fa";
 import type { UserEventHistory } from "../../types/user";
 import type { RegistrationWithEventDetails, SocialEvent } from "../../types/socialEvent";
@@ -314,9 +315,9 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
                   type="button"
                   onClick={handleCancelSelectedClick}
                   disabled={cancellingIds.size > 0}
-                  className="px-3 py-1.5 rounded-lg font-calibri text-sm font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-calibri text-sm font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
                 >
-                  {cancellingIds.size > 0 ? "Cancelling…" : `Cancel selected (${selectedCancelCount})`}
+                  {cancellingIds.size > 0 ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Cancelling…</span></> : `Cancel selected (${selectedCancelCount})`}
                 </button>
               )}
             </>
@@ -405,8 +406,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
                       disabled={reRegisteringEventId === reg.eventId}
                       className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold font-calibri bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-50 transition-colors"
                     >
-                      <FaUserPlus size={14} />
-                      {reRegisteringEventId === reg.eventId ? "Registering…" : "Register again"}
+                      {reRegisteringEventId === reg.eventId ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Registering…</span></> : <><FaUserPlus size={14} /><span>Register again</span></>}
                     </button>
                   )}
                   {isCancelable && (
@@ -414,9 +414,9 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
                       type="button"
                       onClick={() => handleCancelOneClick(reg)}
                       disabled={isCancelling}
-                      className="px-3 py-1.5 rounded-lg text-sm font-semibold font-calibri bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold font-calibri bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
                     >
-                      {isCancelling ? "Cancelling…" : "Cancel registration"}
+                      {isCancelling ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Cancelling…</span></> : "Cancel registration"}
                     </button>
                   )}
                 </div>
@@ -470,10 +470,10 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
                             <button
                               onClick={() => handleClaimPoints(event.eventId)}
                               disabled={claimingEventId === event.eventId}
-                              className="px-3 py-1 bg-yellow-500 text-white rounded-lg text-xs font-semibold hover:bg-yellow-600 transition-colors disabled:opacity-50 font-calibri"
+                              className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-500 text-white rounded-lg text-xs font-semibold hover:bg-yellow-600 transition-colors disabled:opacity-50 font-calibri"
                             >
                               {claimingEventId === event.eventId
-                                ? "Claiming..."
+                                ? <><FaSpinner className="animate-spin h-3 w-3 flex-shrink-0" /><span>Claiming…</span></>
                                 : "Claim Points"}
                             </button>
                           ) : null}

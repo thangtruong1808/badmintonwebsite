@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaTimes } from "react-icons/fa";
+import { FaEnvelope, FaUser, FaPhone, FaPaperPlane, FaTimes, FaSpinner } from "react-icons/fa";
 import type { FormData, FormErrors } from "./types";
 
 const inputClass = (hasError: boolean) =>
@@ -139,8 +139,8 @@ const ShopContactForm = ({
       >
         {isSubmitting ? (
           <>
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            <span className="font-calibri text-md">Sending...</span>
+            <FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" />
+            <span className="font-calibri text-md">Sending…</span>
           </>
         ) : (
           <>

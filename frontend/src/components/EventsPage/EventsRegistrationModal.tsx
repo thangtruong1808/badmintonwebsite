@@ -11,6 +11,7 @@ import {
   FaExclamationCircle,
   FaTimes,
   FaUsers,
+  FaSpinner,
 } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
 import type { EventDisplay } from "../../types/event";
@@ -242,7 +243,7 @@ const EventsRegistrationModal: React.FC<EventsRegistrationModalProps> = ({ event
               )}
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button type="submit" disabled={isSubmitting} className={`flex-1 flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 font-calibri text-md ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}>
-                  {isSubmitting ? <><span className="animate-spin">⏳</span><span>Submitting...</span></> : <><FaPaperPlane size={16} /><span>Submit Registration</span></>}
+                  {isSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Submitting…</span></> : <><FaPaperPlane size={16} /><span>Submit Registration</span></>}
                 </button>
                 <button type="button" onClick={onClose} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-300 font-calibri text-md flex items-center justify-center gap-2">
                   <FaTimes size={16} /><span>Cancel</span>

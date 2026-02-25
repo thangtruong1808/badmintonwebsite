@@ -10,6 +10,7 @@ import {
   FaCoins,
   FaMoneyBillWave,
   FaExchangeAlt,
+  FaSpinner,
 } from "react-icons/fa";
 import emailjs from "@emailjs/browser";
 import type { SocialEvent } from "../../types/socialEvent";
@@ -526,8 +527,8 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
             >
               {isSubmitting ? (
                 <>
-                  <span className="animate-spin">⏳</span>
-                  <span className="font-calibri text-md">Submitting...</span>
+                  <FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" />
+                  <span className="font-calibri text-md">Submitting…</span>
                 </>
               ) : (
                 <>

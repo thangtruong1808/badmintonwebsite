@@ -1,6 +1,6 @@
 import React, { useState, type FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaMoneyBillWave, FaUserPlus, FaSignInAlt, FaTimes } from "react-icons/fa";
+import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaMoneyBillWave, FaUserPlus, FaSignInAlt, FaTimes, FaSpinner } from "react-icons/fa";
 import type { CartItem } from "./ShopCheckoutPage";
 import type { Product } from "./types";
 import { getCurrentUser } from "../../utils/mockAuth";
@@ -217,9 +217,9 @@ const ShopPaymentPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting || submitStatus.type === "success"}
-                  className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-calibri disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-calibri disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? "Processing…" : "Place order"}
+                  {isSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Processing…</span></> : "Place order"}
                 </button>
               </div>
             </form>
