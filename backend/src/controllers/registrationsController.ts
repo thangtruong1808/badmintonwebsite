@@ -8,6 +8,7 @@ import {
   getEventRegistrations as getEventRegistrationsService,
   getMyPendingPaymentRegistrations,
   confirmPaymentForPendingRegistration,
+  getPendingAddGuestsById,
   addGuestsToRegistration as addGuestsToRegistrationService,
   removeGuestsFromRegistration as removeGuestsFromRegistrationService,
 } from '../services/registrationService.js';
@@ -149,6 +150,32 @@ export const getMyPendingPayments = async (
   }
 };
 
+export const getPendingAddGuests = async (
+  req: AuthRequest<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const pendingId = req.params.id;
+    if (!pendingId) {
+      throw createError('Pending ID is required', 400);
+    }
+
+    const details = await getPendingAddGuestsById(req.userId, pendingId);
+    if (!details) {
+      throw createError('Pending add-guests not found or expired', 404);
+    }
+
+    res.json(details);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const confirmPayment = async (
   req: AuthRequest<{ id: string }>,
   res: Response,
@@ -173,7 +200,7 @@ export const confirmPayment = async (
 };
 
 export const addGuestsToRegistration = async (
-  req: AuthRequest<{ id: string }, {}, { guestCount: number }>,
+  req: AuthRequest<{ id: string }, {}, { guestCount: number; pendingAddGuestsId?: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -184,12 +211,15 @@ export const addGuestsToRegistration = async (
 
     const registrationId = req.params.id;
     const guestCount = req.body?.guestCount ?? 0;
+    const pendingAddGuestsId = req.body?.pendingAddGuestsId;
 
     if (!registrationId || guestCount < 1 || guestCount > 10) {
       throw createError('Valid registration ID and guestCount (1-10) are required', 400);
     }
 
-    const result = await addGuestsToRegistrationService(req.userId, registrationId, guestCount);
+    const result = await addGuestsToRegistrationService(req.userId, registrationId, guestCount, {
+      pendingAddGuestsId: pendingAddGuestsId || undefined,
+    });
     res.json(result);
   } catch (error) {
     next(error);

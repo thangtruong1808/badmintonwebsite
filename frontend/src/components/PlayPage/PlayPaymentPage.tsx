@@ -17,7 +17,13 @@ const PlayPaymentPage: React.FC = () => {
   const pendingId = searchParams.get("pending") ?? undefined;
   const state = location.state as {
     events?: SocialEvent[];
-    addGuestsContext?: { registrationId: string; guestCount: number; event: SocialEvent; guestCountTotal?: number };
+    addGuestsContext?: {
+      registrationId: string;
+      guestCount: number;
+      event: SocialEvent;
+      guestCountTotal?: number;
+      pendingAddGuestsId?: string;
+    };
   } | null;
   const addGuestsContext = state?.addGuestsContext;
   const eventsFromState: SocialEvent[] = state?.events ?? [];
@@ -157,7 +163,12 @@ const PlayPaymentPage: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      if (user) {
+        setSubmitStatus({ type: "error", message: "Your profile is missing name, email or phone. Please update your profile." });
+      }
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitStatus({ type: null, message: "" });
@@ -179,7 +190,9 @@ const PlayPaymentPage: React.FC = () => {
 
       if (isAddGuestsFlow && addGuestsContext) {
         const totalToAdd = addGuestsContext.guestCountTotal ?? addGuestsContext.guestCount;
-        const result = await addGuestsToRegistration(addGuestsContext.registrationId, totalToAdd);
+        const result = await addGuestsToRegistration(addGuestsContext.registrationId, totalToAdd, {
+          pendingAddGuestsId: addGuestsContext.pendingAddGuestsId,
+        });
         if (!result.success) {
           setSubmitStatus({ type: "error", message: result.message ?? "Failed to add friends. Please try again." });
           setIsSubmitting(false);
@@ -260,45 +273,70 @@ const PlayPaymentPage: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4 font-calibri">
-            <div>
-              <label className="block font-medium text-gray-700 mb-1">
-                <FaUser className="inline mr-2" size={14} /> Full Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-                className={`w-full px-4 py-2 border rounded-lg ${errors.name ? "border-red-500" : "border-gray-300"}`}
-                placeholder="Full name"
-              />
-              {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
-            </div>
-            <div>
-              <label className="block font-medium text-gray-700 mb-1 font-calibri text-lg">
-                <FaEnvelope className="inline mr-2" size={14} /> Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
-                className={`w-full px-4 py-2 border rounded-lg ${errors.email ? "border-red-500" : "border-gray-300"}`}
-                placeholder="Email"
-              />
-              {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
-            </div>
-            <div>
-              <label className="block font-medium text-gray-700 mb-1 font-calibri text-lg">
-                <FaPhone className="inline mr-2" size={14} /> Phone <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
-                className={`w-full px-4 py-2 border rounded-lg ${errors.phone ? "border-red-500" : "border-gray-300"}`}
-                placeholder="Phone"
-              />
-              {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
-            </div>
+            {user ? (
+              <div className="space-y-4">
+                <div>
+                  <p className="block font-medium text-gray-700 mb-1">
+                    <FaUser className="inline mr-2" size={14} /> Full Name
+                  </p>
+                  <p className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">{formData.name || "—"}</p>
+                </div>
+                <div>
+                  <p className="block font-medium text-gray-700 mb-1 font-calibri text-lg">
+                    <FaEnvelope className="inline mr-2" size={14} /> Email
+                  </p>
+                  <p className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">{formData.email || "—"}</p>
+                </div>
+                <div>
+                  <p className="block font-medium text-gray-700 mb-1 font-calibri text-lg">
+                    <FaPhone className="inline mr-2" size={14} /> Phone
+                  </p>
+                  <p className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">{formData.phone || "—"}</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="block font-medium text-gray-700 mb-1">
+                    <FaUser className="inline mr-2" size={14} /> Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
+                    className={`w-full px-4 py-2 border rounded-lg ${errors.name ? "border-red-500" : "border-gray-300"}`}
+                    placeholder="Full name"
+                  />
+                  {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
+                </div>
+                <div>
+                  <label className="block font-medium text-gray-700 mb-1 font-calibri text-lg">
+                    <FaEnvelope className="inline mr-2" size={14} /> Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+                    className={`w-full px-4 py-2 border rounded-lg ${errors.email ? "border-red-500" : "border-gray-300"}`}
+                    placeholder="Email"
+                  />
+                  {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
+                </div>
+                <div>
+                  <label className="block font-medium text-gray-700 mb-1 font-calibri text-lg">
+                    <FaPhone className="inline mr-2" size={14} /> Phone <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+                    className={`w-full px-4 py-2 border rounded-lg ${errors.phone ? "border-red-500" : "border-gray-300"}`}
+                    placeholder="Phone"
+                  />
+                  {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
+                </div>
+              </>
+            )}
 
             {totalPrice > 0 && user && (
               <div>

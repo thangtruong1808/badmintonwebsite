@@ -4,7 +4,6 @@ import type { RegistrationFormData } from '../types/index.js';
 import { createError } from '../middleware/errorHandler.js';
 import { getEventById } from './eventService.js';
 import { getUserById } from './userService.js';
-import { sendFriendsPromotedEmail } from '../utils/email.js';
 import pool from '../db/connection.js';
 
 export interface WaitlistEntry {
@@ -256,8 +255,8 @@ export const removeFromWaitlist = async (waitlistId: string): Promise<boolean> =
 
 /**
  * Promote the first waitlist entry after a cancellation.
- * - For new spot (registration_id NULL): create registration with status pending_payment, do NOT increment attendees.
- * - For add-guests (registration_id SET): add guest_count to that registration and increment attendees (no payment).
+ * - For new spot (registration_id NULL): create registration with status pending_payment, send invitation email, do NOT increment attendees.
+ * - For add-guests (registration_id SET): create pending_add_guests, send invitation email with payment link (same flow as new_spot).
  */
 export const promoteFromWaitlist = async (
   eventId: number,
@@ -267,7 +266,6 @@ export const promoteFromWaitlist = async (
   if (!entry) return { promoted: false };
 
   const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
-  const paymentLink = `${frontendUrl}/play/checkout?pending=`;
 
   if (entry.registrationId) {
     const [regRows] = await pool.execute<RowDataPacket[]>(
@@ -280,13 +278,16 @@ export const promoteFromWaitlist = async (
     }
     const reg = regRows[0];
     const toAdd = Math.min(1, entry.guestCount);
-    const newGuestCount = (reg.guest_count ?? 0) + toAdd;
+
+    const pendingId = uuidv4();
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
     await pool.execute(
-      'UPDATE registrations SET guest_count = ? WHERE id = ?',
-      [newGuestCount, entry.registrationId]
+      `INSERT INTO pending_add_guests (id, event_id, registration_id, user_id, guest_count, expires_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [pendingId, eventId, entry.registrationId, entry.userId, toAdd, expiresAt]
     );
-    const { incrementEventAttendees } = await import('./eventService.js');
-    await incrementEventAttendees(eventId, toAdd);
+
     if (entry.guestCount <= 1) {
       await removeFromWaitlist(entry.id);
     } else {
@@ -295,20 +296,14 @@ export const promoteFromWaitlist = async (
         [entry.guestCount - 1, entry.id]
       );
     }
-    const event = await getEventById(eventId);
-    if (event && reg.email) {
-      await sendFriendsPromotedEmail(
-        reg.email,
-        event.title,
-        `${event.date} ${event.time}`,
-        toAdd,
-        reg.name
-      );
-    }
+
+    const paymentLink = `${frontendUrl}/play/checkout?addGuestsPending=${pendingId}`;
+    await onPromotionEmail(entry, paymentLink);
     return { promoted: true, registrationId: entry.registrationId };
   }
 
   const id = uuidv4();
+  const paymentLink = `${frontendUrl}/play/checkout?pending=`;
   const expiresAt = new Date();
   expiresAt.setHours(expiresAt.getHours() + 24);
   const regDate = new Date().toISOString().slice(0, 19).replace('T', ' ');

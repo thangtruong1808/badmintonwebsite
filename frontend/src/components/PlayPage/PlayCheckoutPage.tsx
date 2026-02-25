@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FaUserPlus, FaSignInAlt, FaTimes } from "react-icons/fa";
 import { getCurrentUser } from "../../utils/mockAuth";
-import { getMyPendingPayments } from "../../utils/registrationService";
+import { getMyPendingPayments, getPendingAddGuests } from "../../utils/registrationService";
 import { selectAuthInitialized } from "../../store/authSlice";
 import type { SocialEvent } from "../../types/socialEvent";
 
@@ -12,6 +12,8 @@ interface AddGuestsContext {
   guestCount: number;
   event: SocialEvent;
   guestCountTotal?: number;
+  /** Present when coming from waitlist promotion (must pass to add-guests API) */
+  pendingAddGuestsId?: string;
 }
 
 const PlayCheckoutPage: React.FC = () => {
@@ -19,22 +21,25 @@ const PlayCheckoutPage: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const pendingId = searchParams.get("pending") ?? undefined;
+  const addGuestsPendingId = searchParams.get("addGuestsPending") ?? undefined;
   const state = location.state as {
     events?: SocialEvent[];
     checkoutState?: { events?: SocialEvent[]; addGuestsContext?: AddGuestsContext };
     addGuestsContext?: AddGuestsContext;
   } | null;
-  const addGuestsContext = state?.addGuestsContext ?? state?.checkoutState?.addGuestsContext;
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [pendingEvents, setPendingEvents] = useState<SocialEvent[] | null>(null);
+  const [addGuestsPendingContext, setAddGuestsPendingContext] = useState<AddGuestsContext | null>(null);
+  const [pendingLoading, setPendingLoading] = useState(!!pendingId || !!addGuestsPendingId);
+  const [addGuestsPendingError, setAddGuestsPendingError] = useState<string | null>(null);
+  const addGuestsContext = state?.addGuestsContext ?? state?.checkoutState?.addGuestsContext ?? addGuestsPendingContext ?? null;
   const eventsFromState: SocialEvent[] = state?.events ?? state?.checkoutState?.events ?? [];
   const user = getCurrentUser();
   const authInitialized = useSelector(selectAuthInitialized);
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [pendingEvents, setPendingEvents] = useState<SocialEvent[] | null>(null);
-  const [pendingLoading, setPendingLoading] = useState(!!pendingId);
 
   useEffect(() => {
     if (!pendingId) {
-      setPendingLoading(false);
+      if (!addGuestsPendingId) setPendingLoading(false);
       return;
     }
     if (!authInitialized) return;
@@ -61,9 +66,50 @@ const PlayCheckoutPage: React.FC = () => {
           category: "regular",
         } as SocialEvent]);
       }
+      if (!addGuestsPendingId) setPendingLoading(false);
+    }).catch(() => { if (!addGuestsPendingId) setPendingLoading(false); });
+  }, [pendingId, user?.id, authInitialized, navigate, addGuestsPendingId]);
+
+  useEffect(() => {
+    if (!addGuestsPendingId) return;
+    if (!authInitialized) return;
+    if (!user?.id) {
       setPendingLoading(false);
-    }).catch(() => setPendingLoading(false));
-  }, [pendingId, user?.id, authInitialized, navigate]);
+      navigate("/signin", { state: { from: `/play/checkout?addGuestsPending=${addGuestsPendingId}` } });
+      return;
+    }
+    setAddGuestsPendingError(null);
+    getPendingAddGuests(addGuestsPendingId).then((data) => {
+      if (data) {
+        const event: SocialEvent = {
+          id: data.event.id,
+          title: data.event.title,
+          date: data.event.date,
+          time: data.event.time,
+          dayOfWeek: "",
+          location: data.event.location,
+          description: "",
+          maxCapacity: 0,
+          currentAttendees: 0,
+          price: data.event.price,
+          status: "available",
+          category: "regular",
+        };
+        setAddGuestsPendingContext({
+          registrationId: data.registrationId,
+          guestCount: data.guestCount,
+          event,
+          pendingAddGuestsId: addGuestsPendingId,
+        });
+      } else {
+        setAddGuestsPendingError("This offer may have expired. Please check the play page for available spots.");
+      }
+      setPendingLoading(false);
+    }).catch(() => {
+      setAddGuestsPendingError("Failed to load. Please try again.");
+      setPendingLoading(false);
+    });
+  }, [addGuestsPendingId, user?.id, authInitialized, navigate]);
 
   const eventsForDisplay: SocialEvent[] = addGuestsContext
     ? (() => {
@@ -87,28 +133,42 @@ const PlayCheckoutPage: React.FC = () => {
       setShowAuthDialog(true);
       return;
     }
-    navigate(
-      pendingId ? `/play/payment?pending=${pendingId}` : "/play/payment",
-      { state: addGuestsContext ? { addGuestsContext, events } : { events } }
-    );
+    const paymentUrl = addGuestsPendingId
+      ? "/play/payment"
+      : pendingId
+        ? `/play/payment?pending=${pendingId}`
+        : "/play/payment";
+    navigate(paymentUrl, {
+      state: addGuestsContext ? { addGuestsContext: addGuestsContext, events } : { events },
+    });
   };
 
   const handleGoToSignIn = () => {
     setShowAuthDialog(false);
+    const from = addGuestsPendingId
+      ? `/play/checkout?addGuestsPending=${addGuestsPendingId}`
+      : pendingId
+        ? `/play/checkout?pending=${pendingId}`
+        : "/play/checkout";
     navigate("/signin", {
       state: {
-        from: pendingId ? `/play/checkout?pending=${pendingId}` : "/play/checkout",
-        checkoutState: addGuestsContext ? { addGuestsContext, events } : { events },
+        from,
+        checkoutState: addGuestsContext ? { addGuestsContext: addGuestsContext, events } : { events },
       },
     });
   };
 
   const handleGoToRegister = () => {
     setShowAuthDialog(false);
+    const from = addGuestsPendingId
+      ? `/play/checkout?addGuestsPending=${addGuestsPendingId}`
+      : pendingId
+        ? `/play/checkout?pending=${pendingId}`
+        : "/play/checkout";
     navigate("/register", {
       state: {
-        from: pendingId ? `/play/checkout?pending=${pendingId}` : "/play/checkout",
-        checkoutState: addGuestsContext ? { addGuestsContext, events } : { events },
+        from,
+        checkoutState: addGuestsContext ? { addGuestsContext: addGuestsContext, events } : { events },
       },
     });
   };
@@ -129,10 +189,14 @@ const PlayCheckoutPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
           <h1 className="text-2xl font-bold text-gray-900 font-calibri mb-4">
-            No sessions selected
+            {addGuestsPendingError ? "Offer unavailable" : "No sessions selected"}
           </h1>
           <p className="text-gray-600 font-calibri mb-6">
-            {pendingId ? "This reservation may have expired. Please select sessions from the play page or check your email for a valid link." : "Please go back and select one or more play sessions to register."}
+            {addGuestsPendingError
+              ? addGuestsPendingError
+              : pendingId
+                ? "This reservation may have expired. Please select sessions from the play page or check your email for a valid link."
+                : "Please go back and select one or more play sessions to register."}
           </p>
           <button
             onClick={() => navigate("/play")}
@@ -157,16 +221,18 @@ const PlayCheckoutPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-medium text-gray-900 font-huglove mb-6 text-center">
-          {isPendingFlow ? "A spot opened for you!" : isAddGuestsFlow ? "Add friends to your registration" : "Review your selection"}
+          {isPendingFlow ? "A spot opened for you!" : isAddGuestsFlow && addGuestsPendingId ? "A spot opened for your friends!" : isAddGuestsFlow ? "Add friends to your registration" : "Review your selection"}
         </h1>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {isAddGuestsFlow && addGuestsContext && (
             <div className="p-4 bg-rose-50 border-b border-rose-200">
               <p className="text-rose-800 font-calibri text-sm font-medium">
-                {addGuestsContext.guestCountTotal != null && addGuestsContext.guestCountTotal > addGuestsContext.guestCount
-                  ? `${addGuestsContext.guestCount} friend(s) will be added (payment required). ${addGuestsContext.guestCountTotal - addGuestsContext.guestCount} on waitlist (no payment).`
-                  : `Adding ${addGuestsContext.guestCount} friend${addGuestsContext.guestCount !== 1 ? "s" : ""} to your registration. Proceed to payment.`}
+                {addGuestsPendingId
+                  ? "Complete payment within 24 hours to add your friend(s) to your registration."
+                  : addGuestsContext.guestCountTotal != null && addGuestsContext.guestCountTotal > addGuestsContext.guestCount
+                    ? `${addGuestsContext.guestCount} friend(s) will be added (payment required). ${addGuestsContext.guestCountTotal - addGuestsContext.guestCount} on waitlist (no payment).`
+                    : `Adding ${addGuestsContext.guestCount} friend${addGuestsContext.guestCount !== 1 ? "s" : ""} to your registration. Proceed to payment.`}
               </p>
             </div>
           )}

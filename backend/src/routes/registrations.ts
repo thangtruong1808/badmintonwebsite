@@ -6,6 +6,7 @@ import {
   getEventRegistrations,
   joinWaitlist,
   getMyPendingPayments,
+  getPendingAddGuests,
   confirmPayment,
   addGuestsToRegistration,
   removeGuestsFromRegistration,
@@ -58,6 +59,13 @@ router.post('/waitlist', authenticateToken, joinWaitlist);
  * @access  Private
  */
 router.get('/my-pending-payments', authenticateToken, getMyPendingPayments);
+
+/**
+ * @route   GET /api/registrations/pending-add-guests/:id
+ * @desc    Get pending add-guests promotion details (for checkout flow)
+ * @access  Private
+ */
+router.get('/pending-add-guests/:id', authenticateToken, getPendingAddGuests);
 
 /**
  * @route   GET /api/registrations/my-add-guests-waitlist?eventId=

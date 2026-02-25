@@ -173,38 +173,6 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     }
   }, [event?.id, user?.id, isFull, isAlreadyRegistered, fetchMyEventWaitlistStatus]);
 
-  // Fallback: when API returns 0 but user is registered and waitlist shows add-guests entry for them
-  useEffect(() => {
-    if (myWaitlistFriendCount >= 1 || !user || !isAlreadyRegistered || waitlistPlayers.length === 0) return;
-    const addGuestsOnly = waitlistPlayers.filter((w) => w.type === "add_guests");
-    if (addGuestsOnly.length === 0) return;
-    const myPlayer = players.find((p) => p.email?.toLowerCase() === user.email?.toLowerCase());
-    const myDisplayName =
-      myPlayer?.name?.trim() ||
-      `${user.firstName || ""} ${user.lastName || ""}`.trim();
-    if (!myDisplayName) return;
-    const normalize = (s: string) => (s || "").trim().toLowerCase();
-    const myNorm = normalize(myDisplayName);
-    const namesToTry = [myNorm];
-    if (myPlayer?.name) {
-      const parts = myPlayer.name.trim().split(/\s+/).filter(Boolean);
-      if (parts.length >= 2) namesToTry.push(normalize(`${parts[parts.length - 1]} ${parts[0]}`));
-    }
-    const match = addGuestsOnly.find((w) => {
-      const wn = normalize(w.name);
-      return wn && namesToTry.some((n) => n && (wn === n || wn.includes(n) || n.includes(wn)));
-    });
-    if (match && match.guestCount >= 1) {
-      setMyWaitlistFriendCount(match.guestCount);
-    }
-  }, [
-    myWaitlistFriendCount,
-    user,
-    isAlreadyRegistered,
-    players,
-    waitlistPlayers,
-  ]);
-
   const handleCancelRegistration = async () => {
     if (!onCancelRegistration) return;
     setShowCancelConfirm(false);

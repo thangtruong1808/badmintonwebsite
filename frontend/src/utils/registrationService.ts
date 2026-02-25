@@ -175,16 +175,33 @@ export async function confirmPaymentForPendingRegistration(
 }
 
 /**
+ * Get pending add-guests promotion by ID (for checkout from waitlist promotion email).
+ */
+export async function getPendingAddGuests(
+  pendingId: string
+): Promise<{ registrationId: string; guestCount: number; event: { id: number; title: string; date: string; time: string; location: string; price?: number } } | null> {
+  try {
+    const res = await apiFetch(`/api/registrations/pending-add-guests/${pendingId}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Add guests to an existing registration (1–10).
  */
 export async function addGuestsToRegistration(
   registrationId: string,
-  guestCount: number
+  guestCount: number,
+  options?: { pendingAddGuestsId?: string }
 ): Promise<{ success: boolean; message?: string; added?: number; waitlisted?: number }> {
   try {
     const res = await apiFetch(`/api/registrations/${registrationId}/add-guests`, {
       method: "POST",
-      body: JSON.stringify({ guestCount }),
+      body: JSON.stringify({ guestCount, ...(options?.pendingAddGuestsId && { pendingAddGuestsId: options.pendingAddGuestsId }) }),
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok) {

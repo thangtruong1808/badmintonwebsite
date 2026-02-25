@@ -475,10 +475,70 @@ export const confirmPaymentForPendingRegistration = async (registrationId: strin
 /**
  * Add guests to an existing confirmed registration.
  */
+export interface PendingAddGuestsDetails {
+  registrationId: string;
+  guestCount: number;
+  event: { id: number; title: string; date: string; time: string; location: string; price?: number };
+}
+
+/**
+ * Get pending add-guests promotion by ID (for checkout flow). Returns null if not found, expired, or not owned by user.
+ */
+export const getPendingAddGuestsById = async (
+  userId: string,
+  pendingId: string
+): Promise<PendingAddGuestsDetails | null> => {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    `SELECT p.id, p.registration_id, p.guest_count, p.expires_at,
+            e.id AS event_id, e.title, e.date, e.time, e.location, e.price
+     FROM pending_add_guests p
+     JOIN events e ON e.id = p.event_id
+     WHERE p.id = ? AND p.user_id = ? AND p.expires_at > NOW()`,
+    [pendingId, userId]
+  );
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  return {
+    registrationId: r.registration_id,
+    guestCount: r.guest_count ?? 1,
+    event: {
+      id: r.event_id,
+      title: r.title,
+      date: String(r.date).slice(0, 10),
+      time: r.time ?? '',
+      location: r.location ?? '',
+      price: r.price != null ? Number(r.price) : undefined,
+    },
+  };
+};
+
+/**
+ * Count pending add-guests spots for an event (reserved, not yet paid).
+ */
+export const countPendingAddGuestsForEvent = async (eventId: number): Promise<number> => {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    'SELECT COALESCE(SUM(guest_count), 0) AS cnt FROM pending_add_guests WHERE event_id = ? AND expires_at > NOW()',
+    [eventId]
+  );
+  return Number(rows[0]?.cnt ?? 0);
+};
+
+/**
+ * Delete pending add-guests record (after successful payment).
+ */
+export const deletePendingAddGuests = async (pendingId: string, userId: string): Promise<boolean> => {
+  const [result] = await pool.execute(
+    'DELETE FROM pending_add_guests WHERE id = ? AND user_id = ?',
+    [pendingId, userId]
+  );
+  return Number((result as { affectedRows?: number })?.affectedRows) > 0;
+};
+
 export const addGuestsToRegistration = async (
   userId: string,
   registrationId: string,
-  requestedCount: number
+  requestedCount: number,
+  options?: { pendingAddGuestsId?: string }
 ): Promise<{ added: number; waitlisted: number }> => {
   const count = Math.min(Math.max(1, requestedCount), 10);
 
@@ -492,7 +552,11 @@ export const addGuestsToRegistration = async (
   const event = await getEventById(reg.event_id);
   if (!event) throw createError('Event not found', 404);
 
-  const spotsLeft = event.maxCapacity - event.currentAttendees;
+  const pendingAddGuestsReserved = await countPendingAddGuestsForEvent(reg.event_id);
+  let spotsLeft = Math.max(0, event.maxCapacity - event.currentAttendees - pendingAddGuestsReserved);
+  if (options?.pendingAddGuestsId) {
+    spotsLeft += count;
+  }
   const toAdd = Math.min(count, spotsLeft);
   const toWaitlist = count - toAdd;
 
@@ -529,6 +593,10 @@ export const addGuestsToRegistration = async (
         reg.name
       );
     }
+  }
+
+  if (options?.pendingAddGuestsId && toAdd > 0) {
+    await deletePendingAddGuests(options.pendingAddGuestsId, userId);
   }
 
   return { added: toAdd, waitlisted: toWaitlist };
@@ -621,6 +689,25 @@ export const expirePendingPromotions = async (): Promise<{ expired: number; prom
     if (result.promoted) promoted += 1;
   }
 
+  const { addToGuestsWaitlist } = await import('./waitlistService.js');
+  const [pendingAddRows] = await pool.execute<RowDataPacket[]>(
+    `SELECT p.id, p.event_id, p.registration_id, p.user_id, p.guest_count,
+            r.name, r.email, r.phone
+     FROM pending_add_guests p
+     JOIN registrations r ON r.id = p.registration_id
+     WHERE p.expires_at < NOW()`
+  );
+  for (const r of pendingAddRows) {
+    await pool.execute('DELETE FROM pending_add_guests WHERE id = ?', [r.id]);
+    expired += 1;
+    const formData = {
+      name: r.name ?? '',
+      email: r.email ?? '',
+      phone: r.phone ?? '',
+    };
+    await addToGuestsWaitlist(r.user_id, r.event_id, r.registration_id, r.guest_count ?? 1, formData);
+  }
+
   return { expired, promoted };
 }
 
@@ -658,7 +745,8 @@ export const processWaitlistsForAvailableSpots = async (
       [eid, 'pending_payment']
     );
     const pendingCount = Number(pendingRows[0]?.cnt ?? 0);
-    let spotsAvailable = event.maxCapacity - event.currentAttendees - pendingCount;
+    const pendingAddGuestsCount = await countPendingAddGuestsForEvent(eid);
+    let spotsAvailable = event.maxCapacity - event.currentAttendees - pendingCount - pendingAddGuestsCount;
 
     while (spotsAvailable > 0) {
       const entry = await getFirstWaitlistEntry(eid);
