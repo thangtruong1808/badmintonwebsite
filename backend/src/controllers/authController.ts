@@ -242,7 +242,7 @@ export const requestPasswordReset = async (
       if (process.env.SEND_PASSWORD_RESET_EMAIL === 'true') {
         const baseUrl = getFrontendBaseUrl();
         const resetLink = `${baseUrl}/reset-password?token=${token}`;
-        await sendPasswordResetEmail(user.email, resetLink, expiresAt);
+        await sendPasswordResetEmail(user.email, resetLink, expiresAt, user.firstName);
       }
     }
     res.status(200).json({

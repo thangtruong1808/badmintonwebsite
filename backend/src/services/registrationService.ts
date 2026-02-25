@@ -324,7 +324,7 @@ export const registerForEvents = async (
   if (confirmedSessions.length > 0) {
     const email = (formData.email && String(formData.email).trim()) || user.email;
     if (email) {
-      await sendRegistrationConfirmationEmailForSessions(email, confirmedSessions);
+      await sendRegistrationConfirmationEmailForSessions(email, confirmedSessions, formData.name);
     }
   }
 
@@ -364,7 +364,8 @@ export const cancelRegistration = async (
       event.title,
       event.date,
       event.time,
-      event.location
+      event.location,
+      reg.name
     );
     await promoteFromWaitlist(reg.event_id, async (entry, paymentLink) => {
       const expiresAt = new Date();
@@ -374,7 +375,8 @@ export const cancelRegistration = async (
         event.title,
         `${event.date} ${event.time}`,
         paymentLink,
-        expiresAt
+        expiresAt,
+        entry.name
       );
     });
   }
@@ -464,7 +466,8 @@ export const confirmPaymentForPendingRegistration = async (registrationId: strin
     event.title,
     event.date,
     event.time,
-    event.location
+    event.location,
+    reg.name
   );
   return true;
 };
@@ -522,7 +525,8 @@ export const addGuestsToRegistration = async (
         event.title,
         `${event.date} ${event.time}`,
         toAdd,
-        toWaitlist
+        toWaitlist,
+        reg.name
       );
     }
   }
@@ -571,7 +575,8 @@ export const removeGuestsFromRegistration = async (
           event.title,
           event.date,
           link,
-          new Date(Date.now() + 24 * 60 * 60 * 1000)
+          new Date(Date.now() + 24 * 60 * 60 * 1000),
+          entry.name
         );
       });
       if (result.promoted) promoted += 1;
@@ -603,7 +608,14 @@ export const expirePendingPromotions = async (): Promise<{ expired: number; prom
     const result = await promoteFromWaitlist(r.event_id, async (entry, link) => {
       const event = await getEventById(r.event_id);
       if (event) {
-        await sendWaitlistPromotionEmail(entry.email, event.title, event.date, link, new Date(Date.now() + 24 * 60 * 60 * 1000));
+        await sendWaitlistPromotionEmail(
+          entry.email,
+          event.title,
+          event.date,
+          link,
+          new Date(Date.now() + 24 * 60 * 60 * 1000),
+          entry.name
+        );
       }
     });
     if (result.promoted) promoted += 1;
@@ -658,7 +670,8 @@ export const processWaitlistsForAvailableSpots = async (
           event.title,
           event.date,
           link,
-          new Date(Date.now() + 24 * 60 * 60 * 1000)
+          new Date(Date.now() + 24 * 60 * 60 * 1000),
+          entry.name
         );
       });
 

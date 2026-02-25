@@ -223,7 +223,8 @@ export const removeGuestsFromRegistration = async (
           event.title,
           `${event.date} ${event.time}`,
           result.removed,
-          result.promoted ?? 0
+          result.promoted ?? 0,
+          registration.name
         );
       }
     }
@@ -322,7 +323,8 @@ export const reduceWaitlistFriends = async (
         registration.email,
         event.title,
         `${event.date} ${event.time}`,
-        result.reduced
+        result.reduced,
+        registration.name
       );
     }
     res.json(result);

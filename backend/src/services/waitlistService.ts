@@ -271,7 +271,7 @@ export const promoteFromWaitlist = async (
 
   if (entry.registrationId) {
     const [regRows] = await pool.execute<RowDataPacket[]>(
-      'SELECT id, guest_count, email FROM registrations WHERE id = ? AND event_id = ? AND status = ?',
+      'SELECT id, guest_count, email, name FROM registrations WHERE id = ? AND event_id = ? AND status = ?',
       [entry.registrationId, eventId, 'confirmed']
     );
     if (regRows.length === 0) {
@@ -301,7 +301,8 @@ export const promoteFromWaitlist = async (
         reg.email,
         event.title,
         `${event.date} ${event.time}`,
-        toAdd
+        toAdd,
+        reg.name
       );
     }
     return { promoted: true, registrationId: entry.registrationId };
