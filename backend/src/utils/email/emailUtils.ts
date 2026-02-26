@@ -54,3 +54,60 @@ export function formatDateObjectForEmail(d: Date): string {
   const timePart = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   return `${datePart} at ${timePart}`;
 }
+
+/** Compact date for playtime line: "March-14-2026" (no spaces around hyphens) */
+export function formatDateCompactForEmail(dateStrOrDate: string | Date): string {
+  const d = typeof dateStrOrDate === 'string' ? new Date(dateStrOrDate) : dateStrOrDate;
+  if (Number.isNaN(d.getTime())) return String(dateStrOrDate);
+  const month = d.toLocaleDateString('en-US', { month: 'long' });
+  const day = d.getDate();
+  const year = d.getFullYear();
+  return `${month}-${day}-${year}`;
+}
+
+/** Weekday from date: "Saturday" */
+export function formatWeekdayForEmail(dateStrOrDate: string | Date): string {
+  const d = typeof dateStrOrDate === 'string' ? new Date(dateStrOrDate) : dateStrOrDate;
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { weekday: 'long' });
+}
+
+/** Normalize time string for email: trim and ensure consistent dash (e.g. "10:00 AM - 01:00 PM") */
+export function normalizeTimeForEmail(timeStr: string | undefined): string {
+  if (!timeStr || !timeStr.trim()) return '';
+  return timeStr.trim().replace(/\s*-\s*/g, ' - ');
+}
+
+/**
+ * Single playtime line for emails: no duplicated date or time.
+ * Format: "Playtime on Monday 10:00 AM - 01:00 PM, Date: March-16-2026 at location"
+ * If no location: "Playtime on Monday 10:00 AM - 01:00 PM, Date: March-16-2026"
+ * If no time: "Playtime on Monday, Date: March-16-2026 at location"
+ */
+export function formatPlaytimeLineForEmail(
+  dateStrOrDate: string | Date,
+  timeStr: string | undefined,
+  location: string | undefined
+): string {
+  const dateCompact = formatDateCompactForEmail(dateStrOrDate);
+  const weekday = formatWeekdayForEmail(dateStrOrDate);
+  const timeNorm = normalizeTimeForEmail(timeStr);
+  const locationPart = location && location.trim() ? ` at ${location.trim()}` : '';
+  const onPart = weekday ? ` on ${weekday}` : '';
+  const timePart = timeNorm ? ` ${timeNorm}` : '';
+  return `Playtime${onPart}${timePart}, Date: ${dateCompact}${locationPart}`;
+}
+
+/**
+ * Parse combined "YYYY-MM-DD time..." into date and time parts for use with formatPlaytimeLineForEmail.
+ */
+export function parseDateAndTimeForEmail(combined: string): { date: string; time: string | undefined } {
+  const trimmed = (combined ?? '').trim();
+  if (!trimmed) return { date: '', time: undefined };
+  const firstSpace = trimmed.indexOf(' ');
+  if (firstSpace <= 0) return { date: trimmed, time: undefined };
+  return {
+    date: trimmed.slice(0, firstSpace),
+    time: trimmed.slice(firstSpace + 1).trim() || undefined,
+  };
+}

@@ -2,7 +2,7 @@
  * Registration-related emails: confirmation, cancellation.
  */
 import { getTransporter, getEmailTemplateWithLogo } from './emailTransporter.js';
-import { escapeHtml, extractFirstName, formatDateTimeForEmail, formatDateOrDateTimeForEmail } from './emailUtils.js';
+import { escapeHtml, extractFirstName, formatPlaytimeLineForEmail } from './emailUtils.js';
 
 export interface RegistrationSessionDetails {
   title: string;
@@ -62,8 +62,7 @@ export async function sendRegistrationConfirmationEmailForSessions(
   );
   htmlParts.push('<p><strong>Sessions:</strong></p><ul style="margin: 0 0 1em; padding-left: 1.5em;">');
   for (const s of sessions) {
-    const dateFmt = formatDateTimeForEmail(s.date, s.time);
-    const detailsStr = s.location ? `${dateFmt} at ${s.location}` : dateFmt;
+    const detailsStr = formatPlaytimeLineForEmail(s.date, s.time, s.location);
     textParts.push(`• ${s.title}: ${detailsStr}`);
     htmlParts.push(`<li><strong>${escapeHtml(s.title)}</strong> – ${escapeHtml(detailsStr)}</li>`);
   }
@@ -107,21 +106,20 @@ export async function sendCancellationConfirmationEmail(
   const firstName = extractFirstName(recipientName);
   const greeting = `Hey ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'Registration cancelled - ChibiBadminton';
-  const eventDateFmt = formatDateTimeForEmail(eventDate, eventTime);
-  const locationPart = eventLocation ? ` at ${eventLocation}` : '';
+  const sessionLine = formatPlaytimeLineForEmail(eventDate, eventTime, eventLocation);
   const text = [
     greeting,
     '',
     `Your registration for "${eventTitle}" has been cancelled.`,
     '',
-    `Session was: ${eventDateFmt}${locationPart}`,
+    `Session was: ${sessionLine}`,
     '',
     'You can register again from the Play or Profile page when spots are available. See you on the court!',
   ].join('\n');
   const bodyHtml = [
     `<p>${escapeHtml(greeting)}</p>`,
     `<p>Your registration for <strong>${escapeHtml(eventTitle)}</strong> has been cancelled.</p>`,
-    `<p>Session was: ${escapeHtml(eventDateFmt)}${eventLocation ? ` at ${escapeHtml(eventLocation)}` : ''}</p>`,
+    `<p>Session was: ${escapeHtml(sessionLine)}</p>`,
     '<p>You can register again from the Play or Profile page when spots are available. We hope to see you on the court soon!</p>',
   ].join('\n');
   try {

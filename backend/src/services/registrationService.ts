@@ -699,6 +699,69 @@ export const removeGuestsFromRegistration = async (
 };
 
 /**
+ * Remove specific guests by ID from an existing confirmed registration.
+ * Frees spots and promotes from waitlist (FIFO) for each freed spot.
+ */
+export const removeGuestsByIdsFromRegistration = async (
+  userId: string,
+  registrationId: string,
+  guestIds: number[]
+): Promise<{ removed: number; promoted: number }> => {
+  if (!guestIds.length) throw createError('At least one guest ID is required', 400);
+  if (guestIds.length > 10) throw createError('Cannot remove more than 10 guests at once', 400);
+
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations WHERE id = ? AND user_id = ? AND status = ?',
+    [registrationId, userId, 'confirmed']
+  );
+  if (rows.length === 0) throw createError('Registration not found or unauthorized', 404);
+
+  const reg = rows[0];
+  const currentGuests = await getGuestsByRegistrationId(registrationId);
+  const idSet = new Set(guestIds);
+  const toDelete = currentGuests.filter((g) => idSet.has(g.id));
+  if (toDelete.length !== guestIds.length) {
+    throw createError('Some guest IDs do not belong to this registration', 400);
+  }
+
+  const actualRemove = toDelete.length;
+  const newGuestCount = (reg.guest_count ?? 0) - actualRemove;
+  if (newGuestCount < 0) throw createError('Invalid guest count', 400);
+
+  for (const g of toDelete) {
+    await deleteGuest(g.id, registrationId);
+  }
+
+  await pool.execute(
+    'UPDATE registrations SET guest_count = ? WHERE id = ?',
+    [newGuestCount, registrationId]
+  );
+  await decrementEventAttendees(reg.event_id, actualRemove);
+
+  let promoted = 0;
+  const { promoteFromWaitlist } = await import('./waitlistService.js');
+  const event = await getEventById(reg.event_id);
+  if (event) {
+    for (let i = 0; i < actualRemove; i++) {
+      const result = await promoteFromWaitlist(reg.event_id, async (entry, link) => {
+        await sendWaitlistPromotionEmail(
+          entry.email,
+          event.title,
+          event.date,
+          link,
+          new Date(Date.now() + 24 * 60 * 60 * 1000),
+          entry.name
+        );
+      });
+      if (result.promoted) promoted += 1;
+      else break;
+    }
+  }
+
+  return { removed: actualRemove, promoted };
+};
+
+/**
  * Expire pending_payment registrations past their deadline, cancel them, and promote next from waitlist.
  * Called by cron. For pending_payment we never incremented attendees, so no decrement needed.
  */

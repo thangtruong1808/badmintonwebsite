@@ -11,6 +11,7 @@ import {
   getPendingAddGuestsById,
   addGuestsToRegistration as addGuestsToRegistrationService,
   removeGuestsFromRegistration as removeGuestsFromRegistrationService,
+  removeGuestsByIdsFromRegistration as removeGuestsByIdsFromRegistrationService,
 } from '../services/registrationService.js';
 import {
   joinWaitlist as joinWaitlistService,
@@ -228,7 +229,7 @@ export const addGuestsToRegistration = async (
 };
 
 export const removeGuestsFromRegistration = async (
-  req: AuthRequest<{ id: string }, {}, { guestCount: number }>,
+  req: AuthRequest<{ id: string }, {}, { guestCount?: number; guestIds?: number[] }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -238,13 +239,22 @@ export const removeGuestsFromRegistration = async (
     }
 
     const registrationId = req.params.id;
+    const guestIds = req.body?.guestIds;
     const guestCount = req.body?.guestCount ?? 0;
 
-    if (!registrationId || guestCount < 1 || guestCount > 10) {
-      throw createError('Valid registration ID and guestCount (1-10) are required', 400);
+    if (!registrationId) {
+      throw createError('Valid registration ID is required', 400);
     }
 
-    const result = await removeGuestsFromRegistrationService(req.userId, registrationId, guestCount);
+    let result: { removed: number; promoted: number };
+    if (Array.isArray(guestIds) && guestIds.length > 0) {
+      result = await removeGuestsByIdsFromRegistrationService(req.userId, registrationId, guestIds);
+    } else if (guestCount >= 1 && guestCount <= 10) {
+      result = await removeGuestsFromRegistrationService(req.userId, registrationId, guestCount);
+    } else {
+      throw createError('Provide either guestIds (array) or guestCount (1-10)', 400);
+    }
+
     const registration = await getRegistrationById(registrationId);
     if (registration?.email && result.removed) {
       const event = await getEventById(registration.eventId);

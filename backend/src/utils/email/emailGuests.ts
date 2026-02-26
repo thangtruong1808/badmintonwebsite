@@ -2,7 +2,7 @@
  * Add-guests / friends related emails.
  */
 import { getTransporter, getEmailTemplateWithLogo } from './emailTransporter.js';
-import { escapeHtml, extractFirstName, formatDateOrDateTimeForEmail } from './emailUtils.js';
+import { escapeHtml, extractFirstName, formatPlaytimeLineForEmail, parseDateAndTimeForEmail } from './emailUtils.js';
 
 /**
  * Send email when friends on the add-guests waitlist are promoted.
@@ -21,17 +21,18 @@ export async function sendFriendsPromotedEmail(
   const greeting = `Hey ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const friendText = count === 1 ? 'friend has' : 'friends have';
   const subject = 'Your friend(s) have been added - ChibiBadminton';
-  const eventDateFmt = formatDateOrDateTimeForEmail(eventDate);
+  const { date: d, time: t } = parseDateAndTimeForEmail(eventDate);
+  const playtimeLine = formatPlaytimeLineForEmail(d, t, undefined);
   const text = [
     greeting,
     '',
-    `Good news! ${count} of your ${friendText} been added to your registration for "${eventTitle}" (${eventDateFmt}).`,
+    `Good news! ${count} of your ${friendText} been added to your registration for "${eventTitle}" (${playtimeLine}).`,
     '',
     'No further action is required. See you on the court!',
   ].join('\n');
   const bodyHtml = [
     `<p>${escapeHtml(greeting)}</p>`,
-    `<p>Good news! ${count} of your ${friendText} been added to your registration for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(eventDateFmt)}).</p>`,
+    `<p>Good news! ${count} of your ${friendText} been added to your registration for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(playtimeLine)}).</p>`,
     '<p>No further action is required. We look forward to seeing you on the court!</p>',
   ].join('\n');
   try {
@@ -65,13 +66,14 @@ export async function sendAddGuestsConfirmationEmail(
       : '';
   const waitlistedStr =
     waitlisted > 0
-      ? `${waitlisted} friend${waitlisted !== 1 ? 's' : ''} ${waitlisted !== 1 ? 'are' : 'is'} on the waitlist (no payment required).`
+      ? `${waitlisted} friend${waitlisted !== 1 ? 's' : ''} ${waitlisted !== 1 ? 'are' : 'is'} on the waitlist.`
       : '';
-  const eventDateFmt = formatDateOrDateTimeForEmail(eventDate);
+  const { date: d, time: t } = parseDateAndTimeForEmail(eventDate);
+  const playtimeLine = formatPlaytimeLineForEmail(d, t, undefined);
   const text = [
     greeting,
     '',
-    `Your registration for "${eventTitle}" (${eventDateFmt}) has been updated.`,
+    `Your registration for "${eventTitle}" (${playtimeLine}) has been updated.`,
     '',
     [addedStr, waitlistedStr].filter(Boolean).join(' '),
     '',
@@ -79,7 +81,7 @@ export async function sendAddGuestsConfirmationEmail(
   ].join('\n');
   const bodyHtml = [
     `<p>${escapeHtml(greeting)}</p>`,
-    `<p>Your registration for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(eventDateFmt)}) has been updated.</p>`,
+    `<p>Your registration for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(playtimeLine)}) has been updated.</p>`,
     [addedStr, waitlistedStr].filter(Boolean).map((p) => `<p>${escapeHtml(p)}</p>`).join(''),
     '<p>We look forward to seeing you on the court!</p>',
   ].join('\n');
@@ -114,11 +116,12 @@ export async function sendRemoveGuestsConfirmationEmail(
   if (promoted > 0) {
     parts.push(`${promoted} spot${promoted !== 1 ? 's' : ''} ${promoted !== 1 ? 'were' : 'was'} offered to the waitlist.`);
   }
-  const eventDateFmt = formatDateOrDateTimeForEmail(eventDate);
+  const { date: d, time: t } = parseDateAndTimeForEmail(eventDate);
+  const playtimeLine = formatPlaytimeLineForEmail(d, t, undefined);
   const text = [
     greeting,
     '',
-    `Your registration for "${eventTitle}" (${eventDateFmt}) has been updated.`,
+    `Your registration for "${eventTitle}" (${playtimeLine}) has been updated.`,
     '',
     parts.join(' '),
     '',
@@ -126,7 +129,7 @@ export async function sendRemoveGuestsConfirmationEmail(
   ].join('\n');
   const bodyHtml = [
     `<p>${escapeHtml(greeting)}</p>`,
-    `<p>Your registration for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(eventDateFmt)}) has been updated.</p>`,
+    `<p>Your registration for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(playtimeLine)}) has been updated.</p>`,
     `<p>${parts.map((p) => escapeHtml(p)).join(' ')}</p>`,
     '<p>We look forward to seeing you on the court!</p>',
   ].join('\n');
@@ -155,17 +158,18 @@ export async function sendWaitlistFriendsUpdateConfirmationEmail(
   const greeting = `Hey ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'Waitlist update confirmed - ChibiBadminton';
   const friendText = reduced === 1 ? 'friend has' : 'friends have';
-  const eventDateFmt = formatDateOrDateTimeForEmail(eventDate);
+  const { date: d, time: t } = parseDateAndTimeForEmail(eventDate);
+  const playtimeLine = formatPlaytimeLineForEmail(d, t, undefined);
   const text = [
     greeting,
     '',
-    `Your waitlist update for "${eventTitle}" (${eventDateFmt}) is confirmed.`,
+    `Your waitlist update for "${eventTitle}" (${playtimeLine}) is confirmed.`,
     '',
     `${reduced} ${friendText} been removed from the waitlist.`,
   ].join('\n');
   const bodyHtml = [
     `<p>${escapeHtml(greeting)}</p>`,
-    `<p>Your waitlist update for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(eventDateFmt)}) is confirmed.</p>`,
+    `<p>Your waitlist update for <strong>${escapeHtml(eventTitle)}</strong> (${escapeHtml(playtimeLine)}) is confirmed.</p>`,
     `<p>${reduced} ${friendText} been removed from the waitlist.</p>`,
   ].join('\n');
   try {

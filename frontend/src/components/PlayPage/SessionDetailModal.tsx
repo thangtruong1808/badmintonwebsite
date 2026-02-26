@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { FaTimes, FaUsers, FaCheckCircle, FaList, FaSpinner, FaEdit, FaTrash } from "react-icons/fa";
+import { FaTimes, FaUsers, FaCheckCircle, FaList, FaSpinner, FaEdit } from "react-icons/fa";
 import type { SocialEvent } from "../../types/socialEvent";
 import { API_BASE } from "../../utils/api";
 import { selectUser } from "../../store/authSlice";
@@ -9,7 +9,7 @@ import ConfirmDialog from "../Dashboard/Shared/ConfirmDialog";
 import {
   joinWaitlist,
   addGuestsToRegistration,
-  removeGuestsToRegistration,
+  removeGuestsByIdsToRegistration,
   getMyAddGuestsWaitlist,
   getMyEventWaitlistStatus,
   reduceWaitlistFriends,
@@ -86,8 +86,10 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   const [pendingGuestAdd, setPendingGuestAdd] = useState<{ registrationId: string; count: number; toAdd: number; toWaitlist: number } | null>(null);
   const [removeGuestsSubmitting, setRemoveGuestsSubmitting] = useState(false);
   const [removeGuestsMessage, setRemoveGuestsMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [guestCountToRemove, setGuestCountToRemove] = useState<number>(1);
-  const [showRemoveGuestsConfirm, setShowRemoveGuestsConfirm] = useState(false);
+  const [showRemoveGuestsModal, setShowRemoveGuestsModal] = useState(false);
+  const [removeGuestsList, setRemoveGuestsList] = useState<{ id: number; name: string }[]>([]);
+  const [removeGuestsListLoading, setRemoveGuestsListLoading] = useState(false);
+  const [removeGuestsSelectedIds, setRemoveGuestsSelectedIds] = useState<Set<number>>(new Set());
   const [myWaitlistFriendCount, setMyWaitlistFriendCount] = useState<number>(0);
   const [isOnEventWaitlist, setIsOnEventWaitlist] = useState<boolean>(false);
   const [eventWaitlistStatusLoading, setEventWaitlistStatusLoading] = useState(false);
@@ -100,8 +102,6 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   const [editGuestsLoading, setEditGuestsLoading] = useState(false);
   const [editGuestsSubmitting, setEditGuestsSubmitting] = useState(false);
   const [editGuestsMessage, setEditGuestsMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [editGuestName, setEditGuestName] = useState("");
-  const [editingGuestIndex, setEditingGuestIndex] = useState<number | null>(null);
   const [showWaitlistSignInDialog, setShowWaitlistSignInDialog] = useState(false);
 
   const navigate = useNavigate();
@@ -258,7 +258,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
       const added = result.added ?? count;
       const waitlisted = result.waitlisted ?? 0;
       const msg = waitlisted > 0
-        ? `${added} friend(s) added. ${waitlisted} on the waitlist (no payment required).`
+        ? `${added} friend(s) added. ${waitlisted} on the waitlist.`
         : `${added} friend(s) added.`;
       setAddGuestsMessage({ type: "success", text: msg });
       fetchRegistrations();
@@ -284,30 +284,46 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     }
   };
 
-  const handleRemoveGuestsClick = () => {
+  const openRemoveGuestsModal = () => {
     if (!myRegistrationId || myGuestCount < 1) return;
-    setShowRemoveGuestsConfirm(true);
+    setShowRemoveGuestsModal(true);
+    setRemoveGuestsList([]);
+    setRemoveGuestsSelectedIds(new Set());
+    setRemoveGuestsMessage(null);
+    setRemoveGuestsListLoading(true);
+    getRegistrationGuests(myRegistrationId).then((data) => {
+      const list = (data.guests ?? []).filter((g) => g.id != null).map((g) => ({ id: g.id as number, name: g.name }));
+      setRemoveGuestsList(list);
+      setRemoveGuestsListLoading(false);
+    }).catch(() => setRemoveGuestsListLoading(false));
+  };
+
+  const toggleRemoveGuestSelected = (id: number) => {
+    setRemoveGuestsSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const handleRemoveGuestsConfirm = async () => {
-    if (!myRegistrationId || myGuestCount < 1) return;
-    setShowRemoveGuestsConfirm(false);
-    const count = Math.min(Math.max(1, guestCountToRemove), myGuestCount);
+    if (!myRegistrationId || removeGuestsSelectedIds.size === 0) return;
     setRemoveGuestsSubmitting(true);
     setRemoveGuestsMessage(null);
-    const result = await removeGuestsToRegistration(myRegistrationId, count);
+    const result = await removeGuestsByIdsToRegistration(myRegistrationId, Array.from(removeGuestsSelectedIds));
     setRemoveGuestsSubmitting(false);
     if (result.success) {
-      const removed = result.removed ?? count;
+      const removed = result.removed ?? 0;
       const promoted = result.promoted ?? 0;
       const msg = promoted > 0
         ? `${removed} friend(s) removed. ${promoted} spot(s) offered to the waitlist.`
         : `${removed} friend(s) removed.`;
       setRemoveGuestsMessage({ type: "success", text: msg });
+      setShowRemoveGuestsModal(false);
       fetchRegistrations();
       fetchWaitlist();
       onGuestsAdded?.();
-      setGuestCountToRemove(1);
     } else {
       setRemoveGuestsMessage({ type: "error", text: result.message ?? "Failed to remove friends." });
     }
@@ -341,8 +357,6 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     setShowEditGuestsModal(true);
     setEditGuestsLoading(true);
     setEditGuestsList([]);
-    setEditGuestName("");
-    setEditingGuestIndex(null);
     setEditGuestsMessage(null);
     getRegistrationGuests(myRegistrationId).then((data) => {
       setEditGuestsList((data.guests ?? []).map((g) => ({ id: g.id, name: g.name })));
@@ -352,9 +366,14 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
 
   const handleSaveEditGuests = async () => {
     if (!myRegistrationId) return;
+    const allFilled = editGuestsList.every((g) => (g.name ?? "").trim());
+    if (!allFilled) {
+      setEditGuestsMessage({ type: "error", text: "Please enter a name for each friend." });
+      return;
+    }
     setEditGuestsSubmitting(true);
     setEditGuestsMessage(null);
-    const result = await putRegistrationGuests(myRegistrationId, editGuestsList.filter((g) => (g.name ?? "").trim()));
+    const result = await putRegistrationGuests(myRegistrationId, editGuestsList.map((g) => ({ id: g.id, name: (g.name ?? "").trim() })));
     setEditGuestsSubmitting(false);
     if (result.success) {
       setEditGuestsMessage({ type: "success", text: "Friend names saved." });
@@ -363,23 +382,6 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     } else {
       setEditGuestsMessage({ type: "error", text: result.message ?? "Failed to save." });
     }
-  };
-
-  const handleAddEditGuest = () => {
-    const name = editGuestName.trim();
-    if (!name) return;
-    if (editingGuestIndex != null) {
-      setEditGuestsList((prev) => prev.map((g, i) => (i === editingGuestIndex ? { ...g, name } : g)));
-      setEditingGuestIndex(null);
-    } else {
-      setEditGuestsList((prev) => [...prev, { name }]);
-    }
-    setEditGuestName("");
-  };
-
-  const handleRemoveEditGuest = (index: number) => {
-    setEditGuestsList((prev) => prev.filter((_, i) => i !== index));
-    if (editingGuestIndex === index) setEditingGuestIndex(null);
   };
 
   if (!event) return null;
@@ -582,39 +584,28 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               )}
               {isAlreadyRegistered && myRegistrationId && myGuestCount >= 1 && (
                 <div className="flex flex-col gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 flex-wrap">
                     <span className="text-sm text-gray-700 font-calibri">Manage friends (you have +{myGuestCount}):</span>
-                    <select
-                      value={guestCountToRemove}
-                      onChange={(e) => setGuestCountToRemove(Math.min(Number(e.target.value), myGuestCount))}
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-calibri"
-                    >
-                      {Array.from({ length: myGuestCount }, (_, i) => i + 1).map((n) => (
-                        <option key={n} value={n}>
-                          Remove {n}
-                        </option>
-                      ))}
-                    </select>
                     <button
-                      onClick={handleRemoveGuestsClick}
+                      onClick={openRemoveGuestsModal}
                       disabled={removeGuestsSubmitting}
                       className="py-1.5 px-4 rounded-lg border-2 border-gray-400 text-gray-700 hover:bg-gray-100 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri inline-flex items-center justify-center gap-2"
                     >
-                      {removeGuestsSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Removing…</span></> : "Remove friends"}
+                      Remove friends
+                    </button>
+                    <button
+                      onClick={openEditGuestsModal}
+                      className="text-sm text-rose-600 hover:text-rose-700 font-medium font-calibri inline-flex items-center gap-1.5"
+                    >
+                      <FaEdit size={14} />
+                      Edit friend names
                     </button>
                     {removeGuestsMessage && (
-                      <span className={`text-sm ${removeGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                      <span className={`text-sm w-full ${removeGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
                         {removeGuestsMessage.text}
                       </span>
                     )}
                   </div>
-                  <button
-                    onClick={openEditGuestsModal}
-                    className="text-sm text-rose-600 hover:text-rose-700 font-medium font-calibri inline-flex items-center gap-1.5"
-                  >
-                    <FaEdit size={14} />
-                    Edit friend names
-                  </button>
                 </div>
               )}
               {isAlreadyRegistered && myRegistrationId && myWaitlistFriendCount >= 1 && (
@@ -750,20 +741,57 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
         onConfirm={handleReduceWaitlistConfirm}
         onCancel={() => setShowReduceWaitlistConfirm(false)}
       />
-      <ConfirmDialog
-        open={showRemoveGuestsConfirm}
-        title="Remove friends"
-        message={
-          guestCountToRemove >= 1 && myGuestCount >= 1
-            ? `Remove ${Math.min(guestCountToRemove, myGuestCount)} friend(s)? Freed spot(s) may be offered to the waitlist.`
-            : ""
-        }
-        confirmLabel="Yes, remove"
-        cancelLabel="Cancel"
-        variant="default"
-        onConfirm={handleRemoveGuestsConfirm}
-        onCancel={() => setShowRemoveGuestsConfirm(false)}
-      />
+      {showRemoveGuestsModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 max-h-[85vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-gray-900 font-calibri mb-2">Remove friends</h3>
+            <p className="text-sm text-gray-600 font-calibri mb-4">Select the friend(s) you want to remove from your registration. Freed spot(s) may be offered to the waitlist.</p>
+            {removeGuestsMessage && (
+              <p className={`mb-3 text-sm font-calibri ${removeGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                {removeGuestsMessage.text}
+              </p>
+            )}
+            {removeGuestsListLoading ? (
+              <p className="text-sm text-gray-500 font-calibri py-2">Loading…</p>
+            ) : removeGuestsList.length === 0 ? (
+              <p className="text-sm text-gray-500 font-calibri py-2">No friends on this registration.</p>
+            ) : (
+              <ul className="space-y-2 mb-4">
+                {removeGuestsList.map((g) => (
+                  <li key={g.id} className="flex items-center gap-3 px-3 py-2 bg-gray-50 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id={`remove-guest-${g.id}`}
+                      checked={removeGuestsSelectedIds.has(g.id)}
+                      onChange={() => toggleRemoveGuestSelected(g.id)}
+                      className="rounded border-gray-300 text-rose-500 focus:ring-rose-500 h-4 w-4"
+                      aria-label={`Remove ${g.name || "friend"}`}
+                    />
+                    <label htmlFor={`remove-guest-${g.id}`} className="flex-1 font-calibri text-gray-800 cursor-pointer">
+                      {g.name || "(unnamed)"}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex gap-2 pt-2 border-t border-gray-200">
+              <button
+                onClick={() => { setShowRemoveGuestsModal(false); setRemoveGuestsMessage(null); }}
+                className="flex-1 py-2 px-3 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium font-calibri"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRemoveGuestsConfirm}
+                disabled={removeGuestsSubmitting || removeGuestsSelectedIds.size === 0}
+                className="flex-1 py-2 px-3 rounded-lg border-2 border-rose-500 text-rose-600 hover:bg-rose-50 font-medium disabled:opacity-60 disabled:cursor-not-allowed font-calibri inline-flex items-center justify-center gap-2"
+              >
+                {removeGuestsSubmitting ? <><FaSpinner className="animate-spin h-4 w-4" /><span>Removing…</span></> : `Remove selected (${removeGuestsSelectedIds.size})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <ConfirmDialog
         open={showCancelConfirm}
         title="Cancel registration"
@@ -778,65 +806,32 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
       {showEditGuestsModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 max-h-[85vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-900 font-calibri mb-4">Edit friend names</h3>
+            <h3 className="text-xl font-bold text-gray-900 font-calibri mb-2">Edit friend names</h3>
+            <p className="text-sm text-gray-600 font-calibri mb-4">Update names only. Use &quot;Add friends&quot; or &quot;Remove friends&quot; outside this dialog to change how many friends are on your registration.</p>
             {editGuestsMessage && (
               <p className={`mb-3 text-sm font-calibri ${editGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
                 {editGuestsMessage.text}
               </p>
             )}
-            <div className="flex gap-2 mb-3">
-              <input
-                type="text"
-                placeholder={editingGuestIndex != null ? "Update name" : "Add friend name"}
-                value={editGuestName}
-                onChange={(e) => setEditGuestName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddEditGuest())}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 font-calibri text-sm"
-              />
-              <button
-                type="button"
-                onClick={handleAddEditGuest}
-                className="rounded-lg bg-rose-500 px-4 py-2 text-white hover:bg-rose-600 font-calibri text-sm"
-              >
-                {editingGuestIndex != null ? "Update" : "Add"}
-              </button>
-              {editingGuestIndex != null && (
-                <button
-                  type="button"
-                  onClick={() => { setEditingGuestIndex(null); setEditGuestName(""); }}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 font-calibri text-sm"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
             {editGuestsLoading ? (
               <p className="text-sm text-gray-500 font-calibri py-2">Loading…</p>
             ) : editGuestsList.length === 0 ? (
-              <p className="text-sm text-gray-500 font-calibri py-2">No friend names yet. Add above.</p>
+              <p className="text-sm text-gray-500 font-calibri py-2">No friends on this registration. Use &quot;Add friends&quot; to add some first.</p>
             ) : (
               <ul className="space-y-2 mb-4">
                 {editGuestsList.map((g, i) => (
-                  <li key={i} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
-                    <span className="font-calibri text-gray-800">{g.name || "(unnamed)"}</span>
-                    <div className="flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => { setEditingGuestIndex(i); setEditGuestName(g.name); }}
-                        className="rounded p-1.5 text-rose-600 hover:bg-rose-100"
-                        aria-label="Edit"
-                      >
-                        <FaEdit size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveEditGuest(i)}
-                        className="rounded p-1.5 text-red-600 hover:bg-red-100"
-                        aria-label="Remove"
-                      >
-                        <FaTrash size={14} />
-                      </button>
-                    </div>
+                  <li key={g.id ?? i} className="flex items-center gap-2">
+                    <label className="flex-1 min-w-0 flex items-center gap-2">
+                      <span className="text-sm font-calibri text-gray-600 shrink-0">Friend {i + 1}</span>
+                      <input
+                        type="text"
+                        value={g.name ?? ""}
+                        onChange={(e) => setEditGuestsList((prev) => prev.map((guest, idx) => (idx === i ? { ...guest, name: e.target.value } : guest)))}
+                        placeholder="Name"
+                        className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 font-calibri text-sm"
+                        aria-label={`Friend ${i + 1} name`}
+                      />
+                    </label>
                   </li>
                 ))}
               </ul>
@@ -850,7 +845,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               </button>
               <button
                 onClick={handleSaveEditGuests}
-                disabled={editGuestsSubmitting}
+                disabled={editGuestsSubmitting || editGuestsList.length === 0}
                 className="flex-1 py-2 px-3 rounded-lg border-2 border-rose-500 text-rose-600 hover:bg-rose-50 font-medium disabled:opacity-60 font-calibri inline-flex items-center justify-center gap-2"
               >
                 {editGuestsSubmitting ? <><FaSpinner className="animate-spin h-4 w-4" /><span>Saving…</span></> : "Save"}

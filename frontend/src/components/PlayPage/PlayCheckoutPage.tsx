@@ -232,7 +232,7 @@ const PlayCheckoutPage: React.FC = () => {
                 {addGuestsPendingId
                   ? "Complete payment within 24 hours to add your friend(s) to your registration."
                   : addGuestsContext.guestCountTotal != null && addGuestsContext.guestCountTotal > addGuestsContext.guestCount
-                    ? `${addGuestsContext.guestCount} friend(s) will be added (payment required). ${addGuestsContext.guestCountTotal - addGuestsContext.guestCount} on waitlist (no payment).`
+                    ? `${addGuestsContext.guestCount} friend(s) will be added (payment required). ${addGuestsContext.guestCountTotal - addGuestsContext.guestCount} on the waitlist.`
                     : `Adding ${addGuestsContext.guestCount} friend${addGuestsContext.guestCount !== 1 ? "s" : ""} to your registration. Proceed to payment.`}
               </p>
             </div>

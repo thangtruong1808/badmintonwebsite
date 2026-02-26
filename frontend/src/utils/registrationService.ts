@@ -320,7 +320,7 @@ export async function reduceWaitlistFriends(
 }
 
 /**
- * Remove friends from an existing registration (1–10).
+ * Remove friends from an existing registration by count (1–10).
  */
 export async function removeGuestsToRegistration(
   registrationId: string,
@@ -330,6 +330,36 @@ export async function removeGuestsToRegistration(
     const res = await apiFetch(`/api/registrations/${registrationId}/remove-guests`, {
       method: "POST",
       body: JSON.stringify({ guestCount }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return {
+        success: true,
+        removed: data.removed ?? 0,
+        promoted: data.promoted ?? 0,
+      };
+    }
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in." : (data.message ?? data.error ?? "Failed to remove friends."),
+    };
+  } catch {
+    return { success: false, message: "Could not remove friends. Please try again." };
+  }
+}
+
+/**
+ * Remove specific friends by guest IDs (e.g. from checkbox selection).
+ */
+export async function removeGuestsByIdsToRegistration(
+  registrationId: string,
+  guestIds: number[]
+): Promise<{ success: boolean; message?: string; removed?: number; promoted?: number }> {
+  if (!guestIds.length) return { success: false, message: "Select at least one friend to remove." };
+  try {
+    const res = await apiFetch(`/api/registrations/${registrationId}/remove-guests`, {
+      method: "POST",
+      body: JSON.stringify({ guestIds }),
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
