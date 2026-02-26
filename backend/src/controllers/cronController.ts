@@ -3,6 +3,7 @@ import {
   expirePendingPromotions,
   processWaitlistsForAvailableSpots,
 } from '../services/registrationService.js';
+import { processRefundsForCompletedEvents } from '../services/refundService.js';
 import { createError } from '../middleware/errorHandler.js';
 
 /**
@@ -36,6 +37,32 @@ export const expirePendingPromotionsCron = async (
       waitlistProcessed: processResult.processed,
       waitlistPromoted: processResult.promoted,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Cron endpoint to process refunds for completed events (cancelled registrations, waitlist).
+ * Protected by CRON_SECRET.
+ */
+export const processRefundsCron = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const secret = process.env.CRON_SECRET;
+    const authHeader = req.headers.authorization;
+    const cronSecret = req.headers['x-cron-secret'] as string | undefined;
+    const provided = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : cronSecret;
+
+    if (!secret || provided !== secret) {
+      throw createError('Unauthorized', 401);
+    }
+
+    const result = await processRefundsForCompletedEvents();
+    res.json({ success: true, ...result });
   } catch (error) {
     next(error);
   }

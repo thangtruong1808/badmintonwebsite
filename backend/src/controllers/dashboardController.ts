@@ -3,6 +3,7 @@ import { testConnection } from '../db/connection.js';
 import { getAllUsersCount, getAllUsers, updateUser } from '../services/userService.js';
 import { getAllEvents } from '../services/eventService.js';
 import { getRegistrationsCount, getAllRegistrations } from '../services/registrationService.js';
+import { getGuestsByRegistrationId, updateGuestsBulkAdmin } from '../services/registrationGuestService.js';
 import { getRewardTransactionsCount, getAllRewardTransactions } from '../services/rewardService.js';
 import * as productService from '../services/productService.js';
 import * as productImageService from '../services/productImageService.js';
@@ -75,6 +76,37 @@ export const getDashboardRegistrations = async (req: Request, res: Response, nex
   try {
     const list = await getAllRegistrations();
     res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDashboardRegistrationGuests = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const guests = await getGuestsByRegistrationId(req.params.id);
+    res.json({ guests });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const putDashboardRegistrationGuests = async (
+  req: Request<{ id: string }, object, { guests: { id?: number; name: string }[] }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const guests = req.body?.guests;
+    if (!Array.isArray(guests)) {
+      throw createError('guests array is required', 400);
+    }
+    const updated = await updateGuestsBulkAdmin(id, guests);
+    res.json({ guests: updated });
   } catch (error) {
     next(error);
   }

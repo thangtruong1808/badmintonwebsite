@@ -88,7 +88,8 @@ const PlayPaymentPage: React.FC = () => {
       ? (() => {
           const e = addGuestsContext.event;
           const pricePer = Number(e.price ?? 0);
-          return Array.from({ length: addGuestsContext.guestCount }, () => ({
+          const totalToCharge = addGuestsContext.guestCountTotal ?? addGuestsContext.guestCount;
+          return Array.from({ length: totalToCharge }, () => ({
             ...e,
             id: e.id,
             title: e.title,

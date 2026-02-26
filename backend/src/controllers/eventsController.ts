@@ -10,6 +10,7 @@ import {
 import { processWaitlistsForAvailableSpots } from '../services/registrationService.js';
 import { getEventRegistrationsPublic as getEventRegistrationsPublicService } from '../services/registrationService.js';
 import { getEventWaitlistPublic as getEventWaitlistPublicService } from '../services/waitlistService.js';
+import { getCourtsByEventId } from '../services/courtService.js';
 import { createError } from '../middleware/errorHandler.js';
 import type { SocialEvent } from '../types/index.js';
 
@@ -90,7 +91,8 @@ export const getEventById = async (
       throw createError('Event not found', 404);
     }
 
-    res.json(event);
+    const courts = await getCourtsByEventId(eventId);
+    res.json({ ...event, courts: courts.map((c) => ({ id: c.id, name: c.name })) });
   } catch (error) {
     next(error);
   }

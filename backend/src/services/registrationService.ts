@@ -9,6 +9,7 @@ import {
 } from './eventService.js';
 import { getUserById } from './userService.js';
 import { promoteFromWaitlist } from './waitlistService.js';
+import { createGuest, getGuestsByRegistrationId, deleteGuest } from './registrationGuestService.js';
 import { sendWaitlistPromotionEmail, sendRegistrationConfirmationEmail, sendRegistrationConfirmationEmailForSessions, sendAddGuestsConfirmationEmail, sendCancellationConfirmationEmail } from '../utils/email.js';
 import pool from '../db/connection.js';
 
@@ -35,6 +36,7 @@ export interface PublicRegistrationPlayer {
   email?: string;
   avatar?: string | null;
   guestCount?: number;
+  guestNames?: string[];
 }
 
 interface RegRow extends RowDataPacket {
@@ -191,21 +193,37 @@ export const getEventRegistrations = async (eventId: number): Promise<Registrati
   return rows.map(rowToRegistration);
 };
 
-/** Public: returns list of registered players (name, avatar, guestCount) for displaying on play page. Only confirmed. */
+/** Public: returns list of registered players (name, avatar, guestCount, guestNames) for displaying on play page. Only confirmed. */
 export const getEventRegistrationsPublic = async (eventId: number): Promise<PublicRegistrationPlayer[]> => {
-  const [rows] = await pool.execute<(RegRow & { avatar?: string | null })[]>(
-    `SELECT r.name, r.email, r.guest_count, u.avatar
+  const [rows] = await pool.execute<(RegRow & { avatar?: string | null; registration_id?: string })[]>(
+    `SELECT r.id as registration_id, r.name, r.email, r.guest_count, u.avatar
      FROM registrations r
      LEFT JOIN users u ON r.user_id = u.id
      WHERE r.event_id = ? AND r.status = ?
      ORDER BY r.registration_date ASC`,
     [eventId, 'confirmed']
   );
+  const regIds = rows.map((r) => r.registration_id).filter(Boolean) as string[];
+  const guestMap = new Map<string, string[]>();
+  if (regIds.length > 0) {
+    const [guestRows] = await pool.execute<RowDataPacket[]>(
+      `SELECT registration_id, name FROM registration_guests
+       WHERE registration_id IN (${regIds.map(() => '?').join(',')})
+       ORDER BY registration_id, sort_order ASC, id ASC`,
+      regIds
+    );
+    for (const g of guestRows) {
+      const rid = String(g.registration_id);
+      if (!guestMap.has(rid)) guestMap.set(rid, []);
+      guestMap.get(rid)!.push(g.name ?? '');
+    }
+  }
   return rows.map((r) => ({
     name: r.name,
     email: r.email,
     avatar: r.avatar ?? null,
     guestCount: r.guest_count ?? 0,
+    guestNames: r.registration_id ? (guestMap.get(String(r.registration_id)) ?? []) : [],
   }));
 };
 
@@ -259,6 +277,18 @@ export const registerForEvents = async (
            WHERE id = ?`,
           [formData.name, formData.email, formData.phone, registrationDate, guestCount, existing.id]
         );
+        const existingGuests = await getGuestsByRegistrationId(existing.id);
+        const diff = guestCount - existingGuests.length;
+        if (diff > 0) {
+          for (let i = 0; i < diff; i++) {
+            await createGuest(existing.id, `Friend ${existingGuests.length + i + 1}`, existingGuests.length + i);
+          }
+        } else if (diff < 0) {
+          const toRemove = existingGuests.slice(guestCount);
+          for (const g of toRemove) {
+            await deleteGuest(g.id, existing.id);
+          }
+        }
         newRegistrations.push({
           id: existing.id,
           eventId,
@@ -298,6 +328,9 @@ export const registerForEvents = async (
        VALUES (?, ?, ?, ?, ?, ?, ?, 'confirmed', 'upcoming', 'stripe', ?)`,
       [id, eventId, userId, formData.name, formData.email, formData.phone, registrationDate, guestCount]
     );
+    for (let i = 0; i < guestCount; i++) {
+      await createGuest(id, `Friend ${i + 1}`, i);
+    }
 
     newRegistrations.push({
       id,
@@ -566,6 +599,10 @@ export const addGuestsToRegistration = async (
       'UPDATE registrations SET guest_count = ? WHERE id = ?',
       [newGuestCount, registrationId]
     );
+    const existingGuests = await getGuestsByRegistrationId(registrationId);
+    for (let i = 0; i < toAdd; i++) {
+      await createGuest(registrationId, `Friend ${existingGuests.length + i + 1}`, existingGuests.length + i);
+    }
     await incrementEventAttendees(reg.event_id, toAdd);
   }
 
@@ -625,6 +662,12 @@ export const removeGuestsFromRegistration = async (
 
   const actualRemove = Math.min(toRemove, currentGuests);
   const newGuestCount = currentGuests - actualRemove;
+
+  const guests = await getGuestsByRegistrationId(registrationId);
+  const toDelete = guests.slice(-actualRemove);
+  for (const g of toDelete) {
+    await deleteGuest(g.id, registrationId);
+  }
 
   await pool.execute(
     'UPDATE registrations SET guest_count = ? WHERE id = ?',

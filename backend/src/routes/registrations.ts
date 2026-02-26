@@ -10,6 +10,8 @@ import {
   confirmPayment,
   addGuestsToRegistration,
   removeGuestsFromRegistration,
+  getRegistrationGuests,
+  putRegistrationGuests,
   getMyAddGuestsWaitlist,
   getMyEventWaitlistStatus,
   reduceWaitlistFriends,
@@ -87,6 +89,20 @@ router.get('/my-event-waitlist', authenticateToken, getMyEventWaitlistStatus);
  * @access  Private
  */
 router.post('/:id/confirm-payment', authenticateToken, confirmPayment);
+
+/**
+ * @route   GET /api/registrations/:id/guests
+ * @desc    Get guest names for a registration (owner only)
+ * @access  Private
+ */
+router.get('/:id/guests', authenticateToken, getRegistrationGuests);
+
+/**
+ * @route   PUT /api/registrations/:id/guests
+ * @desc    Update guest names for a registration (owner only)
+ * @access  Private
+ */
+router.put('/:id/guests', authenticateToken, putRegistrationGuests);
 
 /**
  * @route   POST /api/registrations/:id/add-guests

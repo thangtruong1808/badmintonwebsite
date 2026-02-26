@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { expirePendingPromotionsCron } from '../controllers/cronController.js';
+import { expirePendingPromotionsCron, processRefundsCron } from '../controllers/cronController.js';
 
 const router = Router();
 
@@ -9,5 +9,12 @@ const router = Router();
  * @access  Protected by CRON_SECRET (Authorization: Bearer <secret> or X-Cron-Secret)
  */
 router.post('/expire-pending-promotions', expirePendingPromotionsCron);
+
+/**
+ * @route   POST /api/cron/process-refunds
+ * @desc    Refund cancelled registrations and waitlist entries for completed events
+ * @access  Protected by CRON_SECRET
+ */
+router.post('/process-refunds', processRefundsCron);
 
 export default router;

@@ -175,6 +175,47 @@ export async function confirmPaymentForPendingRegistration(
 }
 
 /**
+ * Get guest names for a registration (owner only).
+ */
+export async function getRegistrationGuests(
+  registrationId: string
+): Promise<{ guests: { id: number; name: string }[] }> {
+  try {
+    const res = await apiFetch(`/api/registrations/${registrationId}/guests`);
+    if (res.ok) {
+      const data = await res.json();
+      return { guests: data.guests ?? [] };
+    }
+  } catch {
+    // ignore
+  }
+  return { guests: [] };
+}
+
+/**
+ * Update guest names for a registration (owner only).
+ */
+export async function putRegistrationGuests(
+  registrationId: string,
+  guests: { id?: number; name: string }[]
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const res = await apiFetch(`/api/registrations/${registrationId}/guests`, {
+      method: "PUT",
+      body: JSON.stringify({ guests }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return { success: true };
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in." : (data.message ?? data.error ?? "Failed to save."),
+    };
+  } catch {
+    return { success: false, message: "Could not save guest names." };
+  }
+}
+
+/**
  * Get pending add-guests promotion by ID (for checkout from waitlist promotion email).
  */
 export async function getPendingAddGuests(

@@ -110,6 +110,16 @@ const PlayPage: React.FC = () => {
   };
 
   const handleViewSession = async (event: SocialEvent) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/events/${event.id}`, { credentials: "include" });
+      if (res.ok) {
+        const fullEvent = await res.json();
+        setSelectedEvent(fullEvent);
+        return;
+      }
+    } catch {
+      // fallback to list event
+    }
     const freshEvents = await fetchEvents();
     const fresh = freshEvents.find((e) => e.id === event.id) ?? event;
     setSelectedEvent(fresh);

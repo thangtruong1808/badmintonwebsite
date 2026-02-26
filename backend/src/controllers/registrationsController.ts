@@ -22,6 +22,7 @@ import {
   getRegistrationByEventAndUser,
   getRegistrationById,
 } from '../services/registrationService.js';
+import { getGuestsByRegistrationId, updateGuestsBulk } from '../services/registrationGuestService.js';
 import { getEventById } from '../services/eventService.js';
 import { sendWaitlistFriendsUpdateConfirmationEmail, sendRemoveGuestsConfirmationEmail } from '../utils/email.js';
 import { createError } from '../middleware/errorHandler.js';
@@ -314,6 +315,60 @@ export const getMyEventWaitlistStatus = async (
 
     const onWaitlist = await getMyEventWaitlistStatusService(req.userId, eventId);
     res.json({ onWaitlist });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getRegistrationGuests = async (
+  req: AuthRequest<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const registrationId = req.params.id;
+    if (!registrationId) {
+      throw createError('Registration ID is required', 400);
+    }
+
+    const registration = await getRegistrationById(registrationId);
+    if (!registration || registration.userId !== req.userId) {
+      throw createError('Registration not found or unauthorized', 404);
+    }
+
+    const guests = await getGuestsByRegistrationId(registrationId);
+    res.json({ guests });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const putRegistrationGuests = async (
+  req: AuthRequest<{ id: string }, {}, { guests: { id?: number; name: string }[] }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const registrationId = req.params.id;
+    const guests = req.body?.guests;
+
+    if (!registrationId) {
+      throw createError('Registration ID is required', 400);
+    }
+    if (!Array.isArray(guests)) {
+      throw createError('guests array is required', 400);
+    }
+
+    const updated = await updateGuestsBulk(registrationId, req.userId, guests);
+    res.json({ guests: updated });
   } catch (error) {
     next(error);
   }

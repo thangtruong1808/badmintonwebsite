@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { FaTimes, FaUsers, FaCheckCircle, FaList, FaSpinner } from "react-icons/fa";
+import { FaTimes, FaUsers, FaCheckCircle, FaList, FaSpinner, FaEdit, FaTrash } from "react-icons/fa";
 import type { SocialEvent } from "../../types/socialEvent";
 import { API_BASE } from "../../utils/api";
 import { selectUser } from "../../store/authSlice";
@@ -12,6 +12,8 @@ import {
   getMyAddGuestsWaitlist,
   getMyEventWaitlistStatus,
   reduceWaitlistFriends,
+  getRegistrationGuests,
+  putRegistrationGuests,
 } from "../../utils/registrationService";
 
 interface RegisteredPlayer {
@@ -19,6 +21,7 @@ interface RegisteredPlayer {
   email?: string;
   avatar?: string | null;
   guestCount?: number;
+  guestNames?: string[];
 }
 
 interface WaitlistPlayer {
@@ -91,6 +94,13 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   const [reduceWaitlistMessage, setReduceWaitlistMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [waitlistCountToReduce, setWaitlistCountToReduce] = useState<number>(1);
   const [showReduceWaitlistConfirm, setShowReduceWaitlistConfirm] = useState(false);
+  const [showEditGuestsModal, setShowEditGuestsModal] = useState(false);
+  const [editGuestsList, setEditGuestsList] = useState<{ id?: number; name: string }[]>([]);
+  const [editGuestsLoading, setEditGuestsLoading] = useState(false);
+  const [editGuestsSubmitting, setEditGuestsSubmitting] = useState(false);
+  const [editGuestsMessage, setEditGuestsMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [editGuestName, setEditGuestName] = useState("");
+  const [editingGuestIndex, setEditingGuestIndex] = useState<number | null>(null);
 
   const user = useSelector(selectUser);
   const isAlreadyRegistered =
@@ -323,6 +333,52 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
     }
   };
 
+  const openEditGuestsModal = () => {
+    if (!myRegistrationId) return;
+    setShowEditGuestsModal(true);
+    setEditGuestsLoading(true);
+    setEditGuestsList([]);
+    setEditGuestName("");
+    setEditingGuestIndex(null);
+    setEditGuestsMessage(null);
+    getRegistrationGuests(myRegistrationId).then((data) => {
+      setEditGuestsList((data.guests ?? []).map((g) => ({ id: g.id, name: g.name })));
+      setEditGuestsLoading(false);
+    }).catch(() => setEditGuestsLoading(false));
+  };
+
+  const handleSaveEditGuests = async () => {
+    if (!myRegistrationId) return;
+    setEditGuestsSubmitting(true);
+    setEditGuestsMessage(null);
+    const result = await putRegistrationGuests(myRegistrationId, editGuestsList.filter((g) => (g.name ?? "").trim()));
+    setEditGuestsSubmitting(false);
+    if (result.success) {
+      setEditGuestsMessage({ type: "success", text: "Friend names saved." });
+      fetchRegistrations();
+      onGuestsAdded?.();
+    } else {
+      setEditGuestsMessage({ type: "error", text: result.message ?? "Failed to save." });
+    }
+  };
+
+  const handleAddEditGuest = () => {
+    const name = editGuestName.trim();
+    if (!name) return;
+    if (editingGuestIndex != null) {
+      setEditGuestsList((prev) => prev.map((g, i) => (i === editingGuestIndex ? { ...g, name } : g)));
+      setEditingGuestIndex(null);
+    } else {
+      setEditGuestsList((prev) => [...prev, { name }]);
+    }
+    setEditGuestName("");
+  };
+
+  const handleRemoveEditGuest = (index: number) => {
+    setEditGuestsList((prev) => prev.filter((_, i) => i !== index));
+    if (editingGuestIndex === index) setEditingGuestIndex(null);
+  };
+
   if (!event) return null;
 
   const available = event.maxCapacity - event.currentAttendees;
@@ -352,6 +408,11 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
           <p className="text-gray-700">
             <strong>Location:</strong> {event.location}
           </p>
+          {event.courts && event.courts.length > 0 && (
+            <p className="text-gray-700">
+              <strong>Courts:</strong> {event.courts.map((c) => c.name).join(", ")}
+            </p>
+          )}
           <p className="text-gray-700">
             <strong>Spots:</strong> {available} available / {event.maxCapacity} total spots
           </p>
@@ -383,9 +444,14 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                         ? parts[0].charAt(0).toUpperCase()
                         : (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
                   const hasGuests = (p.guestCount ?? 0) >= 1;
+                  const guestLabel = hasGuests
+                    ? (p.guestNames && p.guestNames.length > 0
+                        ? ` (+${p.guestNames.join(", ")})`
+                        : ` (+${p.guestCount} friend${(p.guestCount ?? 0) > 1 ? "s" : ""})`)
+                    : "";
                   const borderClass = hasGuests ? "ring-2 ring-amber-500" : "";
                   return (
-                    <li key={i} className={`flex-shrink-0 rounded-full ${borderClass}`} title={p.name + (hasGuests ? ` (+${p.guestCount} friend${(p.guestCount ?? 0) > 1 ? "s" : ""})` : "")}>
+                    <li key={i} className={`flex-shrink-0 rounded-full ${borderClass}`} title={p.name + guestLabel}>
                       {p.avatar && String(p.avatar).trim() ? (
                         <img
                           src={p.avatar}
@@ -487,7 +553,8 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 </div>
               )}
               {isAlreadyRegistered && myRegistrationId && myGuestCount >= 1 && (
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <div className="flex flex-col gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                   <span className="text-sm text-gray-700 font-calibri">Manage friends (you have +{myGuestCount}):</span>
                   <select
                     value={guestCountToRemove}
@@ -512,6 +579,14 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                       {removeGuestsMessage.text}
                     </span>
                   )}
+                  </div>
+                  <button
+                    onClick={openEditGuestsModal}
+                    className="text-sm text-rose-600 hover:text-rose-700 font-medium font-calibri inline-flex items-center gap-1.5"
+                  >
+                    <FaEdit size={14} />
+                    Edit friend names
+                  </button>
                 </div>
               )}
               {isAlreadyRegistered && myRegistrationId && myWaitlistFriendCount >= 1 && (
@@ -651,6 +726,91 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
         onConfirm={handleCancelRegistration}
         onCancel={() => setShowCancelConfirm(false)}
       />
+
+      {showEditGuestsModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 max-h-[85vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-gray-900 font-calibri mb-4">Edit friend names</h3>
+            {editGuestsMessage && (
+              <p className={`mb-3 text-sm font-calibri ${editGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                {editGuestsMessage.text}
+              </p>
+            )}
+            <div className="flex gap-2 mb-3">
+              <input
+                type="text"
+                placeholder={editingGuestIndex != null ? "Update name" : "Add friend name"}
+                value={editGuestName}
+                onChange={(e) => setEditGuestName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddEditGuest())}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 font-calibri text-sm"
+              />
+              <button
+                type="button"
+                onClick={handleAddEditGuest}
+                className="rounded-lg bg-rose-500 px-4 py-2 text-white hover:bg-rose-600 font-calibri text-sm"
+              >
+                {editingGuestIndex != null ? "Update" : "Add"}
+              </button>
+              {editingGuestIndex != null && (
+                <button
+                  type="button"
+                  onClick={() => { setEditingGuestIndex(null); setEditGuestName(""); }}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 font-calibri text-sm"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+            {editGuestsLoading ? (
+              <p className="text-sm text-gray-500 font-calibri py-2">Loading…</p>
+            ) : editGuestsList.length === 0 ? (
+              <p className="text-sm text-gray-500 font-calibri py-2">No friend names yet. Add above.</p>
+            ) : (
+              <ul className="space-y-2 mb-4">
+                {editGuestsList.map((g, i) => (
+                  <li key={i} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                    <span className="font-calibri text-gray-800">{g.name || "(unnamed)"}</span>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => { setEditingGuestIndex(i); setEditGuestName(g.name); }}
+                        className="rounded p-1.5 text-rose-600 hover:bg-rose-100"
+                        aria-label="Edit"
+                      >
+                        <FaEdit size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveEditGuest(i)}
+                        className="rounded p-1.5 text-red-600 hover:bg-red-100"
+                        aria-label="Remove"
+                      >
+                        <FaTrash size={14} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex gap-2 pt-2 border-t border-gray-200">
+              <button
+                onClick={() => setShowEditGuestsModal(false)}
+                className="flex-1 py-2 px-3 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium font-calibri"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleSaveEditGuests}
+                disabled={editGuestsSubmitting}
+                className="flex-1 py-2 px-3 rounded-lg border-2 border-rose-500 text-rose-600 hover:bg-rose-50 font-medium disabled:opacity-60 font-calibri inline-flex items-center justify-center gap-2"
+              >
+                {editGuestsSubmitting ? <><FaSpinner className="animate-spin h-4 w-4" /><span>Saving…</span></> : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showWaitlistForm && event && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60">

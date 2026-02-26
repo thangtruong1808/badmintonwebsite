@@ -13,6 +13,7 @@ export interface SocialEvent {
   status: "available" | "full" | "completed" | "cancelled";
   category: "regular" | "tournament";
   recurring?: boolean;
+  courts?: { id: number; name: string }[];
 }
 
 export interface Registration {

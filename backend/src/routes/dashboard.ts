@@ -7,6 +7,8 @@ import {
   getDashboardUsers,
   updateDashboardUser,
   getDashboardRegistrations,
+  getDashboardRegistrationGuests,
+  putDashboardRegistrationGuests,
   getDashboardRewardTransactions,
   getDashboardProducts,
   getDashboardProductById,
@@ -85,6 +87,8 @@ router.get('/users', authenticateToken, requireAdmin, getDashboardUsers);
 router.put('/users/:id', authenticateToken, requireAdmin, updateDashboardUser);
 
 router.get('/registrations', authenticateToken, requireAdmin, getDashboardRegistrations);
+router.get('/registrations/:id/guests', authenticateToken, requireAdmin, getDashboardRegistrationGuests);
+router.put('/registrations/:id/guests', authenticateToken, requireAdmin, putDashboardRegistrationGuests);
 
 router.get('/reward-transactions', authenticateToken, requireAdmin, getDashboardRewardTransactions);
 

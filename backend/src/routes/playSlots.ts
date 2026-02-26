@@ -6,10 +6,16 @@ import {
   updatePlaySlot,
   deletePlaySlot,
 } from '../controllers/playSlotsController.js';
+import { getCourts, createCourt, updateCourt, deleteCourt } from '../controllers/courtsController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 
 const router = Router();
+
+router.get('/:slotId/courts', getCourts);
+router.post('/:slotId/courts', authenticateToken, requireAdmin, createCourt);
+router.put('/:slotId/courts/:courtId', authenticateToken, requireAdmin, updateCourt);
+router.delete('/:slotId/courts/:courtId', authenticateToken, requireAdmin, deleteCourt);
 
 /**
  * @route   GET /api/play-slots

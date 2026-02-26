@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaPlus, FaImage, FaTimes, FaCloudUploadAlt } from "react-icons/fa";
+import { FaPlus, FaImage, FaTimes, FaCloudUploadAlt, FaEdit, FaTrash } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import { apiFetch, API_BASE } from "../../../utils/api";
 import FormModal from "../Shared/FormModal";
@@ -19,6 +19,13 @@ export interface PlaySlotRow {
   isActive: boolean;
 }
 
+export interface CourtRow {
+  id: number;
+  playSlotId: number;
+  name: string;
+  sortOrder: number;
+}
+
 const DAY_OPTIONS = [
   { value: "Monday", label: "Monday" },
   { value: "Tuesday", label: "Tuesday" },
@@ -29,17 +36,12 @@ const DAY_OPTIONS = [
   { value: "Sunday", label: "Sunday" },
 ];
 
-const COLUMNS: Column<PlaySlotRow>[] = [
-  { key: "id", label: "ID" },
-  { key: "dayOfWeek", label: "Day" },
-  { key: "time", label: "Time" },
-  { key: "location", label: "Location" },
-  { key: "title", label: "Title" },
-  { key: "imageUrl", label: "Image", render: (r) => (r.imageUrl ? <img src={r.imageUrl} alt="" className="w-12 h-12 object-contain rounded" /> : "—") },
-  { key: "maxCapacity", label: "Total spots" },
-  { key: "price", label: "Price", render: (r) => `$${r.price}` },
-  { key: "isActive", label: "Active", render: (r) => (r.isActive ? "Yes" : "No") },
-];
+async function fetchCourts(slotId: number): Promise<CourtRow[]> {
+  const res = await apiFetch(`/api/play-slots/${slotId}/courts`);
+  if (!res.ok) return [];
+  const list = await res.json();
+  return Array.isArray(list) ? list : [];
+}
 
 const PlaySlotsSection: React.FC = () => {
   const [items, setItems] = useState<PlaySlotRow[]>([]);
@@ -62,6 +64,49 @@ const PlaySlotsSection: React.FC = () => {
     image_url: "",
     is_active: true,
   });
+  const [courts, setCourts] = useState<CourtRow[]>([]);
+  const [courtsLoading, setCourtsLoading] = useState(false);
+  const [courtModalSlot, setCourtModalSlot] = useState<PlaySlotRow | null>(null);
+  const [courtFormName, setCourtFormName] = useState("");
+  const [courtFormError, setCourtFormError] = useState<string | null>(null);
+  const [editingCourt, setEditingCourt] = useState<CourtRow | null>(null);
+  const [deleteCourtTarget, setDeleteCourtTarget] = useState<CourtRow | null>(null);
+
+  const COLUMNS: Column<PlaySlotRow>[] = [
+    { key: "id", label: "ID" },
+    { key: "dayOfWeek", label: "Day" },
+    { key: "time", label: "Time" },
+    { key: "location", label: "Location" },
+    { key: "title", label: "Title" },
+    { key: "imageUrl", label: "Image", render: (r) => (r.imageUrl ? <img src={r.imageUrl} alt="" className="w-12 h-12 object-contain rounded" /> : "—") },
+    { key: "maxCapacity", label: "Total spots" },
+    { key: "price", label: "Price", render: (r) => `$${r.price}` },
+    { key: "isActive", label: "Active", render: (r) => (r.isActive ? "Yes" : "No") },
+    {
+      key: "courts",
+      label: "Courts",
+      render: (r) => (
+        <button
+          type="button"
+          onClick={() => {
+            setCourtModalSlot(r);
+            setCourtsLoading(true);
+            setCourts([]);
+            fetchCourts(r.id).then((list) => {
+              setCourts(list);
+              setCourtsLoading(false);
+            });
+            setCourtFormName("");
+            setEditingCourt(null);
+            setCourtFormError(null);
+          }}
+          className="rounded px-3 py-1.5 text-sm font-calibri text-rose-600 hover:bg-rose-50 border border-rose-200"
+        >
+          Manage
+        </button>
+      ),
+    },
+  ];
 
   const fetchList = async () => {
     setLoading(true);
@@ -210,6 +255,74 @@ const PlaySlotsSection: React.FC = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) await uploadImageFile(file);
+  };
+
+  const handleAddCourt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!courtModalSlot) return;
+    setCourtFormError(null);
+    const name = courtFormName.trim();
+    if (!name) {
+      setCourtFormError("Court name is required.");
+      return;
+    }
+    try {
+      const res = await apiFetch(`/api/play-slots/${courtModalSlot.id}/courts`, {
+        method: "POST",
+        body: JSON.stringify({ name, sortOrder: courts.length }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setCourtFormError(data.message || "Failed to add court.");
+        return;
+      }
+      const created = await res.json();
+      setCourts((prev) => [...prev, created]);
+      setCourtFormName("");
+    } catch {
+      setCourtFormError("Something went wrong.");
+    }
+  };
+
+  const handleUpdateCourt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!courtModalSlot || !editingCourt) return;
+    setCourtFormError(null);
+    const name = courtFormName.trim();
+    if (!name) {
+      setCourtFormError("Court name is required.");
+      return;
+    }
+    try {
+      const res = await apiFetch(`/api/play-slots/${courtModalSlot.id}/courts/${editingCourt.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setCourtFormError(data.message || "Failed to update court.");
+        return;
+      }
+      const updated = await res.json();
+      setCourts((prev) => prev.map((c) => (c.id === editingCourt.id ? updated : c)));
+      setEditingCourt(null);
+      setCourtFormName("");
+    } catch {
+      setCourtFormError("Something went wrong.");
+    }
+  };
+
+  const handleDeleteCourt = async (court: CourtRow) => {
+    if (!courtModalSlot) return;
+    try {
+      const res = await apiFetch(`/api/play-slots/${courtModalSlot.id}/courts/${court.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) setCourts((prev) => prev.filter((c) => c.id !== court.id));
+    } catch {
+      // keep dialog open
+    }
+    setDeleteCourtTarget(null);
   };
 
   return (
@@ -399,6 +512,112 @@ const PlaySlotsSection: React.FC = () => {
         confirmLabel="Delete"
         onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
         onCancel={() => setDeleteTarget(null)}
+      />
+      {courtModalSlot && (
+        <FormModal
+          title={`Courts: ${courtModalSlot.title} (${courtModalSlot.dayOfWeek} ${courtModalSlot.time})`}
+          open={!!courtModalSlot}
+          onClose={() => {
+            setCourtModalSlot(null);
+            setEditingCourt(null);
+            setCourtFormName("");
+            setCourtFormError(null);
+          }}
+          onSubmit={editingCourt ? handleUpdateCourt : handleAddCourt}
+          maxWidth="lg"
+        >
+          <div className="space-y-4">
+            {courtFormError && (
+              <p className="text-sm text-red-600 font-calibri">{courtFormError}</p>
+            )}
+            <div className="flex gap-2">
+              <TextInput
+                label={editingCourt ? "Edit court name" : "New court name"}
+                name="court_name"
+                value={courtFormName}
+                onChange={(e) => setCourtFormName(e.target.value)}
+                placeholder="e.g. Court 1"
+              />
+              <div className="flex items-end gap-2">
+                {editingCourt ? (
+                  <>
+                    <button
+                      type="submit"
+                      className="rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
+                    >
+                      Update
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCourt(null);
+                        setCourtFormName("");
+                        setCourtFormError(null);
+                      }}
+                      className="rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
+                  >
+                    Add Court
+                  </button>
+                )}
+              </div>
+            </div>
+            {courtsLoading ? (
+              <p className="font-calibri text-gray-500">Loading courts…</p>
+            ) : courts.length === 0 ? (
+              <p className="font-calibri text-gray-500">No courts yet. Add one above.</p>
+            ) : (
+              <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden">
+                {courts.map((c) => (
+                  <li key={c.id} className="flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50">
+                    <span className="font-calibri text-gray-800">{c.name}</span>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingCourt(c);
+                          setCourtFormName(c.name);
+                          setCourtFormError(null);
+                        }}
+                        className="rounded p-2 text-rose-600 hover:bg-rose-100"
+                        aria-label="Edit court"
+                      >
+                        <FaEdit size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteCourtTarget(c)}
+                        className="rounded p-2 text-red-600 hover:bg-red-100"
+                        aria-label="Delete court"
+                      >
+                        <FaTrash size={14} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </FormModal>
+      )}
+      <ConfirmDialog
+        open={!!deleteCourtTarget}
+        title="Delete Court"
+        message={
+          deleteCourtTarget
+            ? `Delete court "${deleteCourtTarget.name}"?`
+            : ""
+        }
+        confirmLabel="Delete"
+        onConfirm={() => deleteCourtTarget && handleDeleteCourt(deleteCourtTarget)}
+        onCancel={() => setDeleteCourtTarget(null)}
       />
     </div>
   );
