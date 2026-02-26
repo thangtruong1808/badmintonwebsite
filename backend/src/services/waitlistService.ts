@@ -50,7 +50,8 @@ function rowToWaitlistEntry(r: WaitlistRow): WaitlistEntry {
 }
 
 /**
- * Join the waitlist for a full event. User must not already be registered or on waitlist.
+ * Join the waitlist for a full event. When event is full, payment is required first — use reserveWaitlistSpot then confirmWaitlistPayment after payment.
+ * This direct insert is only used internally after confirmWaitlistPayment; when event is full we reject so clients use the pay-first flow.
  */
 export const joinWaitlist = async (
   userId: string,
@@ -91,6 +92,140 @@ export const joinWaitlist = async (
     throw createError('Already on the waitlist for this session', 400);
   }
 
+  // When event is full, require payment before adding to waitlist — client must use reserveWaitlistSpot then confirmWaitlistPayment.
+  throw createError('Payment required to join the waitlist. Please complete payment to secure your spot.', 400);
+};
+
+/**
+ * Reserve a waitlist spot (pay-first flow). Creates a pending_waitlist row; after payment call confirmWaitlistPayment to add to event_waitlist.
+ */
+export const reserveWaitlistSpot = async (
+  userId: string,
+  eventId: number,
+  formData: RegistrationFormData
+): Promise<{ success: boolean; message: string; pendingId?: string; expiresAt?: string }> => {
+  const user = await getUserById(userId);
+  if (!user) throw createError('User not found', 404);
+
+  const event = await getEventById(eventId);
+  if (!event) throw createError('Event not found', 404);
+
+  const [pendingRegRows] = await pool.execute<RowDataPacket[]>(
+    'SELECT COUNT(*) AS cnt FROM registrations WHERE event_id = ? AND status = ?',
+    [eventId, 'pending_payment']
+  );
+  const pendingCount = Number(pendingRegRows[0]?.cnt ?? 0);
+  const effectiveOccupancy = event.currentAttendees + pendingCount;
+  if (effectiveOccupancy < event.maxCapacity) {
+    throw createError('Event has spots available - register normally', 400);
+  }
+
+  const [existingReg] = await pool.execute<RowDataPacket[]>(
+    'SELECT id, status FROM registrations WHERE user_id = ? AND event_id = ?',
+    [userId, eventId]
+  );
+  if (existingReg.length > 0) {
+    const s = existingReg[0].status;
+    if (s === 'confirmed') throw createError('Already registered for this session', 400);
+    if (s === 'pending_payment') throw createError('You have a reserved spot - please complete payment', 400);
+  }
+
+  const [existingWl] = await pool.execute<WaitlistRow[]>(
+    'SELECT id FROM event_waitlist WHERE user_id = ? AND event_id = ?',
+    [userId, eventId]
+  );
+  if (existingWl.length > 0) {
+    throw createError('Already on the waitlist for this session', 400);
+  }
+
+  await pool.execute(
+    'DELETE FROM pending_waitlist WHERE user_id = ? AND event_id = ?',
+    [userId, eventId]
+  );
+
+  const pendingId = uuidv4();
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 24);
+
+  await pool.execute(
+    `INSERT INTO pending_waitlist (id, event_id, user_id, name, email, phone, expires_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [pendingId, eventId, userId, formData.name, formData.email, formData.phone ?? '', expiresAt]
+  );
+
+  return {
+    success: true,
+    message: 'Please complete payment to join the waitlist.',
+    pendingId,
+    expiresAt: expiresAt.toISOString(),
+  };
+};
+
+/** Pending waitlist row for checkout/payment flow */
+export interface PendingWaitlistDetails {
+  event: { id: number; title: string; date: string; time?: string; location?: string; price?: number };
+  name: string;
+  email: string;
+  phone: string | null;
+  expiresAt: string;
+}
+
+/**
+ * Get pending waitlist by id for checkout (must belong to current user and not be expired).
+ */
+export const getPendingWaitlist = async (
+  pendingId: string,
+  userId: string
+): Promise<PendingWaitlistDetails | null> => {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    `SELECT p.id, p.event_id, p.name, p.email, p.phone, p.expires_at,
+            e.title, e.date, e.time, e.location, e.price
+     FROM pending_waitlist p
+     JOIN events e ON e.id = p.event_id
+     WHERE p.id = ? AND p.user_id = ? AND p.expires_at > NOW()`,
+    [pendingId, userId]
+  );
+  if (rows.length === 0) return null;
+  const r = rows[0];
+  const dateStr = r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10);
+  return {
+    event: {
+      id: r.event_id,
+      title: r.title,
+      date: dateStr,
+      time: r.time,
+      location: r.location,
+      price: r.price,
+    },
+    name: r.name,
+    email: r.email,
+    phone: r.phone ?? null,
+    expiresAt: r.expires_at instanceof Date ? r.expires_at.toISOString() : String(r.expires_at),
+  };
+};
+
+/**
+ * After payment: add user to event_waitlist from pending_waitlist and delete the pending row.
+ */
+export const confirmWaitlistPayment = async (
+  userId: string,
+  pendingId: string
+): Promise<{ success: boolean; message: string; waitlistId?: string }> => {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    'SELECT id, event_id, name, email, phone, expires_at FROM pending_waitlist WHERE id = ? AND user_id = ?',
+    [pendingId, userId]
+  );
+  if (rows.length === 0) {
+    throw createError('Invalid or expired waitlist reservation. Please try joining the waitlist again.', 400);
+  }
+  const p = rows[0];
+  const expiresAt = p.expires_at instanceof Date ? p.expires_at : new Date(p.expires_at);
+  if (expiresAt <= new Date()) {
+    await pool.execute('DELETE FROM pending_waitlist WHERE id = ?', [pendingId]);
+    throw createError('This waitlist reservation has expired. Please join the waitlist again.', 400);
+  }
+
+  const eventId = p.event_id;
   const [countRows] = await pool.execute<RowDataPacket[]>(
     'SELECT COUNT(*) AS cnt FROM event_waitlist WHERE event_id = ?',
     [eventId]
@@ -101,8 +236,9 @@ export const joinWaitlist = async (
   await pool.execute(
     `INSERT INTO event_waitlist (id, event_id, user_id, name, email, phone, position, registration_id, guest_count)
      VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 1)`,
-    [id, eventId, userId, formData.name, formData.email, formData.phone ?? '', position]
+    [id, eventId, userId, p.name, p.email, p.phone ?? '', position]
   );
+  await pool.execute('DELETE FROM pending_waitlist WHERE id = ?', [pendingId]);
 
   return {
     success: true,

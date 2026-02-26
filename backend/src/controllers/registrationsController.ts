@@ -16,6 +16,9 @@ import {
 } from '../services/registrationService.js';
 import {
   joinWaitlist as joinWaitlistService,
+  reserveWaitlistSpot as reserveWaitlistSpotService,
+  getPendingWaitlist as getPendingWaitlistService,
+  confirmWaitlistPayment as confirmWaitlistPaymentService,
   getMyAddGuestsWaitlistEntry,
   getMyEventWaitlistStatus as getMyEventWaitlistStatusService,
   reduceAddGuestsWaitlist as reduceAddGuestsWaitlistService,
@@ -131,6 +134,79 @@ export const joinWaitlist = async (
 
     const result = await joinWaitlistService(req.userId, eventId, formData);
     res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Reserve a waitlist spot (pay-first). Returns pendingId for checkout; after payment call confirm-waitlist-payment.
+ */
+export const reserveWaitlistSpot = async (
+  req: AuthRequest<{}, {}, { eventId: number; formData: RegistrationFormData }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const { eventId, formData } = req.body;
+    if (!eventId || !formData) {
+      throw createError('eventId and formData are required', 400);
+    }
+
+    const result = await reserveWaitlistSpotService(req.userId, eventId, formData);
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get pending waitlist details for checkout (by pendingId).
+ */
+export const getPendingWaitlist = async (
+  req: AuthRequest<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const pending = await getPendingWaitlistService(req.params.id, req.userId);
+    if (!pending) {
+      throw createError('Invalid or expired waitlist reservation.', 404);
+    }
+    res.json(pending);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Confirm waitlist payment: add user to event_waitlist and clear pending.
+ */
+export const confirmWaitlistPayment = async (
+  req: AuthRequest<{}, {}, { pendingId: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const { pendingId } = req.body;
+    if (!pendingId) {
+      throw createError('pendingId is required', 400);
+    }
+
+    const result = await confirmWaitlistPaymentService(req.userId, pendingId);
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }

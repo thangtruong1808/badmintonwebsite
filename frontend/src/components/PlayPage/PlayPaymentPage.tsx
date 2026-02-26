@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaCoins, FaMoneyBillWave, FaExchangeAlt, FaSpinner } from "react-icons/fa";
 import { getCurrentUser } from "../../utils/mockAuth";
-import { registerUserForEvents, getMyPendingPayments, confirmPaymentForPendingRegistration, addGuestsToRegistration } from "../../utils/registrationService";
+import { registerUserForEvents, getMyPendingPayments, confirmPaymentForPendingRegistration, addGuestsToRegistration, confirmWaitlistPayment } from "../../utils/registrationService";
 import { selectAuthInitialized } from "../../store/authSlice";
 import { canUsePointsForBooking, formatPoints } from "../../utils/rewardPoints";
 import { usePointsForBooking } from "../../utils/rewardPointsService";
@@ -24,8 +24,10 @@ const PlayPaymentPage: React.FC = () => {
       guestCountTotal?: number;
       pendingAddGuestsId?: string;
     };
+    waitlistContext?: { event: SocialEvent; pendingId: string };
   } | null;
   const addGuestsContext = state?.addGuestsContext;
+  const waitlistContext = state?.waitlistContext;
   const eventsFromState: SocialEvent[] = state?.events ?? [];
   const user = getCurrentUser();
   const authInitialized = useSelector(selectAuthInitialized);
@@ -69,34 +71,36 @@ const PlayPaymentPage: React.FC = () => {
     }).catch(() => setPendingLoading(false));
   }, [pendingId, user?.id, authInitialized, navigate]);
 
-  const events: SocialEvent[] = pendingRegistration
-    ? [{
-        id: pendingRegistration.eventId,
-        title: pendingRegistration.eventTitle,
-        date: pendingRegistration.eventDate,
-        time: pendingRegistration.eventTime ?? "",
-        dayOfWeek: "",
-        location: pendingRegistration.eventLocation ?? "",
-        description: "",
-        maxCapacity: 0,
-        currentAttendees: 0,
-        price: pendingRegistration.price,
-        status: "available",
-        category: "regular",
-      } as SocialEvent]
-    : addGuestsContext
-      ? (() => {
-          const e = addGuestsContext.event;
-          const pricePer = Number(e.price ?? 0);
-          const totalToCharge = addGuestsContext.guestCountTotal ?? addGuestsContext.guestCount;
-          return Array.from({ length: totalToCharge }, () => ({
-            ...e,
-            id: e.id,
-            title: e.title,
-            price: pricePer,
-          })) as SocialEvent[];
-        })()
-      : eventsFromState;
+  const events: SocialEvent[] = waitlistContext
+    ? [waitlistContext.event]
+    : pendingRegistration
+      ? [{
+          id: pendingRegistration.eventId,
+          title: pendingRegistration.eventTitle,
+          date: pendingRegistration.eventDate,
+          time: pendingRegistration.eventTime ?? "",
+          dayOfWeek: "",
+          location: pendingRegistration.eventLocation ?? "",
+          description: "",
+          maxCapacity: 0,
+          currentAttendees: 0,
+          price: pendingRegistration.price,
+          status: "available",
+          category: "regular",
+        } as SocialEvent]
+      : addGuestsContext
+        ? (() => {
+            const e = addGuestsContext.event;
+            const pricePer = Number(e.price ?? 0);
+            const totalToCharge = addGuestsContext.guestCountTotal ?? addGuestsContext.guestCount;
+            return Array.from({ length: totalToCharge }, () => ({
+              ...e,
+              id: e.id,
+              title: e.title,
+              price: pricePer,
+            })) as SocialEvent[];
+          })()
+        : eventsFromState;
 
   const [formData, setFormData] = useState({
     name: user ? `${user.firstName} ${user.lastName}`.trim() : "",
@@ -135,7 +139,7 @@ const PlayPaymentPage: React.FC = () => {
     );
   }
 
-  if (events.length === 0 && !addGuestsContext && !submitStatus.type) {
+  if (events.length === 0 && !addGuestsContext && !waitlistContext && !submitStatus.type) {
     return (
       <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
@@ -176,7 +180,8 @@ const PlayPaymentPage: React.FC = () => {
 
     try {
       const isAddGuestsFlow = !!addGuestsContext;
-      if (!pendingRegistration && user && (paymentMethod === "points" || paymentMethod === "mixed")) {
+      const isWaitlistFlow = !!waitlistContext;
+      if (!pendingRegistration && !isWaitlistFlow && user && (paymentMethod === "points" || paymentMethod === "mixed")) {
         const pts = paymentMethod === "points" ? totalPrice : pointsToUse;
         const eventId = isAddGuestsFlow ? addGuestsContext!.event.id : events[0].id;
         if (pts > 0) {
@@ -189,7 +194,18 @@ const PlayPaymentPage: React.FC = () => {
         }
       }
 
-      if (isAddGuestsFlow && addGuestsContext) {
+      if (isWaitlistFlow && waitlistContext) {
+        const result = await confirmWaitlistPayment(waitlistContext.pendingId);
+        if (!result.success) {
+          setSubmitStatus({ type: "error", message: result.message ?? "Failed to join waitlist. Please try again." });
+          setIsSubmitting(false);
+          return;
+        }
+        setSubmitStatus({
+          type: "success",
+          message: result.message ?? "You've been added to the waitlist. We'll notify you when a spot opens!",
+        });
+      } else if (isAddGuestsFlow && addGuestsContext) {
         const totalToAdd = addGuestsContext.guestCountTotal ?? addGuestsContext.guestCount;
         const result = await addGuestsToRegistration(addGuestsContext.registrationId, totalToAdd, {
           pendingAddGuestsId: addGuestsContext.pendingAddGuestsId,
@@ -199,10 +215,17 @@ const PlayPaymentPage: React.FC = () => {
           setIsSubmitting(false);
           return;
         }
-        setSubmitStatus({
-          type: "success",
-          message: `Successfully added ${addGuestsContext.guestCount} friend${addGuestsContext.guestCount !== 1 ? "s" : ""} to your registration!`,
-        });
+        const added = result.added ?? 0;
+        const waitlisted = result.waitlisted ?? 0;
+        const msg =
+          added > 0 && waitlisted > 0
+            ? `${added} friend${added !== 1 ? "s" : ""} added to your registration. ${waitlisted} friend${waitlisted !== 1 ? "s" : ""} on the waitlist. We'll notify you when a spot opens!`
+            : added > 0
+              ? `Successfully added ${added} friend${added !== 1 ? "s" : ""} to your registration!`
+              : waitlisted > 0
+                ? `${waitlisted} friend${waitlisted !== 1 ? "s" : ""} added to the waitlist. We'll notify you when a spot opens!`
+                : "Done.";
+        setSubmitStatus({ type: "success", message: msg });
       } else if (pendingRegistration) {
         const result = await confirmPaymentForPendingRegistration(pendingRegistration.id);
         if (!result.success) {
@@ -247,6 +270,13 @@ const PlayPaymentPage: React.FC = () => {
         </h1>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          {waitlistContext && (
+            <div className="p-4 bg-rose-50 border-b border-rose-200">
+              <p className="text-rose-800 font-calibri text-sm font-medium">
+                Complete payment to join the waitlist. You will be added to the waitlist and we will notify you when a spot opens.
+              </p>
+            </div>
+          )}
           {addGuestsContext && (
             <div className="p-4 bg-rose-50 border-b border-rose-200">
               <p className="text-rose-800 font-calibri text-sm font-medium">
@@ -254,7 +284,7 @@ const PlayPaymentPage: React.FC = () => {
               </p>
             </div>
           )}
-          {pendingRegistration && !addGuestsContext && (
+          {pendingRegistration && !addGuestsContext && !waitlistContext && (
             <div className="p-4 bg-amber-50 border-b border-amber-200">
               <p className="text-amber-800 font-calibri text-sm font-medium">
                 A spot opened for you! Complete payment within 24 hours to confirm your registration.
@@ -395,6 +425,7 @@ const PlayPaymentPage: React.FC = () => {
                 type="button"
                 onClick={() => {
                   if (pendingRegistration) navigate("/profile");
+                  else if (waitlistContext) navigate(`/play/checkout?pendingWaitlist=${waitlistContext.pendingId}`, { state: { waitlistContext, events } });
                   else if (addGuestsContext) navigate("/play/checkout", { state: { addGuestsContext, events } });
                   else navigate("/play/checkout", { state: { events } });
                 }}
@@ -408,7 +439,7 @@ const PlayPaymentPage: React.FC = () => {
                 disabled={isSubmitting || submitStatus.type === "success"}
                 className="flex-1 py-3 px-4 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-calibri disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
               >
-                {isSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Processing…</span></> : pendingRegistration ? "Confirm payment" : addGuestsContext ? "Add friends and complete" : "Complete registration"}
+                {isSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Processing…</span></> : pendingRegistration ? "Confirm payment" : waitlistContext ? "Join waitlist and pay" : addGuestsContext ? "Add friends and complete" : "Complete registration"}
               </button>
             </div>
           </form>

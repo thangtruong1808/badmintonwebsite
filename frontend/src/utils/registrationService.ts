@@ -113,6 +113,7 @@ export async function registerUserForEventIds(
 
 /**
  * Join waitlist when event is full (requires auth).
+ * When event is full, backend requires payment first — use reserveWaitlistSpot then checkout/payment then confirmWaitlistPayment.
  */
 export async function joinWaitlist(
   eventId: number,
@@ -131,6 +132,74 @@ export async function joinWaitlist(
     };
   } catch {
     return { success: false, message: "Could not join waitlist. Please try again." };
+  }
+}
+
+/**
+ * Reserve a waitlist spot (pay-first flow). Returns pendingId; navigate to checkout then payment, then call confirmWaitlistPayment after payment.
+ */
+export async function reserveWaitlistSpot(
+  eventId: number,
+  formData: RegistrationFormData
+): Promise<{ success: boolean; message: string; pendingId?: string; expiresAt?: string }> {
+  try {
+    const res = await apiFetch("/api/registrations/reserve-waitlist", {
+      method: "POST",
+      body: JSON.stringify({ eventId, formData }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return {
+        success: true,
+        message: data.message ?? "Please complete payment to join the waitlist.",
+        pendingId: data.pendingId,
+        expiresAt: data.expiresAt,
+      };
+    }
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in to continue." : (data.message ?? data.error ?? "Failed to reserve waitlist spot."),
+    };
+  } catch {
+    return { success: false, message: "Could not reserve. Please try again." };
+  }
+}
+
+export interface PendingWaitlistDetails {
+  event: { id: number; title: string; date: string; time?: string; location?: string; price?: number };
+  name: string;
+  email: string;
+  phone: string | null;
+  expiresAt: string;
+}
+
+/**
+ * Get pending waitlist details for checkout (by pendingId).
+ */
+export async function getPendingWaitlist(pendingId: string): Promise<PendingWaitlistDetails | null> {
+  try {
+    const res = await apiFetch(`/api/registrations/pending-waitlist/${pendingId}`);
+    if (res.ok) return await res.json();
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+/**
+ * Confirm waitlist payment after user has paid; adds user to event_waitlist.
+ */
+export async function confirmWaitlistPayment(pendingId: string): Promise<{ success: boolean; message: string; waitlistId?: string }> {
+  try {
+    const res = await apiFetch("/api/registrations/confirm-waitlist-payment", {
+      method: "POST",
+      body: JSON.stringify({ pendingId }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) return { success: true, message: data.message ?? "You've been added to the waitlist.", waitlistId: data.waitlistId };
+    return { success: false, message: data.message ?? data.error ?? "Failed to confirm." };
+  } catch {
+    return { success: false, message: "Could not confirm. Please try again." };
   }
 }
 

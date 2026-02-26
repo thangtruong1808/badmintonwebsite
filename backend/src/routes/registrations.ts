@@ -5,6 +5,9 @@ import {
   cancelRegistration,
   getEventRegistrations,
   joinWaitlist,
+  reserveWaitlistSpot,
+  getPendingWaitlist,
+  confirmWaitlistPayment,
   getMyPendingPayments,
   getPendingAddGuests,
   confirmPayment,
@@ -51,10 +54,31 @@ router.delete('/:registrationId', authenticateToken, cancelRegistration);
 
 /**
  * @route   POST /api/registrations/waitlist
- * @desc    Join waitlist when event is full
+ * @desc    Join waitlist when event is full (deprecated for full events — use reserve-waitlist + payment + confirm-waitlist-payment)
  * @access  Private
  */
 router.post('/waitlist', authenticateToken, joinWaitlist);
+
+/**
+ * @route   POST /api/registrations/reserve-waitlist
+ * @desc    Reserve a waitlist spot (pay-first). Returns pendingId; after payment call confirm-waitlist-payment.
+ * @access  Private
+ */
+router.post('/reserve-waitlist', authenticateToken, reserveWaitlistSpot);
+
+/**
+ * @route   GET /api/registrations/pending-waitlist/:id
+ * @desc    Get pending waitlist details for checkout
+ * @access  Private
+ */
+router.get('/pending-waitlist/:id', authenticateToken, getPendingWaitlist);
+
+/**
+ * @route   POST /api/registrations/confirm-waitlist-payment
+ * @desc    Confirm waitlist payment; add user to event_waitlist
+ * @access  Private
+ */
+router.post('/confirm-waitlist-payment', authenticateToken, confirmWaitlistPayment);
 
 /**
  * @route   GET /api/registrations/my-pending-payments

@@ -266,6 +266,12 @@ const PlayPage: React.FC = () => {
                   },
                 });
               }}
+              onNavigateToWaitlistPayment={(ev, pendingId) => {
+                setSelectedEvent(null);
+                navigate(`/play/checkout?pendingWaitlist=${pendingId}`, {
+                  state: { waitlistContext: { event: ev, pendingId } },
+                });
+              }}
             />
           );
         })()}

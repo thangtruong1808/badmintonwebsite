@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { API_BASE } from "../../../utils/api";
 import { selectUser } from "../../../store/authSlice";
 import {
-  joinWaitlist,
+  reserveWaitlistSpot,
   addGuestsToRegistration,
   reserveAddGuestsToRegistration,
   removeGuestsByIdsToRegistration,
@@ -23,6 +23,7 @@ export function useSessionDetailModal(props: SessionDetailModalProps) {
     onGuestsAdded,
     onRefetchRequested,
     onNavigateToAddGuestsPayment,
+    onNavigateToWaitlistPayment,
   } = props;
 
   const [players, setPlayers] = useState<RegisteredPlayer[]>([]);
@@ -166,8 +167,14 @@ export function useSessionDetailModal(props: SessionDetailModalProps) {
     }
     setWaitlistSubmitting(true);
     setWaitlistMessage(null);
-    const result = await joinWaitlist(event.id, waitlistForm);
+    // Event full: pay-first flow — reserve then navigate to checkout/payment; after payment user is added to waitlist.
+    const result = await reserveWaitlistSpot(event.id, waitlistForm);
     setWaitlistSubmitting(false);
+    if (result.success && result.pendingId && onNavigateToWaitlistPayment) {
+      onNavigateToWaitlistPayment(event, result.pendingId);
+      onClose();
+      return;
+    }
     if (result.success) {
       setWaitlistMessage({ type: "success", text: result.message });
       setIsOnEventWaitlist(true);
@@ -230,13 +237,15 @@ export function useSessionDetailModal(props: SessionDetailModalProps) {
     const totalCount = toAdd + toWaitlist;
     setShowPartialGuestsConfirm(false);
     setPendingGuestAdd(null);
-    if (onNavigateToAddGuestsPayment && toAdd > 0 && event && totalCount > toAdd) {
+    // When any friends go to waitlist (toWaitlist > 0), payment is required — reserve then navigate to checkout/payment.
+    // This includes the case toAdd = 0 (all friends go to waitlist) — all must be paid before being added to waitlist.
+    if (onNavigateToAddGuestsPayment && toWaitlist > 0 && event) {
       const reserveResult = await reserveAddGuestsToRegistration(registrationId, totalCount);
       if (reserveResult.success && reserveResult.pendingId) {
         onNavigateToAddGuestsPayment(registrationId, toAdd, event, totalCount, reserveResult.pendingId);
         onClose();
       } else {
-        setAddGuestsMessage({ type: "error", text: reserveResult.message ?? "Could not reserve spots. Please try again." });
+        setAddGuestsMessage({ type: "error", text: reserveResult.message ?? "Could not reserve. Please try again." });
       }
     } else if (onNavigateToAddGuestsPayment && toAdd > 0 && event) {
       onNavigateToAddGuestsPayment(registrationId, toAdd, event, totalCount);

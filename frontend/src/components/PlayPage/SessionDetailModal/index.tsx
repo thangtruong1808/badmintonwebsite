@@ -190,7 +190,9 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = (props) => {
         title="Partial availability"
         message={
           pendingGuestAdd
-            ? `You're adding ${pendingGuestAdd.count} friend(s). Payment is required for all ${pendingGuestAdd.count} friend(s) on the payment page. Only ${pendingGuestAdd.toAdd} spot(s) are available now, so ${pendingGuestAdd.toAdd} friend(s) will secure a spot and ${pendingGuestAdd.toWaitlist} friend(s) will be placed on the waitlist. A confirmation email will be sent after payment. Proceed to payment?`
+            ? pendingGuestAdd.toAdd === 0
+              ? `You're adding ${pendingGuestAdd.count} friend(s). No spots are available, so all ${pendingGuestAdd.count} friend(s) will be placed on the waitlist. Payment is required for all before joining. A confirmation email will be sent after payment. Proceed to payment?`
+              : `You're adding ${pendingGuestAdd.count} friend(s). Payment is required for all ${pendingGuestAdd.count} friend(s) on the payment page. Only ${pendingGuestAdd.toAdd} spot(s) are available now, so ${pendingGuestAdd.toAdd} friend(s) will secure a spot and ${pendingGuestAdd.toWaitlist} friend(s) will be placed on the waitlist. A confirmation email will be sent after payment. Proceed to payment?`
             : ""
         }
         confirmLabel="Proceed to payment"

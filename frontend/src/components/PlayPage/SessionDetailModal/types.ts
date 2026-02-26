@@ -36,4 +36,6 @@ export interface SessionDetailModalProps {
   isCancelling?: boolean;
   /** Called when user adds friends - navigate to checkout/payment. guestCountTotal: when partial (some waitlisted), total to add via API. pendingAddGuestsId: when partial, after reserving. */
   onNavigateToAddGuestsPayment?: (registrationId: string, guestCount: number, event: SocialEvent, guestCountTotal?: number, pendingAddGuestsId?: string) => void;
+  /** When event is full and user joins waitlist: pay-first flow — navigate to checkout with pendingId so user can pay then be added to waitlist. */
+  onNavigateToWaitlistPayment?: (event: SocialEvent, pendingId: string) => void;
 }
