@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { FaTimes, FaUsers, FaCheckCircle, FaList, FaSpinner, FaEdit, FaTrash } from "react-icons/fa";
 import type { SocialEvent } from "../../types/socialEvent";
 import { API_BASE } from "../../utils/api";
@@ -101,7 +102,9 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   const [editGuestsMessage, setEditGuestsMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [editGuestName, setEditGuestName] = useState("");
   const [editingGuestIndex, setEditingGuestIndex] = useState<number | null>(null);
+  const [showWaitlistSignInDialog, setShowWaitlistSignInDialog] = useState(false);
 
+  const navigate = useNavigate();
   const user = useSelector(selectUser);
   const isAlreadyRegistered =
     !!user?.email &&
@@ -434,7 +437,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             ) : players.length === 0 ? (
               <p className="text-sm text-gray-500 py-2 font-calibri">No players registered yet.</p>
             ) : (
-              <ul className="max-h-[min(360px,55vh)] overflow-y-auto pr-1 flex flex-wrap gap-2" title={players.map((p) => p.name).join(", ")}>
+              <ul className="max-h-[min(360px,55vh)] overflow-y-auto pr-1 flex flex-wrap gap-3 pt-4">
                 {players.map((p, i) => {
                   const parts = (p.name || "").trim().split(/\s+/);
                   const initials =
@@ -443,26 +446,51 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                       : parts.length === 1
                         ? parts[0].charAt(0).toUpperCase()
                         : (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-                  const hasGuests = (p.guestCount ?? 0) >= 1;
-                  const guestLabel = hasGuests
-                    ? (p.guestNames && p.guestNames.length > 0
-                        ? ` (+${p.guestNames.join(", ")})`
-                        : ` (+${p.guestCount} friend${(p.guestCount ?? 0) > 1 ? "s" : ""})`)
-                    : "";
-                  const borderClass = hasGuests ? "ring-2 ring-amber-500" : "";
+                  const guestCount =
+                    p.guestNames && p.guestNames.length > 0
+                      ? p.guestNames.length
+                      : (p.guestCount ?? 0);
+                  const hasGuests = guestCount >= 1;
+                  const guestNamesList =
+                    p.guestNames && p.guestNames.length > 0
+                      ? p.guestNames.filter((n) => (n ?? "").trim())
+                      : [];
+                  const tooltipText =
+                    guestNamesList.length > 0 ? `${p.name}: ${guestNamesList.join(", ")}` : p.name;
+                  const badgeLabel =
+                    guestNamesList.length > 0 ? guestNamesList.join(", ") : undefined;
+                  const borderClass = hasGuests
+                    ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-white shadow-sm"
+                    : "shadow-sm";
                   return (
-                    <li key={i} className={`flex-shrink-0 rounded-full ${borderClass}`} title={p.name + guestLabel}>
-                      {p.avatar && String(p.avatar).trim() ? (
-                        <img
-                          src={p.avatar}
-                          alt={p.name}
-                          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                        />
-                      ) : (
-                        <span className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                          {initials}
-                        </span>
-                      )}
+                    <li
+                      key={i}
+                      className="flex-shrink-0 pt-1"
+                      title={tooltipText}
+                    >
+                      <div
+                        className={`relative inline-flex items-center justify-center rounded-full bg-white ${borderClass}`}
+                      >
+                        {p.avatar && String(p.avatar).trim() ? (
+                          <img
+                            src={p.avatar}
+                            alt={p.name}
+                            className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs font-bold">
+                            {initials}
+                          </span>
+                        )}
+                        {hasGuests && (
+                          <span
+                            className="absolute -bottom-1 -right-1 rounded-full bg-amber-500 text-white text-[10px] leading-none px-1.5 py-0.5 shadow-sm"
+                            aria-label={badgeLabel}
+                          >
+                            +{guestCount}
+                          </span>
+                        )}
+                      </div>
                     </li>
                   );
                 })}
@@ -555,30 +583,30 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
               {isAlreadyRegistered && myRegistrationId && myGuestCount >= 1 && (
                 <div className="flex flex-col gap-2 p-3 rounded-lg bg-gray-50 border border-gray-200">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                  <span className="text-sm text-gray-700 font-calibri">Manage friends (you have +{myGuestCount}):</span>
-                  <select
-                    value={guestCountToRemove}
-                    onChange={(e) => setGuestCountToRemove(Math.min(Number(e.target.value), myGuestCount))}
-                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-calibri"
-                  >
-                    {Array.from({ length: myGuestCount }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={n}>
-                        Remove {n}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={handleRemoveGuestsClick}
-                    disabled={removeGuestsSubmitting}
-                    className="py-1.5 px-4 rounded-lg border-2 border-gray-400 text-gray-700 hover:bg-gray-100 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri inline-flex items-center justify-center gap-2"
-                  >
-                    {removeGuestsSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Removing…</span></> : "Remove friends"}
-                  </button>
-                  {removeGuestsMessage && (
-                    <span className={`text-sm ${removeGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
-                      {removeGuestsMessage.text}
-                    </span>
-                  )}
+                    <span className="text-sm text-gray-700 font-calibri">Manage friends (you have +{myGuestCount}):</span>
+                    <select
+                      value={guestCountToRemove}
+                      onChange={(e) => setGuestCountToRemove(Math.min(Number(e.target.value), myGuestCount))}
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-calibri"
+                    >
+                      {Array.from({ length: myGuestCount }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={n}>
+                          Remove {n}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleRemoveGuestsClick}
+                      disabled={removeGuestsSubmitting}
+                      className="py-1.5 px-4 rounded-lg border-2 border-gray-400 text-gray-700 hover:bg-gray-100 font-medium text-sm disabled:opacity-60 disabled:cursor-not-allowed font-calibri inline-flex items-center justify-center gap-2"
+                    >
+                      {removeGuestsSubmitting ? <><FaSpinner className="animate-spin h-4 w-4 flex-shrink-0" /><span>Removing…</span></> : "Remove friends"}
+                    </button>
+                    {removeGuestsMessage && (
+                      <span className={`text-sm ${removeGuestsMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                        {removeGuestsMessage.text}
+                      </span>
+                    )}
                   </div>
                   <button
                     onClick={openEditGuestsModal}
@@ -637,7 +665,13 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                 )}
                 {!isAlreadyRegistered && isFull && !isOnEventWaitlist && (
                   <button
-                    onClick={openWaitlistForm}
+                    onClick={() => {
+                      if (!user) {
+                        setShowWaitlistSignInDialog(true);
+                      } else {
+                        openWaitlistForm();
+                      }
+                    }}
                     disabled={eventWaitlistStatusLoading}
                     className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-amber-500 text-amber-700 hover:bg-amber-50 font-medium transition-colors font-calibri text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
                   >
@@ -672,11 +706,25 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
         </div>
       </div>
       <ConfirmDialog
+        open={showWaitlistSignInDialog}
+        title="Sign in to continue"
+        message="To join the waitlist for this session, please sign in to your account. We'll notify you by email when a spot becomes available."
+        confirmLabel="Sign in"
+        cancelLabel="Cancel"
+        variant="default"
+        onConfirm={() => {
+          setShowWaitlistSignInDialog(false);
+          onClose();
+          navigate("/signin", { state: { from: "/play" } });
+        }}
+        onCancel={() => setShowWaitlistSignInDialog(false)}
+      />
+      <ConfirmDialog
         open={showPartialGuestsConfirm}
         title="Partial availability"
         message={
           pendingGuestAdd
-            ? `${pendingGuestAdd.toAdd} friend(s) will be added (payment required). ${pendingGuestAdd.toWaitlist} will be on the waitlist (no payment). Proceed to payment?`
+            ? `You're adding ${pendingGuestAdd.count} friend(s). Payment is required for all ${pendingGuestAdd.count} friend(s) on the payment page. Only ${pendingGuestAdd.toAdd} spot(s) are available now, so ${pendingGuestAdd.toAdd} friend(s) will secure a spot and ${pendingGuestAdd.toWaitlist} friend(s) will be placed on the waitlist. A confirmation email will be sent after payment. Proceed to payment?`
             : ""
         }
         confirmLabel="Proceed to payment"
