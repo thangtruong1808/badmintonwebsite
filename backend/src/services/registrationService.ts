@@ -409,7 +409,8 @@ export const cancelRegistration = async (
         `${event.date} ${event.time}`,
         paymentLink,
         expiresAt,
-        entry.name
+        entry.name,
+        event.location
       );
     });
   }
@@ -627,7 +628,8 @@ export const addGuestsToRegistration = async (
         `${event.date} ${event.time}`,
         toAdd,
         toWaitlist,
-        reg.name
+        reg.name,
+        event.location
       );
     }
   }
@@ -684,10 +686,11 @@ export const removeGuestsFromRegistration = async (
         await sendWaitlistPromotionEmail(
           entry.email,
           event.title,
-          event.date,
+          `${event.date} ${event.time}`,
           link,
           new Date(Date.now() + 24 * 60 * 60 * 1000),
-          entry.name
+          entry.name,
+          event.location
         );
       });
       if (result.promoted) promoted += 1;
@@ -747,10 +750,11 @@ export const removeGuestsByIdsFromRegistration = async (
         await sendWaitlistPromotionEmail(
           entry.email,
           event.title,
-          event.date,
+          `${event.date} ${event.time}`,
           link,
           new Date(Date.now() + 24 * 60 * 60 * 1000),
-          entry.name
+          entry.name,
+          event.location
         );
       });
       if (result.promoted) promoted += 1;
@@ -785,10 +789,11 @@ export const expirePendingPromotions = async (): Promise<{ expired: number; prom
         await sendWaitlistPromotionEmail(
           entry.email,
           event.title,
-          event.date,
+          `${event.date} ${event.time}`,
           link,
           new Date(Date.now() + 24 * 60 * 60 * 1000),
-          entry.name
+          entry.name,
+          event.location
         );
       }
     });
@@ -862,10 +867,11 @@ export const processWaitlistsForAvailableSpots = async (
         await sendWaitlistPromotionEmail(
           entry.email,
           event.title,
-          event.date,
+          `${event.date} ${event.time}`,
           link,
           new Date(Date.now() + 24 * 60 * 60 * 1000),
-          entry.name
+          entry.name,
+          event.location
         );
       });
 

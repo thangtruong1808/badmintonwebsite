@@ -265,7 +265,8 @@ export const removeGuestsFromRegistration = async (
           `${event.date} ${event.time}`,
           result.removed,
           result.promoted ?? 0,
-          registration.name
+          registration.name,
+          event.location
         );
       }
     }
@@ -419,7 +420,8 @@ export const reduceWaitlistFriends = async (
         event.title,
         `${event.date} ${event.time}`,
         result.reduced,
-        registration.name
+        registration.name,
+        event.location
       );
     }
     res.json(result);

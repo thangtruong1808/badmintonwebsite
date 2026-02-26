@@ -46,7 +46,7 @@ export async function sendRegistrationConfirmationEmailForSessions(
   }
   const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
   const firstName = extractFirstName(recipientName);
-  const greeting = `Hey ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
+  const greeting = `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'Registration confirmed - ChibiBadminton';
   const textParts: string[] = [greeting, ''];
   const htmlParts: string[] = [`<p>${escapeHtml(greeting)}</p>`];
@@ -60,14 +60,14 @@ export async function sendRegistrationConfirmationEmailForSessions(
       ? `<p>Your registration for <strong>${escapeHtml(sessions[0].title)}</strong> is confirmed.</p>`
       : `<p>Your registration for <strong>${sessions.length} sessions</strong> is confirmed.</p>`
   );
-  htmlParts.push('<p><strong>Sessions:</strong></p><ul style="margin: 0 0 1em; padding-left: 1.5em;">');
+  htmlParts.push('<p><strong>Session details (date, time, location):</strong></p><ul style="margin: 0 0 1em; padding-left: 1.5em;">');
   for (const s of sessions) {
     const detailsStr = formatPlaytimeLineForEmail(s.date, s.time, s.location);
     textParts.push(`• ${s.title}: ${detailsStr}`);
-    htmlParts.push(`<li><strong>${escapeHtml(s.title)}</strong> – ${escapeHtml(detailsStr)}</li>`);
+    htmlParts.push(`<li><strong>${escapeHtml(s.title)}</strong> — ${escapeHtml(detailsStr)}</li>`);
   }
   htmlParts.push('</ul>');
-  textParts.push('', 'See you on the court!');
+  textParts.push('', 'We look forward to seeing you on the court!');
   htmlParts.push('<p>We look forward to seeing you on the court!</p>');
   try {
     const { html, attachments } = getEmailTemplateWithLogo(htmlParts.join(''));
@@ -104,7 +104,7 @@ export async function sendCancellationConfirmationEmail(
   }
   const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
   const firstName = extractFirstName(recipientName);
-  const greeting = `Hey ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
+  const greeting = `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'Registration cancelled - ChibiBadminton';
   const sessionLine = formatPlaytimeLineForEmail(eventDate, eventTime, eventLocation);
   const text = [
@@ -112,14 +112,14 @@ export async function sendCancellationConfirmationEmail(
     '',
     `Your registration for "${eventTitle}" has been cancelled.`,
     '',
-    `Session was: ${sessionLine}`,
+    `Session: ${sessionLine}`,
     '',
-    'You can register again from the Play or Profile page when spots are available. See you on the court!',
+    'You can register again from the Play or Profile page when spots are available. We hope to see you on the court soon!',
   ].join('\n');
   const bodyHtml = [
     `<p>${escapeHtml(greeting)}</p>`,
     `<p>Your registration for <strong>${escapeHtml(eventTitle)}</strong> has been cancelled.</p>`,
-    `<p>Session was: ${escapeHtml(sessionLine)}</p>`,
+    `<p>Session: ${escapeHtml(sessionLine)}</p>`,
     '<p>You can register again from the Play or Profile page when spots are available. We hope to see you on the court soon!</p>',
   ].join('\n');
   try {
