@@ -9,7 +9,6 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   variant?: "danger" | "default";
-  titleClassName?: string;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -21,7 +20,6 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   onCancel,
   variant = "danger",
-  titleClassName,
 }) => {
   if (!open) return null;
 
@@ -38,8 +36,9 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         aria-hidden
       />
       <div className="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-        <h3 className={titleClassName ?? "font-huglove text-xl font-medium text-gray-800"}>{title}</h3>
-        <p className="mt-2 font-calibri text-base text-gray-700">{message}</p>
+        <h3 className="font-calibri text-xl font-medium text-gray-800">{title}</h3>
+        <hr className="mt-3 mb-3 border-gray-200" />
+        <p className="font-calibri text-base text-gray-700">{message}</p>
         <div className="mt-6 flex justify-end gap-3">
           <button
             type="button"

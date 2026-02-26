@@ -599,7 +599,6 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
       <ConfirmDialog
         open={showPartialGuestsConfirm}
         title="Partial availability"
-        titleClassName="font-calibri text-xl font-bold text-gray-800"
         message={
           pendingGuestAdd
             ? `${pendingGuestAdd.toAdd} friend(s) will be added (payment required). ${pendingGuestAdd.toWaitlist} will be on the waitlist (no payment). Proceed to payment?`
@@ -631,7 +630,6 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
       <ConfirmDialog
         open={showRemoveGuestsConfirm}
         title="Remove friends"
-        titleClassName="font-calibri text-xl font-medium text-gray-800"
         message={
           guestCountToRemove >= 1 && myGuestCount >= 1
             ? `Remove ${Math.min(guestCountToRemove, myGuestCount)} friend(s)? Freed spot(s) may be offered to the waitlist.`

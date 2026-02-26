@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { FaUserPlus, FaSignInAlt, FaTimes } from "react-icons/fa";
+import { FaUserPlus, FaSignInAlt } from "react-icons/fa";
 import { getCurrentUser } from "../../utils/mockAuth";
 import { getMyPendingPayments, getPendingAddGuests } from "../../utils/registrationService";
 import { selectAuthInitialized } from "../../store/authSlice";
@@ -314,19 +314,9 @@ const PlayCheckoutPage: React.FC = () => {
         >
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
             <div className="p-6">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <h2 id="auth-dialog-title" className="text-xl md:text-2xl text-gray-900 font-calibri">
-                  Sign in to continue
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setShowAuthDialog(false)}
-                  className="p-1.5 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  aria-label="Close"
-                >
-                  <FaTimes size={20} />
-                </button>
-              </div>
+              <h2 id="auth-dialog-title" className="text-xl md:text-2xl text-gray-900 font-calibri mb-4">
+                Sign in to continue
+              </h2>
               <p id="auth-dialog-desc" className="text-gray-600 font-calibri text-sm md:text-base leading-relaxed mb-6">
                 To complete your play session booking, please sign in to your account or create a new one. We’ll bring you right back here after you’re done.
               </p>

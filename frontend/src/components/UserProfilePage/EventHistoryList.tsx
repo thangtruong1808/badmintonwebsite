@@ -510,7 +510,6 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
       <ConfirmDialog
         open={!!cancelOneReg}
         title="Cancel registration"
-        titleClassName="font-calibri text-lg text-gray-800"
         message={
           cancelOneReg
             ? `Are you sure you want to cancel your registration for "${cancelOneReg.eventTitle ?? `Event #${cancelOneReg.eventId}`}"? Your spot will be released for others. You can register again later if spots are available.`
@@ -525,7 +524,6 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
       <ConfirmDialog
         open={showCancelSelectedConfirm}
         title="Cancel selected registrations"
-        titleClassName="font-calibri text-lg text-gray-800"
         message={
           selectedCancelCount > 0
             ? `Are you sure you want to cancel ${selectedCancelCount} registration${selectedCancelCount !== 1 ? "s" : ""}? Your spot${selectedCancelCount !== 1 ? "s will" : " will"} be released for others. You can register again later if spots are available.`
@@ -540,7 +538,6 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
       <ConfirmDialog
         open={!!registerAgainReg}
         title="Register again"
-        titleClassName="font-calibri text-lg text-gray-800"
         message={
           registerAgainReg
             ? `You’re about to re-register for "${registerAgainReg.eventTitle ?? `Event #${registerAgainReg.eventId}`}". You’ll be taken to the checkout to complete your payment. Ready to continue?`
