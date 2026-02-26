@@ -252,7 +252,7 @@ const PlayPage: React.FC = () => {
                 }
               }}
               isCancelling={!!regId && regId === cancellingRegistrationId}
-              onNavigateToAddGuestsPayment={(registrationId, guestCount, ev, guestCountTotal) => {
+              onNavigateToAddGuestsPayment={(registrationId, guestCount, ev, guestCountTotal, pendingAddGuestsId) => {
                 setSelectedEvent(null);
                 navigate("/play/checkout", {
                   state: {
@@ -261,6 +261,7 @@ const PlayPage: React.FC = () => {
                       guestCount,
                       event: ev,
                       ...(guestCountTotal != null ? { guestCountTotal } : {}),
+                      ...(pendingAddGuestsId ? { pendingAddGuestsId } : {}),
                     },
                   },
                 });

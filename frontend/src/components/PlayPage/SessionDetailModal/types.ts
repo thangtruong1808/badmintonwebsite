@@ -34,6 +34,6 @@ export interface SessionDetailModalProps {
   onRefetchRequested?: () => void | Promise<void>;
   /** Optional loading flag while cancellation is in progress */
   isCancelling?: boolean;
-  /** Called when user adds friends - navigate to checkout/payment. guestCountTotal: when partial (some waitlisted), total to add via API. */
-  onNavigateToAddGuestsPayment?: (registrationId: string, guestCount: number, event: SocialEvent, guestCountTotal?: number) => void;
+  /** Called when user adds friends - navigate to checkout/payment. guestCountTotal: when partial (some waitlisted), total to add via API. pendingAddGuestsId: when partial, after reserving. */
+  onNavigateToAddGuestsPayment?: (registrationId: string, guestCount: number, event: SocialEvent, guestCountTotal?: number, pendingAddGuestsId?: string) => void;
 }

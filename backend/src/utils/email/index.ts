@@ -21,7 +21,7 @@ export {
   type RegistrationSessionDetails,
 } from './emailRegistration.js';
 
-export { sendWaitlistPromotionEmail } from './emailWaitlist.js';
+export { sendWaitlistPromotionEmail, sendSpotConfirmedEmail } from './emailWaitlist.js';
 
 export {
   sendFriendsPromotedEmail,

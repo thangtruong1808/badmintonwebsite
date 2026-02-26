@@ -5,6 +5,7 @@ import { selectUser } from "../../../store/authSlice";
 import {
   joinWaitlist,
   addGuestsToRegistration,
+  reserveAddGuestsToRegistration,
   removeGuestsByIdsToRegistration,
   getMyAddGuestsWaitlist,
   getMyEventWaitlistStatus,
@@ -223,13 +224,21 @@ export function useSessionDetailModal(props: SessionDetailModalProps) {
     }
   };
 
-  const handlePartialGuestsConfirm = () => {
+  const handlePartialGuestsConfirm = async () => {
     if (!pendingGuestAdd) return;
     const { registrationId, toAdd, toWaitlist } = pendingGuestAdd;
     const totalCount = toAdd + toWaitlist;
     setShowPartialGuestsConfirm(false);
     setPendingGuestAdd(null);
-    if (onNavigateToAddGuestsPayment && toAdd > 0 && event) {
+    if (onNavigateToAddGuestsPayment && toAdd > 0 && event && totalCount > toAdd) {
+      const reserveResult = await reserveAddGuestsToRegistration(registrationId, totalCount);
+      if (reserveResult.success && reserveResult.pendingId) {
+        onNavigateToAddGuestsPayment(registrationId, toAdd, event, totalCount, reserveResult.pendingId);
+        onClose();
+      } else {
+        setAddGuestsMessage({ type: "error", text: reserveResult.message ?? "Could not reserve spots. Please try again." });
+      }
+    } else if (onNavigateToAddGuestsPayment && toAdd > 0 && event) {
       onNavigateToAddGuestsPayment(registrationId, toAdd, event, totalCount);
       onClose();
     } else {

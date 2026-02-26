@@ -10,7 +10,7 @@ import {
 import { getUserById } from './userService.js';
 import { promoteFromWaitlist } from './waitlistService.js';
 import { createGuest, getGuestsByRegistrationId, deleteGuest } from './registrationGuestService.js';
-import { sendWaitlistPromotionEmail, sendRegistrationConfirmationEmail, sendRegistrationConfirmationEmailForSessions, sendAddGuestsConfirmationEmail, sendCancellationConfirmationEmail } from '../utils/email.js';
+import { sendRegistrationConfirmationEmail, sendRegistrationConfirmationEmailForSessions, sendAddGuestsConfirmationEmail, sendCancellationConfirmationEmail } from '../utils/email.js';
 import pool from '../db/connection.js';
 
 export interface RegistrationRow {
@@ -400,19 +400,7 @@ export const cancelRegistration = async (
       event.location,
       reg.name
     );
-    await promoteFromWaitlist(reg.event_id, async (entry, paymentLink) => {
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24);
-      await sendWaitlistPromotionEmail(
-        entry.email,
-        event.title,
-        `${event.date} ${event.time}`,
-        paymentLink,
-        expiresAt,
-        entry.name,
-        event.location
-      );
-    });
+    await promoteFromWaitlist(reg.event_id);
   }
 
   return true;
@@ -568,6 +556,55 @@ export const deletePendingAddGuests = async (pendingId: string, userId: string):
   return Number((result as { affectedRows?: number })?.affectedRows) > 0;
 };
 
+/**
+ * Find a pending add-guests record for this user and registration with matching guest_count (for payment flow when client may not send pendingId).
+ */
+async function findPendingAddGuestsForUserRegistration(
+  userId: string,
+  registrationId: string,
+  guestCount: number
+): Promise<string | null> {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    'SELECT id FROM pending_add_guests WHERE user_id = ? AND registration_id = ? AND guest_count = ? AND expires_at > NOW() LIMIT 1',
+    [userId, registrationId, guestCount]
+  );
+  return rows.length > 0 && rows[0].id ? String(rows[0].id) : null;
+}
+
+/**
+ * Reserve add-guests (create pending_add_guests) so when the user pays we can correctly split
+ * toAdd vs toWaitlist. Used when user proceeds to payment with partial availability (e.g. 2 friends, 1 spot).
+ * Removes any existing pending for this user+registration so only one is active (avoids double-counting in reserved total).
+ */
+export const createPendingAddGuests = async (
+  userId: string,
+  registrationId: string,
+  guestCount: number
+): Promise<{ pendingId: string; expiresAt: Date }> => {
+  const count = Math.min(Math.max(1, guestCount), 10);
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT * FROM registrations WHERE id = ? AND user_id = ? AND status = ?',
+    [registrationId, userId, 'confirmed']
+  );
+  if (rows.length === 0) throw createError('Registration not found or unauthorized', 404);
+  const reg = rows[0];
+  const event = await getEventById(reg.event_id);
+  if (!event) throw createError('Event not found', 404);
+  await pool.execute(
+    'DELETE FROM pending_add_guests WHERE user_id = ? AND registration_id = ?',
+    [userId, registrationId]
+  );
+  const pendingId = uuidv4();
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 24);
+  await pool.execute(
+    `INSERT INTO pending_add_guests (id, event_id, registration_id, user_id, guest_count, expires_at)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [pendingId, reg.event_id, registrationId, userId, count, expiresAt]
+  );
+  return { pendingId, expiresAt };
+};
+
 export const addGuestsToRegistration = async (
   userId: string,
   registrationId: string,
@@ -586,10 +623,14 @@ export const addGuestsToRegistration = async (
   const event = await getEventById(reg.event_id);
   if (!event) throw createError('Event not found', 404);
 
+  const pendingIdToUse = options?.pendingAddGuestsId ?? await findPendingAddGuestsForUserRegistration(userId, registrationId, count);
   const pendingAddGuestsReserved = await countPendingAddGuestsForEvent(reg.event_id);
-  let spotsLeft = Math.max(0, event.maxCapacity - event.currentAttendees - pendingAddGuestsReserved);
-  if (options?.pendingAddGuestsId) {
-    spotsLeft += count;
+  let spotsLeft: number;
+  if (pendingIdToUse) {
+    // We're fulfilling our own pending: don't count our reservation against the pool. Spots available = capacity - current - (all pending) + (our count).
+    spotsLeft = Math.max(0, event.maxCapacity - event.currentAttendees - pendingAddGuestsReserved + count);
+  } else {
+    spotsLeft = Math.max(0, event.maxCapacity - event.currentAttendees - pendingAddGuestsReserved);
   }
   const toAdd = Math.min(count, spotsLeft);
   const toWaitlist = count - toAdd;
@@ -634,8 +675,8 @@ export const addGuestsToRegistration = async (
     }
   }
 
-  if (options?.pendingAddGuestsId && toAdd > 0) {
-    await deletePendingAddGuests(options.pendingAddGuestsId, userId);
+  if (pendingIdToUse) {
+    await deletePendingAddGuests(pendingIdToUse, userId);
   }
 
   return { added: toAdd, waitlisted: toWaitlist };
@@ -679,23 +720,10 @@ export const removeGuestsFromRegistration = async (
 
   let promoted = 0;
   const { promoteFromWaitlist } = await import('./waitlistService.js');
-  const event = await getEventById(reg.event_id);
-  if (event) {
-    for (let i = 0; i < actualRemove; i++) {
-      const result = await promoteFromWaitlist(reg.event_id, async (entry, link) => {
-        await sendWaitlistPromotionEmail(
-          entry.email,
-          event.title,
-          `${event.date} ${event.time}`,
-          link,
-          new Date(Date.now() + 24 * 60 * 60 * 1000),
-          entry.name,
-          event.location
-        );
-      });
-      if (result.promoted) promoted += 1;
-      else break;
-    }
+  for (let i = 0; i < actualRemove; i++) {
+    const result = await promoteFromWaitlist(reg.event_id);
+    if (result.promoted) promoted += 1;
+    else break;
   }
 
   return { removed: actualRemove, promoted };
@@ -743,23 +771,10 @@ export const removeGuestsByIdsFromRegistration = async (
 
   let promoted = 0;
   const { promoteFromWaitlist } = await import('./waitlistService.js');
-  const event = await getEventById(reg.event_id);
-  if (event) {
-    for (let i = 0; i < actualRemove; i++) {
-      const result = await promoteFromWaitlist(reg.event_id, async (entry, link) => {
-        await sendWaitlistPromotionEmail(
-          entry.email,
-          event.title,
-          `${event.date} ${event.time}`,
-          link,
-          new Date(Date.now() + 24 * 60 * 60 * 1000),
-          entry.name,
-          event.location
-        );
-      });
-      if (result.promoted) promoted += 1;
-      else break;
-    }
+  for (let i = 0; i < actualRemove; i++) {
+    const result = await promoteFromWaitlist(reg.event_id);
+    if (result.promoted) promoted += 1;
+    else break;
   }
 
   return { removed: actualRemove, promoted };
@@ -783,20 +798,7 @@ export const expirePendingPromotions = async (): Promise<{ expired: number; prom
     expired += 1;
 
     const { promoteFromWaitlist } = await import('./waitlistService.js');
-    const result = await promoteFromWaitlist(r.event_id, async (entry, link) => {
-      const event = await getEventById(r.event_id);
-      if (event) {
-        await sendWaitlistPromotionEmail(
-          entry.email,
-          event.title,
-          `${event.date} ${event.time}`,
-          link,
-          new Date(Date.now() + 24 * 60 * 60 * 1000),
-          entry.name,
-          event.location
-        );
-      }
-    });
+    const result = await promoteFromWaitlist(r.event_id);
     if (result.promoted) promoted += 1;
   }
 
@@ -863,17 +865,7 @@ export const processWaitlistsForAvailableSpots = async (
       const entry = await getFirstWaitlistEntry(eid);
       if (!entry) break;
 
-      const result = await promoteFromWaitlist(eid, async (entry, link) => {
-        await sendWaitlistPromotionEmail(
-          entry.email,
-          event.title,
-          `${event.date} ${event.time}`,
-          link,
-          new Date(Date.now() + 24 * 60 * 60 * 1000),
-          entry.name,
-          event.location
-        );
-      });
+      const result = await promoteFromWaitlist(eid);
 
       if (result.promoted) {
         promoted += 1;

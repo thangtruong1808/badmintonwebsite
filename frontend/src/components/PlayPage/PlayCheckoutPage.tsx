@@ -230,10 +230,15 @@ const PlayCheckoutPage: React.FC = () => {
             <div className="p-4 bg-rose-50 border-b border-rose-200">
               <p className="text-rose-800 font-calibri text-sm font-medium">
                 {addGuestsPendingId
-                  ? "Complete payment within 24 hours to add your friend(s) to your registration."
+                  ? "Please complete your payment within 24 hours to add your friend(s) to your registration. We look forward to seeing you on the court!"
                   : addGuestsContext.guestCountTotal != null && addGuestsContext.guestCountTotal > addGuestsContext.guestCount
-                    ? `${addGuestsContext.guestCount} friend(s) will be added (payment required). ${addGuestsContext.guestCountTotal - addGuestsContext.guestCount} on the waitlist.`
-                    : `Adding ${addGuestsContext.guestCount} friend${addGuestsContext.guestCount !== 1 ? "s" : ""} to your registration. Proceed to payment.`}
+                    ? (() => {
+                        const securing = addGuestsContext.guestCount;
+                        const waitlisted = addGuestsContext.guestCountTotal - addGuestsContext.guestCount;
+                        const total = addGuestsContext.guestCountTotal;
+                        return `Payment is required for all ${total} friend${total !== 1 ? "s" : ""}. ${securing} will secure a spot now and ${waitlisted} will be placed on the waitlist. We'll notify you when a spot opens for waitlisted friends.`;
+                      })()
+                    : `Payment is required for all ${addGuestsContext.guestCount} friend${addGuestsContext.guestCount !== 1 ? "s" : ""}. Proceed to payment to confirm your registration.`}
               </p>
             </div>
           )}
@@ -246,15 +251,26 @@ const PlayCheckoutPage: React.FC = () => {
           )}
           <div className="p-6 space-y-4">
             {isAddGuestsFlow && addGuestsContext ? (
-              <div className="border-b border-gray-200 pb-4">
+              <div className="border-b border-gray-200 pb-4 space-y-2">
                 <p className="font-medium text-gray-900 font-calibri text-lg">{addGuestsContext.event.title}</p>
                 <p className="text-md text-gray-600 font-calibri text-lg">
                   {formatDate(addGuestsContext.event.date)} • {addGuestsContext.event.time}
                 </p>
                 <p className="text-gray-600 font-calibri text-lg">{addGuestsContext.event.location}</p>
-                <p className="text-rose-600 font-calibri text-lg">
-                  Adding {addGuestsContext.guestCount} friend{addGuestsContext.guestCount !== 1 ? "s" : ""} × ${Number(addGuestsContext.event.price ?? 0).toFixed(2)} = ${totalPrice.toFixed(2)}
-                </p>
+                {addGuestsContext.guestCountTotal != null && addGuestsContext.guestCountTotal > addGuestsContext.guestCount ? (
+                  <>
+                    <p className="text-gray-700 font-calibri text-base mt-2">
+                      {addGuestsContext.guestCount} friend{addGuestsContext.guestCount !== 1 ? "s" : ""} securing a spot now + {addGuestsContext.guestCountTotal - addGuestsContext.guestCount} friend{(addGuestsContext.guestCountTotal - addGuestsContext.guestCount) !== 1 ? "s" : ""} on waitlist = {addGuestsContext.guestCountTotal} friends total
+                    </p>
+                    <p className="text-rose-600 font-calibri text-lg">
+                      {addGuestsContext.guestCountTotal} friends × ${Number(addGuestsContext.event.price ?? 0).toFixed(2)} = ${totalPrice.toFixed(2)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-rose-600 font-calibri text-lg">
+                    {addGuestsContext.guestCount} friend{addGuestsContext.guestCount !== 1 ? "s" : ""} × ${Number(addGuestsContext.event.price ?? 0).toFixed(2)} = ${totalPrice.toFixed(2)}
+                  </p>
+                )}
               </div>
             ) : events.map((e) => (
               <div

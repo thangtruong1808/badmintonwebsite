@@ -232,6 +232,31 @@ export async function getPendingAddGuests(
 }
 
 /**
+ * Reserve add-guests (create pending) so spots are held until payment. Use when user proceeds to payment with partial availability.
+ */
+export async function reserveAddGuestsToRegistration(
+  registrationId: string,
+  guestCount: number
+): Promise<{ success: boolean; pendingId?: string; expiresAt?: string; message?: string }> {
+  try {
+    const res = await apiFetch(`/api/registrations/${registrationId}/reserve-add-guests`, {
+      method: "POST",
+      body: JSON.stringify({ guestCount }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return { success: true, pendingId: data.pendingId, expiresAt: data.expiresAt };
+    }
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in." : (data.message ?? data.error ?? "Failed to reserve."),
+    };
+  } catch {
+    return { success: false, message: "Could not reserve. Please try again." };
+  }
+}
+
+/**
  * Add guests to an existing registration (1–10).
  */
 export async function addGuestsToRegistration(
@@ -240,9 +265,13 @@ export async function addGuestsToRegistration(
   options?: { pendingAddGuestsId?: string }
 ): Promise<{ success: boolean; message?: string; added?: number; waitlisted?: number }> {
   try {
+    const body: { guestCount: number; pendingAddGuestsId?: string } = { guestCount };
+    if (options?.pendingAddGuestsId != null && options.pendingAddGuestsId !== '') {
+      body.pendingAddGuestsId = options.pendingAddGuestsId;
+    }
     const res = await apiFetch(`/api/registrations/${registrationId}/add-guests`, {
       method: "POST",
-      body: JSON.stringify({ guestCount, ...(options?.pendingAddGuestsId && { pendingAddGuestsId: options.pendingAddGuestsId }) }),
+      body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok) {

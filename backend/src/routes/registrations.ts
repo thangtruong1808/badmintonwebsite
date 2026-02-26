@@ -8,6 +8,7 @@ import {
   getMyPendingPayments,
   getPendingAddGuests,
   confirmPayment,
+  reserveAddGuests,
   addGuestsToRegistration,
   removeGuestsFromRegistration,
   getRegistrationGuests,
@@ -103,6 +104,13 @@ router.get('/:id/guests', authenticateToken, getRegistrationGuests);
  * @access  Private
  */
 router.put('/:id/guests', authenticateToken, putRegistrationGuests);
+
+/**
+ * @route   POST /api/registrations/:id/reserve-add-guests
+ * @desc    Reserve add-guests (create pending) so spots are held until payment (partial availability flow)
+ * @access  Private
+ */
+router.post('/:id/reserve-add-guests', authenticateToken, reserveAddGuests);
 
 /**
  * @route   POST /api/registrations/:id/add-guests

@@ -11,6 +11,7 @@ export {
   sendRegistrationConfirmationEmailForSessions,
   sendCancellationConfirmationEmail,
   sendWaitlistPromotionEmail,
+  sendSpotConfirmedEmail,
   sendFriendsPromotedEmail,
   sendAddGuestsConfirmationEmail,
   sendRemoveGuestsConfirmationEmail,

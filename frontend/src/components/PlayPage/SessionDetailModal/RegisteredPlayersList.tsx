@@ -38,9 +38,13 @@ const RegisteredPlayersList: React.FC<RegisteredPlayersListProps> = ({ players, 
                 ? p.guestNames.filter((n) => (n ?? "").trim())
                 : [];
             const tooltipText =
-              guestNamesList.length > 0 ? `${p.name}: ${guestNamesList.join(", ")}` : p.name;
+              guestNamesList.length > 0
+                ? `${p.name}: ${guestCount} friend${guestCount !== 1 ? "s" : ""} — ${guestNamesList.join(", ")}`
+                : hasGuests
+                  ? `${p.name}: ${guestCount} friend${guestCount !== 1 ? "s" : ""}`
+                  : p.name;
             const badgeLabel =
-              guestNamesList.length > 0 ? guestNamesList.join(", ") : undefined;
+              guestNamesList.length > 0 ? `${guestCount} friend${guestCount !== 1 ? "s" : ""}: ${guestNamesList.join(", ")}` : (hasGuests ? `${guestCount} friend${guestCount !== 1 ? "s" : ""}` : undefined);
             const borderClass = hasGuests
               ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-white shadow-sm"
               : "shadow-sm";

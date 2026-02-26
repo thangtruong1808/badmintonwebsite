@@ -9,6 +9,7 @@ import {
   getMyPendingPaymentRegistrations,
   confirmPaymentForPendingRegistration,
   getPendingAddGuestsById,
+  createPendingAddGuests as createPendingAddGuestsService,
   addGuestsToRegistration as addGuestsToRegistrationService,
   removeGuestsFromRegistration as removeGuestsFromRegistrationService,
   removeGuestsByIdsFromRegistration as removeGuestsByIdsFromRegistrationService,
@@ -196,6 +197,30 @@ export const confirmPayment = async (
     }
 
     res.json({ success: true, message: 'Payment confirmed. Your registration is complete.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const reserveAddGuests = async (
+  req: AuthRequest<{ id: string }, {}, { guestCount: number }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const registrationId = req.params.id;
+    const guestCount = req.body?.guestCount ?? 0;
+
+    if (!registrationId || guestCount < 1 || guestCount > 10) {
+      throw createError('Valid registration ID and guestCount (1-10) are required', 400);
+    }
+
+    const result = await createPendingAddGuestsService(req.userId, registrationId, guestCount);
+    res.json(result);
   } catch (error) {
     next(error);
   }
