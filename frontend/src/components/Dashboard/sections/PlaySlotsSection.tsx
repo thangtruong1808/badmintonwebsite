@@ -515,7 +515,7 @@ const PlaySlotsSection: React.FC = () => {
       />
       {courtModalSlot && (
         <FormModal
-          title={`Courts: ${courtModalSlot.title} (${courtModalSlot.dayOfWeek} ${courtModalSlot.time})`}
+          title={`Courts: ${courtModalSlot.title} (${courtModalSlot.dayOfWeek} )`}
           open={!!courtModalSlot}
           onClose={() => {
             setCourtModalSlot(null);
@@ -525,6 +525,7 @@ const PlaySlotsSection: React.FC = () => {
           }}
           onSubmit={editingCourt ? handleUpdateCourt : handleAddCourt}
           maxWidth="lg"
+          titleClassName="font-calibri text-xl text-gray-800"
         >
           <div className="space-y-4">
             {courtFormError && (

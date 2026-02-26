@@ -42,6 +42,10 @@ CREATE INDEX idx_users_default_payment_method ON users(default_payment_method);
 CREATE INDEX idx_users_member_since ON users(member_since);
 CREATE INDEX idx_users_created_at ON users(created_at);
 
+
+ALTER TABLE users ADD COLUMN is_blocked BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX idx_users_is_blocked ON users(is_blocked);
+
 -- =====================================================
 -- Table: refresh_tokens
 -- Stores refresh tokens for JWT auth (access token is stateless)
@@ -62,6 +66,31 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
 CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 CREATE INDEX idx_refresh_tokens_token_hash ON refresh_tokens(token_hash);
+
+-- Migration: Create event_waitlist table for waiting list feature
+-- Run after schema.sql. event_waitlist stores users waiting for spots (new or add-guests).
+-- registration_id NULL = new spot when session full; registration_id SET = adding guests to existing registration.
+
+CREATE TABLE IF NOT EXISTS event_waitlist (
+  id VARCHAR(255) PRIMARY KEY,
+  event_id INT NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  position INT NOT NULL,
+  registration_id VARCHAR(255) NULL,
+  guest_count INT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (registration_id) REFERENCES registrations(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_user_event (user_id, event_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_event_waitlist_event ON event_waitlist(event_id);
+CREATE INDEX idx_event_waitlist_created ON event_waitlist(event_id, created_at);
+
 
 -- =====================================================
 -- Table: user_shipping_addresses
@@ -125,6 +154,22 @@ CREATE TABLE IF NOT EXISTS play_slots (
 
 CREATE INDEX idx_play_slots_day ON play_slots(day_of_week);
 CREATE INDEX idx_play_slots_is_active ON play_slots(is_active);
+
+-- =====================================================
+-- Table: courts
+-- Stores court labels per recurring play slot (e.g. Court 1, Court 2)
+-- =====================================================
+CREATE TABLE IF NOT EXISTS courts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    play_slot_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (play_slot_id) REFERENCES play_slots(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_courts_play_slot ON courts(play_slot_id);
 
 -- =====================================================
 -- Table: events
