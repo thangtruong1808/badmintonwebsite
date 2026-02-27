@@ -185,7 +185,8 @@ export const Checkbox: React.FC<CheckboxProps> = ({
 export const FormActions: React.FC<{
   onCancel: () => void;
   submitLabel?: string;
-}> = ({ onCancel, submitLabel = "Save" }) => (
+  submitDisabled?: boolean;
+}> = ({ onCancel, submitLabel = "Save", submitDisabled = false }) => (
   <div className="flex justify-end gap-3 border-t border-gray-200 pt-4">
     <button
       type="button"
@@ -196,7 +197,8 @@ export const FormActions: React.FC<{
     </button>
     <button
       type="submit"
-      className="rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
+      disabled={submitDisabled}
+      className="rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {submitLabel}
     </button>
