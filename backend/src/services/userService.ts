@@ -128,7 +128,7 @@ export const updateUser = async (
   if (!user) return null;
 
   const fields: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number)[] = [];
   if (updates.firstName !== undefined) {
     fields.push('first_name = ?');
     values.push(updates.firstName);

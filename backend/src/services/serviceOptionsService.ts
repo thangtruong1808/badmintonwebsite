@@ -113,7 +113,7 @@ export const updateString = async (
   const existing = await findStringById(id);
   if (!existing) return null;
   const updates: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number)[] = [];
   if (data.name !== undefined) {
     updates.push('name = ?');
     values.push(data.name);
@@ -183,7 +183,7 @@ export const updateColour = async (
   data: Partial<{ colour: string; display_order: number }>
 ): Promise<ServiceStringColourRow | null> => {
   const updates: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number)[] = [];
   if (data.colour !== undefined) {
     updates.push('colour = ?');
     values.push(data.colour);
@@ -270,7 +270,7 @@ export const updateTension = async (
   const existing = await findTensionById(id);
   if (!existing) return null;
   const updates: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number)[] = [];
   if (data.label !== undefined) {
     updates.push('label = ?');
     values.push(data.label);
@@ -348,7 +348,7 @@ export const updateStencil = async (
   const existing = await findStencilById(id);
   if (!existing) return null;
   const updates: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number)[] = [];
   if (data.value !== undefined) {
     updates.push('value = ?');
     values.push(data.value);
@@ -430,7 +430,7 @@ export const updateGrip = async (
   const existing = await findGripById(id);
   if (!existing) return null;
   const updates: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number)[] = [];
   if (data.value !== undefined) {
     updates.push('value = ?');
     values.push(data.value);
