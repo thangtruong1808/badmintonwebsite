@@ -726,11 +726,43 @@ export const updateDashboardServiceRequest = async (
   }
 };
 
-// Payments (dashboard: list)
+// Payments (dashboard: list, detail, update)
 export const getDashboardPayments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const list = await paymentService.findAll();
     res.json(list);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getDashboardPaymentById = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const payment = await paymentService.findById(req.params.id);
+    if (!payment) throw createError('Payment not found', 404);
+    res.json(payment);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateDashboardPayment = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { status } = req.body;
+    if (!status || !['pending', 'completed', 'failed', 'refunded'].includes(status)) {
+      throw createError('Invalid status', 400);
+    }
+    const updated = await paymentService.updateStatus(req.params.id, status);
+    if (!updated) throw createError('Payment not found', 404);
+    res.json(updated);
   } catch (error) {
     next(error);
   }

@@ -22,6 +22,8 @@ import serviceOptionsRoutes from './routes/serviceOptions.js';
 import contactRoutes from './routes/contact.js';
 import serviceRequestsRoutes from './routes/serviceRequests.js';
 import cronRoutes from './routes/cron.js';
+import paymentsRoutes from './routes/payments.js';
+import webhooksRoutes from './routes/webhooks.js';
 import { seedPlaySlotsIfEmpty } from './utils/initializeData.js';
 
 // Seed play_slots on startup if empty
@@ -44,6 +46,10 @@ app.use(cors({
   credentials: true,
 }));
 app.use(cookieParser());
+
+// Webhook routes MUST be registered BEFORE express.json() for raw body parsing
+app.use('/api/webhooks', webhooksRoutes);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -80,6 +86,7 @@ app.use('/api/service-options', serviceOptionsRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/service-requests', serviceRequestsRoutes);
 app.use('/api/cron', cronRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // 404 handler
 app.use((req, res) => {

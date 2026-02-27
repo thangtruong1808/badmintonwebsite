@@ -8,6 +8,13 @@ import { selectAuthInitialized } from "../../store/authSlice";
 import { canUsePointsForBooking, formatPoints } from "../../utils/rewardPoints";
 import { usePointsForBooking } from "../../utils/rewardPointsService";
 import { clearCart } from "../../utils/cartStorage";
+import {
+  createPlayCheckoutSession,
+  createAddGuestsCheckoutSession,
+  createWaitlistCheckoutSession,
+  redirectToStripeCheckout,
+} from "../../utils/paymentService";
+import { isStripeConfigured } from "../../utils/stripe";
 import type { SocialEvent } from "../../types/socialEvent";
 
 const PlayPaymentPage: React.FC = () => {
@@ -181,6 +188,53 @@ const PlayPaymentPage: React.FC = () => {
     try {
       const isAddGuestsFlow = !!addGuestsContext;
       const isWaitlistFlow = !!waitlistContext;
+
+      // Handle Stripe payment - redirect to Stripe Checkout
+      if (paymentMethod === "stripe" && isStripeConfigured()) {
+        if (isWaitlistFlow && waitlistContext) {
+          const result = await createWaitlistCheckoutSession({
+            pendingWaitlistId: waitlistContext.pendingId,
+            eventId: waitlistContext.event.id,
+            eventTitle: waitlistContext.event.title,
+            price: Number(waitlistContext.event.price ?? 0),
+          });
+          redirectToStripeCheckout(result.checkoutUrl);
+          return;
+        } else if (isAddGuestsFlow && addGuestsContext) {
+          const result = await createAddGuestsCheckoutSession({
+            registrationId: addGuestsContext.registrationId,
+            eventId: addGuestsContext.event.id,
+            eventTitle: addGuestsContext.event.title,
+            guestCount: addGuestsContext.guestCountTotal ?? addGuestsContext.guestCount,
+            pricePerGuest: Number(addGuestsContext.event.price ?? 0),
+            pendingAddGuestsId: addGuestsContext.pendingAddGuestsId,
+          });
+          redirectToStripeCheckout(result.checkoutUrl);
+          return;
+        } else if (pendingRegistration) {
+          const result = await createPlayCheckoutSession(
+            [{
+              eventId: pendingRegistration.eventId,
+              eventTitle: pendingRegistration.eventTitle,
+              price: pendingRegistration.price ?? 0,
+            }],
+            [pendingRegistration.id]
+          );
+          redirectToStripeCheckout(result.checkoutUrl);
+          return;
+        } else {
+          const items = events.map((ev) => ({
+            eventId: ev.id,
+            eventTitle: ev.title,
+            price: Number(ev.price ?? 0),
+          }));
+          const result = await createPlayCheckoutSession(items);
+          redirectToStripeCheckout(result.checkoutUrl);
+          return;
+        }
+      }
+
+      // Handle points or mixed payment
       if (!pendingRegistration && !isWaitlistFlow && user && (paymentMethod === "points" || paymentMethod === "mixed")) {
         const pts = paymentMethod === "points" ? totalPrice : pointsToUse;
         const eventId = isAddGuestsFlow ? addGuestsContext!.event.id : events[0].id;
@@ -238,22 +292,23 @@ const PlayPaymentPage: React.FC = () => {
           message: "Payment confirmed! Your registration is complete.",
         });
       } else {
-      const result = await registerUserForEvents(events, formData);
-      if (!result.success) {
-        setSubmitStatus({ type: "error", message: result.message });
-        setIsSubmitting(false);
-        return;
-      }
+        const result = await registerUserForEvents(events, formData);
+        if (!result.success) {
+          setSubmitStatus({ type: "error", message: result.message });
+          setIsSubmitting(false);
+          return;
+        }
 
-      setSubmitStatus({
-        type: "success",
-        message: `Successfully registered for ${events.length} session${events.length !== 1 ? "s" : ""}!`,
-      });
+        setSubmitStatus({
+          type: "success",
+          message: `Successfully registered for ${events.length} session${events.length !== 1 ? "s" : ""}!`,
+        });
       }
       clearCart();
       setTimeout(() => navigate("/profile"), 2000);
-    } catch {
-      setSubmitStatus({ type: "error", message: "Something went wrong. Please try again." });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setSubmitStatus({ type: "error", message });
     } finally {
       setIsSubmitting(false);
     }

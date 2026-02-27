@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { FaEdit, FaTrash, FaChevronUp, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaEdit, FaTrash, FaChevronUp, FaChevronDown, FaChevronLeft, FaChevronRight, FaEye } from "react-icons/fa";
 
 export interface Column<T> {
   key: string;
@@ -13,6 +13,7 @@ interface DataTableProps<T> {
   loading?: boolean;
   onEdit?: (row: T) => void;
   onDelete?: (row: T) => void;
+  onView?: (row: T) => void;
   getRowId: (row: T) => string | number;
   emptyMessage?: string;
   /** When true, column headers are clickable to sort */
@@ -29,6 +30,7 @@ function DataTable<T>({
   loading = false,
   onEdit,
   onDelete,
+  onView,
   getRowId,
   emptyMessage = "No data yet.",
   sortable = false,
@@ -193,7 +195,7 @@ function DataTable<T>({
                     </span>
                   </th>
                 ))}
-                {(onEdit || onDelete) && (
+                {(onView || onEdit || onDelete) && (
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">
                     Actions
                   </th>
@@ -210,9 +212,19 @@ function DataTable<T>({
                         : String((row as Record<string, unknown>)[col.key] ?? "")}
                     </td>
                   ))}
-                  {(onEdit || onDelete) && (
+                  {(onView || onEdit || onDelete) && (
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
+                        {onView && (
+                          <button
+                            type="button"
+                            onClick={() => onView(row)}
+                            className="rounded p-2 text-blue-600 hover:bg-blue-100"
+                            aria-label="View"
+                          >
+                            <FaEye size={16} />
+                          </button>
+                        )}
                         {onEdit && (
                           <button
                             type="button"

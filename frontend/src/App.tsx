@@ -26,6 +26,10 @@ import PlayPage from "./components/PlayPage";
 import PlayCheckoutPage from "./components/PlayPage/PlayCheckoutPage";
 import SessionRegistrationsPage from "./components/PlayPage/SessionRegistrationsPage";
 import PlayPaymentPage from "./components/PlayPage/PlayPaymentPage";
+import PlayPaymentSuccessPage from "./components/PlayPage/PlayPaymentSuccessPage";
+import PlayPaymentCancelPage from "./components/PlayPage/PlayPaymentCancelPage";
+import ShopPaymentSuccessPage from "./components/ShopPage/ShopPaymentSuccessPage";
+import ShopPaymentCancelPage from "./components/ShopPage/ShopPaymentCancelPage";
 import NewsDetailPage from "./components/NewsDetailPage";
 import UserProfilePage from "./components/UserProfilePage/UserProfilePage";
 import DashboardPage from "./components/DashboardPage";
@@ -123,11 +127,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/play/payment/success" element={<PlayPaymentSuccessPage />} />
+          <Route path="/play/payment/cancel" element={<PlayPaymentCancelPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/shop/checkout" element={<ShopCheckoutPage />} />
           <Route path="/shop/payment" element={<ShopPaymentPage />} />
+          <Route path="/shop/payment/success" element={<ShopPaymentSuccessPage />} />
+          <Route path="/shop/payment/cancel" element={<ShopPaymentCancelPage />} />
           <Route path="/shop/product/:id" element={<ProductDetailPage />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />

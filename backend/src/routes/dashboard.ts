@@ -44,9 +44,16 @@ import {
   getDashboardServiceRequests,
   updateDashboardServiceRequest,
   getDashboardPayments,
+  getDashboardPaymentById,
+  updateDashboardPayment,
   getDashboardInvoices,
   getDashboardInvoiceById,
 } from '../controllers/dashboardController.js';
+import {
+  getDashboardOrders,
+  getDashboardOrderById,
+  updateDashboardOrder,
+} from '../controllers/orderController.js';
 import {
   getNewsletterSubscriptions,
   createNewsletterSubscription,
@@ -161,6 +168,12 @@ router.put('/service-options/grips/:id', authenticateToken, requireAdmin, update
 router.delete('/service-options/grips/:id', authenticateToken, requireAdmin, deleteDashboardServiceOptionsGrip);
 
 router.get('/payments', authenticateToken, requireAdmin, getDashboardPayments);
+router.get('/payments/:id', authenticateToken, requireAdmin, getDashboardPaymentById);
+router.put('/payments/:id', authenticateToken, requireAdmin, updateDashboardPayment);
+
+router.get('/orders', authenticateToken, requireAdmin, getDashboardOrders);
+router.get('/orders/:id', authenticateToken, requireAdmin, getDashboardOrderById);
+router.put('/orders/:id', authenticateToken, requireAdmin, updateDashboardOrder);
 
 router.get('/invoices', authenticateToken, requireAdmin, getDashboardInvoices);
 router.get('/invoices/:id', authenticateToken, requireAdmin, getDashboardInvoiceById);

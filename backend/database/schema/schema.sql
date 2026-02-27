@@ -671,19 +671,21 @@ CREATE TABLE IF NOT EXISTS payments (
     status ENUM('pending', 'completed', 'failed', 'refunded') NOT NULL DEFAULT 'pending',
     payment_method ENUM('stripe', 'points', 'mixed') NOT NULL DEFAULT 'stripe',
     stripe_payment_intent_id VARCHAR(255) DEFAULT NULL,
+    stripe_checkout_session_id VARCHAR(255) DEFAULT NULL,
     metadata JSON DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     -- Foreign Keys
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    
+
     -- Constraints
     CHECK (amount >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Indexes for payments table
 CREATE INDEX idx_payments_user_id ON payments(user_id);
+CREATE INDEX idx_payments_checkout_session ON payments(stripe_checkout_session_id);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_payments_payment_method ON payments(payment_method);
 CREATE INDEX idx_payments_created_at ON payments(created_at);
@@ -878,6 +880,57 @@ CREATE INDEX idx_transactions_user_status_date ON reward_point_transactions(user
 
 -- For querying history by user and attendance status
 CREATE INDEX idx_history_user_attendance_date ON user_event_history(user_id, attendance_status, event_date);
+
+-- =====================================================
+-- Table: orders
+-- Stores shop orders created via Stripe Checkout.
+-- =====================================================
+CREATE TABLE IF NOT EXISTS orders (
+    id VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    payment_id VARCHAR(255) DEFAULT NULL,
+    status ENUM('pending', 'paid', 'shipped', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
+    total DECIMAL(10, 2) NOT NULL,
+    shipping_name VARCHAR(255) DEFAULT NULL,
+    shipping_email VARCHAR(255) DEFAULT NULL,
+    shipping_phone VARCHAR(50) DEFAULT NULL,
+    shipping_address TEXT DEFAULT NULL,
+    stripe_payment_intent_id VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL,
+
+    CHECK (total >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_orders_user_id ON orders(user_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_payment_id ON orders(payment_id);
+CREATE INDEX idx_orders_created_at ON orders(created_at);
+
+-- =====================================================
+-- Table: order_items
+-- Line items for shop orders.
+-- =====================================================
+CREATE TABLE IF NOT EXISTS order_items (
+    id VARCHAR(255) PRIMARY KEY,
+    order_id VARCHAR(255) NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    unit_price DECIMAL(10, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
+
+    CHECK (quantity > 0),
+    CHECK (unit_price >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX idx_order_items_product_id ON order_items(product_id);
 
 -- =====================================================
 -- End of Schema

@@ -14,4 +14,5 @@ export { default as ContactMessagesSection } from "./sections/ContactMessagesSec
 export { default as ServiceRequestsSection } from "./sections/ServiceRequestsSection";
 export { default as ServiceOptionsSection } from "./sections/ServiceOptionsSection";
 export { default as PaymentsSection } from "./sections/PaymentsSection";
+export { default as OrdersSection } from "./sections/OrdersSection";
 export { default as InvoicesSection } from "./sections/InvoicesSection";

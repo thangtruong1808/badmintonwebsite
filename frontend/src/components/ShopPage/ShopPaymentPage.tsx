@@ -4,6 +4,8 @@ import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaMone
 import type { CartItem } from "./ShopCheckoutPage";
 import type { Product } from "./types";
 import { getCurrentUser } from "../../utils/mockAuth";
+import { createShopCheckoutSession, redirectToStripeCheckout } from "../../utils/paymentService";
+import { isStripeConfigured } from "../../utils/stripe";
 
 interface PaymentState {
   products?: Product[];
@@ -67,15 +69,30 @@ const ShopPaymentPage: React.FC = () => {
     setSubmitStatus({ type: null, message: "" });
 
     try {
-      // Mockup: simulate payment processing
+      if (isStripeConfigured()) {
+        const checkoutItems = items.map((item) => ({
+          productId: item.product.id,
+          productName: item.product.name,
+          price: item.unitPrice,
+          quantity: item.quantity,
+          imageUrl: item.product.image,
+        }));
+
+        const result = await createShopCheckoutSession(checkoutItems);
+        redirectToStripeCheckout(result.checkoutUrl);
+        return;
+      }
+
+      // Fallback: simulate payment processing if Stripe not configured
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setSubmitStatus({
         type: "success",
         message: "Order placed successfully! We'll contact you soon to confirm payment and delivery.",
       });
       setTimeout(() => navigate("/shop"), 5000);
-    } catch {
-      setSubmitStatus({ type: "error", message: "Something went wrong. Please try again." });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setSubmitStatus({ type: "error", message });
     } finally {
       setIsSubmitting(false);
     }
@@ -179,7 +196,9 @@ const ShopPaymentPage: React.FC = () => {
                     <FaMoneyBillWave className="text-rose-500 flex-shrink-0" size={20} />
                     <span className="font-calibri">Card (Stripe) - ${totalPrice.toFixed(2)}</span>
                   </div>
-                  <span className="text-xs text-gray-500 sm:ml-auto">(Mockup – integration coming soon)</span>
+                  {!isStripeConfigured() && (
+                    <span className="text-xs text-gray-500 sm:ml-auto">(Stripe not configured)</span>
+                  )}
                 </div>
               </div>
 
