@@ -46,16 +46,32 @@ testConnection().then(({ ok, message }) => {
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Handle OPTIONS preflight requests first
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(204);
+});
+
 // Middleware – support multiple origins for CORS (e.g. Vercel production + preview)
 app.use(cors({
-  origin: (reqOrigin, callback) => {
-    if (!reqOrigin) return callback(null, true);
-    if (isOriginAllowed(reqOrigin)) return callback(null, reqOrigin);
-    callback(null, false);
-  },
+  origin: true, // Allow all origins temporarily to debug
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 app.use(cookieParser());
+
+// Request logging for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} from ${req.headers.origin || 'no-origin'}`);
+  next();
+});
 
 // Webhook routes MUST be registered BEFORE express.json() for raw body parsing
 app.use('/api/webhooks', webhooksRoutes);
@@ -65,18 +81,33 @@ app.use(express.urlencoded({ extended: true }));
 
 // Root: so GET/HEAD https://your-api.vercel.app/ returns 200 (browsers and health checks)
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', message: 'ChibiBadminton API', health: '/health' });
+  console.log('Root endpoint hit');
+  res.json({ status: 'ok', message: 'ChibiBadminton API', health: '/health', timestamp: new Date().toISOString() });
 });
 app.head('/', (req, res) => res.status(200).end());
 
+// Simple ping endpoint (no database, for debugging)
+app.get('/ping', (req, res) => {
+  res.json({ pong: true, timestamp: new Date().toISOString() });
+});
+
 // Health check endpoint
 app.get('/health', async (req, res) => {
-  const dbStatus = await testConnection();
-  res.json({ 
-    status: dbStatus.ok ? 'ok' : 'degraded',
-    message: 'ChibiBadminton API is running',
-    database: dbStatus.ok ? 'connected' : dbStatus.message,
-  });
+  try {
+    const dbStatus = await testConnection();
+    res.json({ 
+      status: dbStatus.ok ? 'ok' : 'degraded',
+      message: 'ChibiBadminton API is running',
+      database: dbStatus.ok ? 'connected' : dbStatus.message,
+    });
+  } catch (err) {
+    console.error('Health check error:', err);
+    res.status(500).json({ 
+      status: 'error',
+      message: 'Health check failed',
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
 });
 
 // Favicon handler
@@ -111,11 +142,20 @@ app.use((req, res) => {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
+// Global error handlers for uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 // Only listen when not running on Vercel (serverless)
 if (!process.env.VERCEL) {
   // Bind to 0.0.0.0 for Railway/Docker compatibility
   const HOST = '0.0.0.0';
-  app.listen(Number(PORT), HOST, () => {
+  const server = app.listen(Number(PORT), HOST, () => {
     const railwayUrl = process.env.RAILWAY_PUBLIC_DOMAIN;
     const baseUrl = railwayUrl 
       ? `https://${railwayUrl}` 
@@ -128,6 +168,10 @@ if (!process.env.VERCEL) {
     } else {
       console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
     }
+  });
+
+  server.on('error', (err) => {
+    console.error('❌ Server error:', err);
   });
 }
 

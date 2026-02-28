@@ -40,11 +40,21 @@ export function getAllowedOrigins(): string[] {
   return combined;
 }
 
+// Track if we've logged the origins
+let _corsOriginsLogged = false;
+
 /**
  * Check if an origin is allowed (either in static list or matches Vercel preview pattern).
  */
 export function isOriginAllowed(origin: string): boolean {
   const staticOrigins = getAllowedOrigins();
+  
+  // Log for debugging (only on first check)
+  if (!_corsOriginsLogged) {
+    console.log('📋 Allowed CORS origins:', staticOrigins);
+    _corsOriginsLogged = true;
+  }
+  
   if (staticOrigins.includes(origin)) return true;
   
   for (const pattern of VERCEL_PREVIEW_PATTERNS) {
