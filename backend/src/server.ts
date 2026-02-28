@@ -98,8 +98,17 @@ app.use(errorHandler);
 // Only listen when not running on Vercel (serverless)
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
-    console.log(`🚀 Server is running on http://localhost:${PORT}`);
-    console.log(`📡 API endpoints available at http://localhost:${PORT}/api`);
+    const railwayUrl = process.env.RAILWAY_PUBLIC_DOMAIN;
+    const baseUrl = railwayUrl 
+      ? `https://${railwayUrl}` 
+      : `http://localhost:${PORT}`;
+    console.log(`🚀 Server is running on ${baseUrl}`);
+    console.log(`📡 API endpoints available at ${baseUrl}/api`);
+    if (railwayUrl) {
+      console.log(`🌐 Environment: Production (Railway)`);
+    } else {
+      console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+    }
   });
 }
 
