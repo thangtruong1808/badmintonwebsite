@@ -3,7 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler.js';
-import { getAllowedOrigins } from './utils/appUrl.js';
+import { isOriginAllowed } from './utils/appUrl.js';
 import authRoutes from './routes/auth.js';
 import eventsRoutes from './routes/events.js';
 import playSlotsRoutes from './routes/playSlots.js';
@@ -36,11 +36,10 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware – support multiple origins for CORS (e.g. Vercel production + preview)
-const allowedOrigins = getAllowedOrigins();
 app.use(cors({
   origin: (reqOrigin, callback) => {
     if (!reqOrigin) return callback(null, true);
-    if (allowedOrigins.includes(reqOrigin)) return callback(null, reqOrigin);
+    if (isOriginAllowed(reqOrigin)) return callback(null, reqOrigin);
     callback(null, false);
   },
   credentials: true,

@@ -12,6 +12,19 @@ export function getFrontendBaseUrl(): string {
 /** Known Vercel frontend URLs for this project – allowed for CORS. */
 const VERCEL_FRONTEND_ORIGINS = [
   'https://badmintonwebsitefrontend.vercel.app',
+  'https://chibibadminton.vercel.app',
+];
+
+/**
+ * Regex patterns for Vercel preview URLs.
+ * Matches patterns like:
+ * - https://chibibadminton-git-*.vercel.app
+ * - https://chibibadminton-*.vercel.app
+ * - https://*-thangtruong1808gmailcoms-projects.vercel.app
+ */
+const VERCEL_PREVIEW_PATTERNS = [
+  /^https:\/\/chibibadminton(-git)?-[a-z0-9-]+-[a-z0-9]+\.vercel\.app$/i,
+  /^https:\/\/[a-z0-9-]+-thangtruong1808gmailcoms-projects\.vercel\.app$/i,
 ];
 
 /**
@@ -23,4 +36,18 @@ export function getAllowedOrigins(): string[] {
   const defaultOrigins = fromEnv.length > 0 ? fromEnv : ['http://localhost:5173'];
   const combined = [...new Set([...defaultOrigins, ...VERCEL_FRONTEND_ORIGINS])];
   return combined;
+}
+
+/**
+ * Check if an origin is allowed (either in static list or matches Vercel preview pattern).
+ */
+export function isOriginAllowed(origin: string): boolean {
+  const staticOrigins = getAllowedOrigins();
+  if (staticOrigins.includes(origin)) return true;
+  
+  for (const pattern of VERCEL_PREVIEW_PATTERNS) {
+    if (pattern.test(origin)) return true;
+  }
+  
+  return false;
 }
