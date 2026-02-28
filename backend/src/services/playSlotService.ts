@@ -89,7 +89,7 @@ export const updatePlaySlot = async (
   if (!slot) return null;
 
   const fields: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.dayOfWeek !== undefined) {
     fields.push('day_of_week = ?');

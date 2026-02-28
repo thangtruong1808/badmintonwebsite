@@ -119,7 +119,7 @@ export const update = async (
   const existing = await findById(id);
   if (!existing) return null;
   const updates: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number | null)[] = [];
   const fields = ['image', 'title', 'date', 'time', 'location', 'description', 'badge', 'category', 'link', 'display_order'] as const;
   for (const key of fields) {
     if (data[key] !== undefined) {
