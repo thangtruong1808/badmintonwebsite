@@ -2,11 +2,13 @@ import dotenv from 'dotenv';
 // Load environment variables FIRST before any other imports
 dotenv.config();
 
+console.log('🔄 Starting server initialization...');
+console.log(`📍 PORT=${process.env.PORT}, NODE_ENV=${process.env.NODE_ENV}`);
+
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middleware/errorHandler.js';
-import { isOriginAllowed } from './utils/appUrl.js';
 import authRoutes from './routes/auth.js';
 import eventsRoutes from './routes/events.js';
 import playSlotsRoutes from './routes/playSlots.js';
@@ -30,18 +32,7 @@ import webhooksRoutes from './routes/webhooks.js';
 import { seedPlaySlotsIfEmpty } from './utils/initializeData.js';
 import { testConnection } from './db/connection.js';
 
-// Test database connection on startup
-testConnection().then(({ ok, message }) => {
-  if (ok) {
-    console.log('✅ Database connection successful');
-    // Seed play_slots on startup if empty
-    seedPlaySlotsIfEmpty().catch(() => {});
-  } else {
-    console.error('❌ Database connection failed:', message);
-  }
-}).catch((err) => {
-  console.error('❌ Database connection error:', err);
-});
+console.log('✅ All imports successful');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -155,6 +146,8 @@ process.on('unhandledRejection', (reason, promise) => {
 if (!process.env.VERCEL) {
   // Bind to 0.0.0.0 for Railway/Docker compatibility
   const HOST = '0.0.0.0';
+  console.log(`🔄 Attempting to listen on ${HOST}:${PORT}...`);
+  
   const server = app.listen(Number(PORT), HOST, () => {
     const railwayUrl = process.env.RAILWAY_PUBLIC_DOMAIN;
     const baseUrl = railwayUrl 
@@ -168,11 +161,30 @@ if (!process.env.VERCEL) {
     } else {
       console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
     }
+    
+    // Test database connection AFTER server is listening
+    testConnection().then(({ ok, message }) => {
+      if (ok) {
+        console.log('✅ Database connection successful');
+        seedPlaySlotsIfEmpty().catch((err) => {
+          console.error('⚠️ Seed error (non-fatal):', err);
+        });
+      } else {
+        console.error('❌ Database connection failed:', message);
+      }
+    }).catch((err) => {
+      console.error('❌ Database connection error:', err);
+    });
   });
 
   server.on('error', (err) => {
     console.error('❌ Server error:', err);
+    process.exit(1);
   });
+
+  // Keep-alive: prevent the process from exiting
+  server.keepAliveTimeout = 65000;
+  server.headersTimeout = 66000;
 }
 
 export default app;

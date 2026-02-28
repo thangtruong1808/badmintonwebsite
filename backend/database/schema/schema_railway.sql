@@ -1,14 +1,4 @@
--- =====================================================
--- ChibiBadminton Database Schema (Consolidated for Railway)
--- MySQL Database Schema with all migrations included
--- =====================================================
--- Run this script to create a fresh database on Railway MySQL.
--- =====================================================
 
--- =====================================================
--- Table: users
--- Stores user account information
--- =====================================================
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(255) PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
