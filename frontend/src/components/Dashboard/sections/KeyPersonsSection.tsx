@@ -160,6 +160,7 @@ const KeyPersonsSection: React.FC = () => {
     }
   };
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
