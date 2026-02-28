@@ -5,7 +5,7 @@ import { selectUser, selectRefreshTokenExpiresAt } from "../store/authSlice";
 import { store } from "../store";
 import { setCredentials, logout } from "../store/authSlice";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3001").replace(/\/$/, "");
 
 async function logoutUser() {
   try {

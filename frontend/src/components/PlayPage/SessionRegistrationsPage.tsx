@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaUsers } from "react-icons/fa";
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3001").replace(/\/$/, "");
 
 interface RegisteredPlayer {
   name: string;

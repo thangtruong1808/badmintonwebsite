@@ -25,9 +25,20 @@ import cronRoutes from './routes/cron.js';
 import paymentsRoutes from './routes/payments.js';
 import webhooksRoutes from './routes/webhooks.js';
 import { seedPlaySlotsIfEmpty } from './utils/initializeData.js';
+import { testConnection } from './db/connection.js';
 
-// Seed play_slots on startup if empty
-seedPlaySlotsIfEmpty().catch(() => {});
+// Test database connection on startup
+testConnection().then(({ ok, message }) => {
+  if (ok) {
+    console.log('✅ Database connection successful');
+    // Seed play_slots on startup if empty
+    seedPlaySlotsIfEmpty().catch(() => {});
+  } else {
+    console.error('❌ Database connection failed:', message);
+  }
+}).catch((err) => {
+  console.error('❌ Database connection error:', err);
+});
 
 // Load environment variables
 dotenv.config();
@@ -59,8 +70,13 @@ app.get('/', (req, res) => {
 app.head('/', (req, res) => res.status(200).end());
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'ChibiBadminton API is running' });
+app.get('/health', async (req, res) => {
+  const dbStatus = await testConnection();
+  res.json({ 
+    status: dbStatus.ok ? 'ok' : 'degraded',
+    message: 'ChibiBadminton API is running',
+    database: dbStatus.ok ? 'connected' : dbStatus.message,
+  });
 });
 
 // Favicon handler

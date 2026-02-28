@@ -7,7 +7,7 @@ import { setCartItems, getCartItems, clearCart } from "../utils/cartStorage";
 import { getCurrentUser } from "../utils/mockAuth";
 import { getUserRegistrations, cancelUserRegistration } from "../utils/registrationService";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3001").replace(/\/$/, "");
 
 const PlayPage: React.FC = () => {
   const navigate = useNavigate();
