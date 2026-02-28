@@ -220,7 +220,7 @@ export const updateEvent = async (
   if (!event) return null;
 
   const fields: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number | null)[] = [];
 
   if (updates.title !== undefined) { fields.push('title = ?'); values.push(updates.title); }
   if (updates.date !== undefined) { fields.push('date = ?'); values.push(updates.date); }

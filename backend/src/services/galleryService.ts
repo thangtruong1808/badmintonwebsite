@@ -102,7 +102,7 @@ export const updatePhoto = async (
   const existing = await findPhotoById(id);
   if (!existing) return null;
   const updates: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number)[] = [];
   if (data.src !== undefined) {
     updates.push('src = ?');
     values.push(data.src);
@@ -175,7 +175,7 @@ export const updateVideo = async (
   const existing = await findVideoById(id);
   if (!existing) return null;
   const updates: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number | null)[] = [];
   if (data.title !== undefined) {
     updates.push('title = ?');
     values.push(data.title);

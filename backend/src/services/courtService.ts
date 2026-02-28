@@ -70,7 +70,7 @@ export const updateCourt = async (
   if (!existing.length) return null;
 
   const fields: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number)[] = [];
 
   if (updates.name !== undefined) {
     fields.push('name = ?');

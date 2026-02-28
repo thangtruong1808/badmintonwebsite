@@ -104,7 +104,7 @@ export const update = async (
   const existing = await findById(id);
   if (!existing) return null;
   const updates: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number | null)[] = [];
   if (data.title !== undefined) {
     updates.push('title = ?');
     values.push(data.title);
