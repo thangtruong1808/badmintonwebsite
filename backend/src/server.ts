@@ -1,7 +1,10 @@
+import dotenv from 'dotenv';
+// Load environment variables FIRST before any other imports
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler.js';
 import { isOriginAllowed } from './utils/appUrl.js';
 import authRoutes from './routes/auth.js';
@@ -39,9 +42,6 @@ testConnection().then(({ ok, message }) => {
 }).catch((err) => {
   console.error('❌ Database connection error:', err);
 });
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -113,13 +113,16 @@ app.use(errorHandler);
 
 // Only listen when not running on Vercel (serverless)
 if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
+  // Bind to 0.0.0.0 for Railway/Docker compatibility
+  const HOST = '0.0.0.0';
+  app.listen(Number(PORT), HOST, () => {
     const railwayUrl = process.env.RAILWAY_PUBLIC_DOMAIN;
     const baseUrl = railwayUrl 
       ? `https://${railwayUrl}` 
       : `http://localhost:${PORT}`;
     console.log(`🚀 Server is running on ${baseUrl}`);
     console.log(`📡 API endpoints available at ${baseUrl}/api`);
+    console.log(`🔌 Listening on ${HOST}:${PORT}`);
     if (railwayUrl) {
       console.log(`🌐 Environment: Production (Railway)`);
     } else {
