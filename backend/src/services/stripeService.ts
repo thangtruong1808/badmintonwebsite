@@ -124,7 +124,7 @@ export const createPlayCheckoutSession = async (
   }));
 
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
+    payment_method_types: ['card', 'au_becs_debit'],
     mode: 'payment',
     customer_email: userEmail,
     line_items: lineItems,
@@ -179,7 +179,7 @@ export const createAddGuestsCheckoutSession = async (
   });
 
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
+    payment_method_types: ['card', 'au_becs_debit'],
     mode: 'payment',
     customer_email: userEmail,
     line_items: [
@@ -244,7 +244,7 @@ export const createWaitlistCheckoutSession = async (
   });
 
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
+    payment_method_types: ['card', 'au_becs_debit'],
     mode: 'payment',
     customer_email: userEmail,
     line_items: [
@@ -326,7 +326,7 @@ export const createShopCheckoutSession = async (
   }));
 
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
+    payment_method_types: ['card', 'au_becs_debit'],
     mode: 'payment',
     customer_email: userEmail,
     line_items: lineItems,
