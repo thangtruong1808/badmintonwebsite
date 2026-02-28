@@ -9,10 +9,12 @@ export function getFrontendBaseUrl(): string {
   return url.split(',')[0].trim().replace(/\/$/, '');
 }
 
-/** Known Vercel frontend URLs for this project – allowed for CORS. */
-const VERCEL_FRONTEND_ORIGINS = [
+/** Known frontend URLs for this project – allowed for CORS. */
+const KNOWN_FRONTEND_ORIGINS = [
   'https://badmintonwebsitefrontend.vercel.app',
   'https://chibibadminton.vercel.app',
+  'https://chibibadminton.com.au',
+  'https://www.chibibadminton.com.au',
 ];
 
 /**
@@ -34,7 +36,7 @@ export function getAllowedOrigins(): string[] {
   const url = process.env.FRONTEND_URL || 'http://localhost:5173';
   const fromEnv = url.split(',').map((u) => u.trim().replace(/\/$/, '')).filter(Boolean);
   const defaultOrigins = fromEnv.length > 0 ? fromEnv : ['http://localhost:5173'];
-  const combined = [...new Set([...defaultOrigins, ...VERCEL_FRONTEND_ORIGINS])];
+  const combined = [...new Set([...defaultOrigins, ...KNOWN_FRONTEND_ORIGINS])];
   return combined;
 }
 
