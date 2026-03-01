@@ -283,6 +283,37 @@ export async function confirmPaymentForPendingRegistration(
 }
 
 /**
+ * Create pending registrations for Stripe checkout flow.
+ * These will be confirmed by the webhook after successful payment.
+ */
+export async function createPendingRegistrationsForStripe(
+  eventIds: number[],
+  formData: { name: string; email: string; phone: string }
+): Promise<{ success: boolean; message: string; pendingRegistrationIds: string[] }> {
+  try {
+    const res = await apiFetch("/api/registrations/create-pending", {
+      method: "POST",
+      body: JSON.stringify({ eventIds, formData }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      return {
+        success: true,
+        message: data.message ?? "Pending registrations created.",
+        pendingRegistrationIds: data.pendingRegistrationIds ?? [],
+      };
+    }
+    return {
+      success: false,
+      message: res.status === 401 ? "Please sign in." : (data.message ?? data.error ?? "Failed to create pending registrations."),
+      pendingRegistrationIds: [],
+    };
+  } catch {
+    return { success: false, message: "Could not create pending registrations. Please try again.", pendingRegistrationIds: [] };
+  }
+}
+
+/**
  * Get guest names for a registration (owner only).
  */
 export async function getRegistrationGuests(

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   getUserRegistrations,
   registerForEvents,
+  createPendingRegistrations,
   cancelRegistration,
   getEventRegistrations,
   joinWaitlist,
@@ -44,6 +45,13 @@ router.get('/event/:eventId', authenticateToken, getEventRegistrations);
  * @access  Private
  */
 router.post('/', authenticateToken, registerForEvents);
+
+/**
+ * @route   POST /api/registrations/create-pending
+ * @desc    Create pending registrations for Stripe checkout flow
+ * @access  Private
+ */
+router.post('/create-pending', authenticateToken, createPendingRegistrations);
 
 /**
  * @route   DELETE /api/registrations/:registrationId

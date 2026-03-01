@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaCoins, FaMoneyBillWave, FaExchangeAlt, FaSpinner } from "react-icons/fa";
 import { getCurrentUser } from "../../utils/mockAuth";
-import { registerUserForEvents, getMyPendingPayments, confirmPaymentForPendingRegistration, addGuestsToRegistration, confirmWaitlistPayment } from "../../utils/registrationService";
+import { registerUserForEvents, getMyPendingPayments, confirmPaymentForPendingRegistration, addGuestsToRegistration, confirmWaitlistPayment, createPendingRegistrationsForStripe } from "../../utils/registrationService";
 import { selectAuthInitialized } from "../../store/authSlice";
 import { canUsePointsForBooking, formatPoints } from "../../utils/rewardPoints";
 import { usePointsForBooking } from "../../utils/rewardPointsService";
@@ -223,12 +223,22 @@ const PlayPaymentPage: React.FC = () => {
           redirectToStripeCheckout(result.checkoutUrl);
           return;
         } else {
+          // Create pending registrations first, then redirect to Stripe
+          const eventIds = events.map((ev) => ev.id);
+          const pendingResult = await createPendingRegistrationsForStripe(eventIds, formData);
+          
+          if (!pendingResult.success || pendingResult.pendingRegistrationIds.length === 0) {
+            setSubmitStatus({ type: "error", message: pendingResult.message || "Failed to create pending registrations." });
+            setIsSubmitting(false);
+            return;
+          }
+
           const items = events.map((ev) => ({
             eventId: ev.id,
             eventTitle: ev.title,
             price: Number(ev.price ?? 0),
           }));
-          const result = await createPlayCheckoutSession(items);
+          const result = await createPlayCheckoutSession(items, pendingResult.pendingRegistrationIds);
           redirectToStripeCheckout(result.checkoutUrl);
           return;
         }

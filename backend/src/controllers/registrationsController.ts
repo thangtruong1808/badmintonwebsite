@@ -8,6 +8,7 @@ import {
   getEventRegistrations as getEventRegistrationsService,
   getMyPendingPaymentRegistrations,
   confirmPaymentForPendingRegistration,
+  createPendingRegistrationsForStripe,
   getPendingAddGuestsById,
   createPendingAddGuests as createPendingAddGuestsService,
   addGuestsToRegistration as addGuestsToRegistrationService,
@@ -88,6 +89,33 @@ export const registerForEvents = async (
     }
 
     const result = await registerForEventsService(req.userId, eventIds, formData, { guestCount });
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createPendingRegistrations = async (
+  req: AuthRequest<{}, {}, { eventIds: number[]; formData: RegistrationFormData }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!req.userId) {
+      throw createError('User ID not found', 401);
+    }
+
+    const { eventIds, formData } = req.body;
+
+    if (!eventIds || !Array.isArray(eventIds) || eventIds.length === 0) {
+      throw createError('Event IDs are required', 400);
+    }
+
+    if (!formData || !formData.name || !formData.email) {
+      throw createError('Form data with name and email is required', 400);
+    }
+
+    const result = await createPendingRegistrationsForStripe(req.userId, eventIds, formData);
     res.status(201).json(result);
   } catch (error) {
     next(error);

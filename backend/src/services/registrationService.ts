@@ -598,6 +598,91 @@ export const confirmPaymentForPendingRegistration = async (registrationId: strin
 };
 
 /**
+ * Create pending registrations for Stripe checkout flow.
+ * These registrations have status 'pending_payment' and will be confirmed by webhook after payment.
+ */
+export const createPendingRegistrationsForStripe = async (
+  userId: string,
+  eventIds: number[],
+  formData: RegistrationFormData
+): Promise<{ success: boolean; message: string; pendingRegistrationIds: string[] }> => {
+  const user = await getUserById(userId);
+  if (!user) {
+    throw createError('User not found', 404);
+  }
+
+  const pendingRegistrationIds: string[] = [];
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+
+  for (const eventId of eventIds) {
+    const event = await getEventById(eventId);
+    if (!event) {
+      throw createError(`Event with ID ${eventId} not found`, 404);
+    }
+
+    const [existingAny] = await pool.execute<RegRow[]>(
+      'SELECT * FROM registrations WHERE user_id = ? AND event_id = ?',
+      [userId, eventId]
+    );
+
+    if (existingAny.length > 0) {
+      const existing = existingAny[0];
+      if (existing.status === 'confirmed') {
+        continue;
+      }
+      if (existing.status === 'pending_payment') {
+        pendingRegistrationIds.push(existing.id);
+        continue;
+      }
+
+      if (existing.status === 'cancelled') {
+        if (event.currentAttendees >= event.maxCapacity) {
+          throw createError(`Event '${event.title}' is full`, 400);
+        }
+        const registrationDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        await pool.execute(
+          `UPDATE registrations SET status = 'pending_payment', attendance_status = 'upcoming',
+            name = ?, email = ?, phone = ?, registration_date = ?, pending_payment_expires_at = ?
+           WHERE id = ?`,
+          [formData.name, formData.email, formData.phone, registrationDate, expiresAt, existing.id]
+        );
+        pendingRegistrationIds.push(existing.id);
+      }
+      continue;
+    }
+
+    if (event.currentAttendees >= event.maxCapacity) {
+      throw createError(`Event '${event.title}' is full`, 400);
+    }
+
+    const id = uuidv4();
+    const registrationDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+    await pool.execute(
+      `INSERT INTO registrations (id, event_id, user_id, name, email, phone, registration_date, status, attendance_status, payment_method, pending_payment_expires_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending_payment', 'upcoming', 'stripe', ?)`,
+      [id, eventId, userId, formData.name, formData.email, formData.phone, registrationDate, expiresAt]
+    );
+
+    pendingRegistrationIds.push(id);
+  }
+
+  if (pendingRegistrationIds.length === 0) {
+    return {
+      success: false,
+      message: 'No new registrations needed - you may already be registered for these events.',
+      pendingRegistrationIds: [],
+    };
+  }
+
+  return {
+    success: true,
+    message: 'Pending registrations created. Complete payment to confirm.',
+    pendingRegistrationIds,
+  };
+};
+
+/**
  * Add guests to an existing confirmed registration.
  */
 export interface PendingAddGuestsDetails {
