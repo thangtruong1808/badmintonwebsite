@@ -1,13 +1,20 @@
 /**
  * Webhook controller for handling Stripe events.
  * Processes checkout.session.completed to confirm payments and registrations.
+ * Handles dispute events for chargeback tracking.
  */
 import type { Request, Response, NextFunction } from 'express';
 import { stripe, isStripeConfigured } from '../utils/stripe.js';
 import {
   findByStripeCheckoutSessionId,
   updateByStripeCheckoutSessionId,
+  findByStripeIntentId as findPaymentByIntentId,
 } from '../services/paymentService.js';
+import {
+  create as createDispute,
+  findByStripeDisputeId,
+  updateStatus as updateDisputeStatus,
+} from '../services/disputeService.js';
 import { confirmPaymentForPendingRegistration } from '../services/registrationService.js';
 import { confirmWaitlistPayment } from '../services/waitlistService.js';
 import { addGuestsToRegistration } from '../services/registrationService.js';
@@ -75,6 +82,18 @@ export const handleStripeWebhook = async (
 
       case 'payment_intent.payment_failed':
         await handlePaymentFailed(event.data.object as Stripe.PaymentIntent);
+        break;
+
+      case 'charge.dispute.created':
+        await handleDisputeCreated(event.data.object as Stripe.Dispute);
+        break;
+
+      case 'charge.dispute.updated':
+        await handleDisputeUpdated(event.data.object as Stripe.Dispute);
+        break;
+
+      case 'charge.dispute.closed':
+        await handleDisputeClosed(event.data.object as Stripe.Dispute);
         break;
 
       default:
@@ -217,5 +236,91 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent): Promise
   if (payment) {
     await updateStatus(payment.id, 'failed');
     console.log(`Updated payment ${payment.id} to failed status`);
+  }
+}
+
+async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
+  console.log('Dispute created:', dispute.id);
+
+  try {
+    const existingDispute = await findByStripeDisputeId(dispute.id);
+    if (existingDispute) {
+      console.log(`Dispute ${dispute.id} already exists, skipping creation`);
+      return;
+    }
+
+    const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge?.id;
+    const paymentIntentId = typeof dispute.payment_intent === 'string' 
+      ? dispute.payment_intent 
+      : dispute.payment_intent?.id;
+
+    let paymentId: string | null = null;
+    let userId: string | null = null;
+
+    if (paymentIntentId) {
+      const payment = await findPaymentByIntentId(paymentIntentId);
+      if (payment) {
+        paymentId = payment.id;
+        userId = payment.user_id;
+      }
+    }
+
+    const evidenceDueBy = dispute.evidence_details?.due_by 
+      ? new Date(dispute.evidence_details.due_by * 1000)
+      : null;
+
+    await createDispute({
+      stripeDisputeId: dispute.id,
+      stripeChargeId: chargeId ?? null,
+      userId,
+      paymentId,
+      amount: dispute.amount / 100,
+      currency: dispute.currency.toUpperCase(),
+      reason: dispute.reason ?? null,
+      status: dispute.status,
+      evidenceDueBy,
+    });
+
+    console.log(`Created dispute record for ${dispute.id}`);
+  } catch (error) {
+    console.error('Failed to handle dispute created:', error);
+  }
+}
+
+async function handleDisputeUpdated(dispute: Stripe.Dispute): Promise<void> {
+  console.log('Dispute updated:', dispute.id, 'Status:', dispute.status);
+
+  try {
+    const existingDispute = await findByStripeDisputeId(dispute.id);
+    
+    if (!existingDispute) {
+      console.log(`Dispute ${dispute.id} not found, creating it`);
+      await handleDisputeCreated(dispute);
+      return;
+    }
+
+    await updateDisputeStatus(dispute.id, dispute.status, dispute.reason ?? null);
+    console.log(`Updated dispute ${dispute.id} to status: ${dispute.status}`);
+  } catch (error) {
+    console.error('Failed to handle dispute updated:', error);
+  }
+}
+
+async function handleDisputeClosed(dispute: Stripe.Dispute): Promise<void> {
+  console.log('Dispute closed:', dispute.id, 'Status:', dispute.status);
+
+  try {
+    const existingDispute = await findByStripeDisputeId(dispute.id);
+    
+    if (!existingDispute) {
+      console.log(`Dispute ${dispute.id} not found, creating it`);
+      await handleDisputeCreated(dispute);
+      return;
+    }
+
+    await updateDisputeStatus(dispute.id, dispute.status, dispute.reason ?? null);
+    console.log(`Closed dispute ${dispute.id} with final status: ${dispute.status}`);
+  } catch (error) {
+    console.error('Failed to handle dispute closed:', error);
   }
 }

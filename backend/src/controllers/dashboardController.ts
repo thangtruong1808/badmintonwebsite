@@ -18,6 +18,7 @@ import * as contactMessageService from '../services/contactMessageService.js';
 import * as serviceRequestService from '../services/serviceRequestService.js';
 import * as paymentService from '../services/paymentService.js';
 import * as invoiceService from '../services/invoiceService.js';
+import * as paymentStatsService from '../services/paymentStatsService.js';
 import { createError } from '../middleware/errorHandler.js';
 
 export const testDbConnection = async (req: Request, res: Response): Promise<void> => {
@@ -787,6 +788,25 @@ export const getDashboardInvoiceById = async (
     const invoice = await invoiceService.findById(req.params.id);
     if (!invoice) throw createError('Invoice not found', 404);
     res.json(invoice);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Payment Statistics
+export const getPaymentStats = async (
+  req: Request<{}, {}, {}, { period?: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const period = (req.query.period as 'day' | 'week' | 'month') || 'month';
+    const validPeriods = ['day', 'week', 'month'];
+    if (!validPeriods.includes(period)) {
+      throw createError('Invalid period. Must be day, week, or month', 400);
+    }
+    const stats = await paymentStatsService.getPaymentStats(period);
+    res.json(stats);
   } catch (error) {
     next(error);
   }

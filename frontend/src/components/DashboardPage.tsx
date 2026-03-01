@@ -50,6 +50,7 @@ import {
   PaymentsSection,
   InvoicesSection,
   OrdersSection,
+  PaymentStatsSection,
 } from "./Dashboard";
 
 
@@ -332,40 +333,43 @@ const DashboardPage = () => {
                 <p className="font-calibri text-rose-600 mb-4">{error}</p>
               )}
               {!loading && stats && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                  <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
-                    <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
-                      Total Users
-                    </p>
-                    <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {stats.usersCount}
-                    </p>
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+                    <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
+                      <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
+                        Total Users
+                      </p>
+                      <p className="font-huglove text-2xl md:text-3xl text-rose-600">
+                        {stats.usersCount}
+                      </p>
+                    </div>
+                    <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
+                      <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
+                        Total Events
+                      </p>
+                      <p className="font-huglove text-2xl md:text-3xl text-rose-600">
+                        {stats.eventsCount}
+                      </p>
+                    </div>
+                    <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
+                      <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
+                        Registrations
+                      </p>
+                      <p className="font-huglove text-2xl md:text-3xl text-rose-600">
+                        {stats.registrationsCount}
+                      </p>
+                    </div>
+                    <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
+                      <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
+                        Reward Transactions
+                      </p>
+                      <p className="font-huglove text-2xl md:text-3xl text-rose-600">
+                        {stats.rewardTransactionsCount}
+                      </p>
+                    </div>
                   </div>
-                  <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
-                    <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
-                      Total Events
-                    </p>
-                    <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {stats.eventsCount}
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
-                    <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
-                      Registrations
-                    </p>
-                    <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {stats.registrationsCount}
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-xl shadow border border-rose-100 p-6">
-                    <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
-                      Reward Transactions
-                    </p>
-                    <p className="font-huglove text-2xl md:text-3xl text-rose-600">
-                      {stats.rewardTransactionsCount}
-                    </p>
-                  </div>
-                </div>
+                  <PaymentStatsSection />
+                </>
               )}
             </div>
           )}
