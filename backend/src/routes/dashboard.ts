@@ -49,6 +49,8 @@ import {
   getDashboardInvoices,
   getDashboardInvoiceById,
   getPaymentStats,
+  previewBulkDeletePayments,
+  bulkDeletePayments,
 } from '../controllers/dashboardController.js';
 import {
   getDashboardOrders,
@@ -171,6 +173,8 @@ router.delete('/service-options/grips/:id', authenticateToken, requireAdmin, del
 router.get('/payments', authenticateToken, requireAdmin, getDashboardPayments);
 router.get('/payments/:id', authenticateToken, requireAdmin, getDashboardPaymentById);
 router.put('/payments/:id', authenticateToken, requireAdmin, updateDashboardPayment);
+router.post('/payments/bulk-delete/preview', authenticateToken, requireAdmin, previewBulkDeletePayments);
+router.post('/payments/bulk-delete', authenticateToken, requireAdmin, bulkDeletePayments);
 router.get('/payment-stats', authenticateToken, requireAdmin, getPaymentStats);
 
 router.get('/orders', authenticateToken, requireAdmin, getDashboardOrders);

@@ -237,7 +237,7 @@ export const updatePaymentStatus = async (
     const { id } = req.params;
     const { status } = req.body as { status: PaymentStatus };
 
-    if (!status || !['pending', 'completed', 'failed', 'refunded'].includes(status)) {
+    if (!status || !['pending', 'completed', 'failed', 'refunded', 'expired', 'disputed', 'requires_action'].includes(status)) {
       throw createError('Invalid status', 400);
     }
 

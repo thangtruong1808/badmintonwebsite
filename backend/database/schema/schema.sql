@@ -668,7 +668,7 @@ CREATE TABLE IF NOT EXISTS payments (
     user_id VARCHAR(255) NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     currency VARCHAR(3) NOT NULL DEFAULT 'AUD',
-    status ENUM('pending', 'completed', 'failed', 'refunded') NOT NULL DEFAULT 'pending',
+    status ENUM('pending', 'completed', 'failed', 'refunded', 'expired', 'disputed', 'requires_action') NOT NULL DEFAULT 'pending',
     payment_method ENUM('stripe', 'points', 'mixed') NOT NULL DEFAULT 'stripe',
     stripe_payment_intent_id VARCHAR(255) DEFAULT NULL,
     stripe_checkout_session_id VARCHAR(255) DEFAULT NULL,

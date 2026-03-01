@@ -20,6 +20,9 @@ export interface PaymentStats {
     completed: number;
     failed: number;
     refunded: number;
+    expired: number;
+    disputed: number;
+    requires_action: number;
   };
   revenueOverTime: Array<{ date: string; amount: number }>;
   paymentCountOverTime: Array<{ date: string; count: number }>;
@@ -161,11 +164,14 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
     }
   }
 
-  const paymentsByStatus: { pending: number; completed: number; failed: number; refunded: number } = {
+  const paymentsByStatus: { pending: number; completed: number; failed: number; refunded: number; expired: number; disputed: number; requires_action: number } = {
     pending: 0,
     completed: 0,
     failed: 0,
     refunded: 0,
+    expired: 0,
+    disputed: 0,
+    requires_action: 0,
   };
   for (const row of statusRows) {
     if (row.status in paymentsByStatus) {

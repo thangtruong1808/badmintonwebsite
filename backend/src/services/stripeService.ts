@@ -128,6 +128,7 @@ export const createPlayCheckoutSession = async (
     mode: 'payment',
     customer_email: userEmail,
     line_items: lineItems,
+    expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
     metadata: {
       type: 'play',
       paymentId: payment.id,
@@ -195,6 +196,7 @@ export const createAddGuestsCheckoutSession = async (
         quantity: data.guestCount,
       },
     ],
+    expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
     metadata: {
       type: 'addGuests',
       paymentId: payment.id,
@@ -260,6 +262,7 @@ export const createWaitlistCheckoutSession = async (
         quantity: 1,
       },
     ],
+    expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
     metadata: {
       type: 'waitlist',
       paymentId: payment.id,
@@ -330,6 +333,7 @@ export const createShopCheckoutSession = async (
     mode: 'payment',
     customer_email: userEmail,
     line_items: lineItems,
+    expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
     metadata: {
       type: 'shop',
       paymentId: payment.id,

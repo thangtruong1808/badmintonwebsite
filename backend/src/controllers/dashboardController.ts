@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
-import { testConnection } from '../db/connection.js';
+import type { ResultSetHeader, RowDataPacket } from 'mysql2';
+import pool, { testConnection } from '../db/connection.js';
 import { getAllUsersCount, getAllUsers, updateUser } from '../services/userService.js';
 import { getAllEvents } from '../services/eventService.js';
 import { getRegistrationsCount, getAllRegistrations } from '../services/registrationService.js';
@@ -758,7 +759,7 @@ export const updateDashboardPayment = async (
 ): Promise<void> => {
   try {
     const { status } = req.body;
-    if (!status || !['pending', 'completed', 'failed', 'refunded'].includes(status)) {
+    if (!status || !['pending', 'completed', 'failed', 'refunded', 'expired', 'disputed', 'requires_action'].includes(status)) {
       throw createError('Invalid status', 400);
     }
     const updated = await paymentService.updateStatus(req.params.id, status);
@@ -807,6 +808,80 @@ export const getPaymentStats = async (
     }
     const stats = await paymentStatsService.getPaymentStats(period);
     res.json(stats);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Bulk Delete Payments - Preview count before deletion
+export const previewBulkDeletePayments = async (
+  req: Request<{}, {}, { status: string; startDate: string; endDate: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { status, startDate, endDate } = req.body;
+    
+    const validStatuses = ['pending', 'completed', 'failed', 'refunded', 'expired', 'disputed', 'requires_action'];
+    if (!status || !validStatuses.includes(status)) {
+      throw createError(`Invalid status. Must be one of: ${validStatuses.join(', ')}`, 400);
+    }
+    
+    if (!startDate || !endDate) {
+      throw createError('Start date and end date are required', 400);
+    }
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw createError('Invalid date format', 400);
+    }
+    
+    end.setHours(23, 59, 59, 999);
+    
+    const [rows] = await pool.execute<(RowDataPacket & { count: number })[]>(
+      `SELECT COUNT(*) as count FROM payments WHERE status = ? AND created_at BETWEEN ? AND ?`,
+      [status, start.toISOString().slice(0, 19).replace('T', ' '), end.toISOString().slice(0, 19).replace('T', ' ')]
+    );
+    
+    res.json({ count: rows[0]?.count ?? 0 });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Bulk Delete Payments - Execute deletion
+export const bulkDeletePayments = async (
+  req: Request<{}, {}, { status: string; startDate: string; endDate: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { status, startDate, endDate } = req.body;
+    
+    const validStatuses = ['pending', 'completed', 'failed', 'refunded', 'expired', 'disputed', 'requires_action'];
+    if (!status || !validStatuses.includes(status)) {
+      throw createError(`Invalid status. Must be one of: ${validStatuses.join(', ')}`, 400);
+    }
+    
+    if (!startDate || !endDate) {
+      throw createError('Start date and end date are required', 400);
+    }
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw createError('Invalid date format', 400);
+    }
+    
+    end.setHours(23, 59, 59, 999);
+    
+    const [result] = await pool.execute<ResultSetHeader>(
+      `DELETE FROM payments WHERE status = ? AND created_at BETWEEN ? AND ?`,
+      [status, start.toISOString().slice(0, 19).replace('T', ' '), end.toISOString().slice(0, 19).replace('T', ' ')]
+    );
+    
+    res.json({ deleted: result.affectedRows });
   } catch (error) {
     next(error);
   }

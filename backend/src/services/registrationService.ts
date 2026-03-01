@@ -368,30 +368,54 @@ export const registerForEvents = async (
   };
 };
 
+export interface CancellationResult {
+  success: boolean;
+  refundStatus: 'instant' | 'pending_review' | 'no_refund' | 'not_found';
+  message: string;
+}
+
 export const cancelRegistration = async (
   userId: string,
-  registrationId: string
-): Promise<boolean> => {
+  registrationId: string,
+  cancellationReason?: string
+): Promise<CancellationResult> => {
   const [rows] = await pool.execute<RegRow[]>(
     'SELECT * FROM registrations WHERE id = ? AND user_id = ?',
     [registrationId, userId]
   );
 
-  if (rows.length === 0) return false;
+  if (rows.length === 0) {
+    return {
+      success: false,
+      refundStatus: 'not_found',
+      message: 'Registration not found.',
+    };
+  }
 
   const reg = rows[0];
   const guestCount = reg.guest_count ?? 0;
   const delta = 1 + guestCount;
 
+  const event = await getEventById(reg.event_id);
+  if (!event) {
+    return {
+      success: false,
+      refundStatus: 'not_found',
+      message: 'Event not found.',
+    };
+  }
+
+  const eventDateTime = parseEventDateTime(event.date, event.time);
+  const hoursUntilEvent = (eventDateTime.getTime() - Date.now()) / (1000 * 60 * 60);
+
   await pool.execute(
-    'UPDATE registrations SET status = ? WHERE id = ?',
-    ['cancelled', registrationId]
+    `UPDATE registrations SET status = 'cancelled', cancelled_at = NOW(), cancellation_reason = ?, refund_review_status = ? WHERE id = ?`,
+    [cancellationReason || null, hoursUntilEvent >= 24 ? 'none' : 'pending_review', registrationId]
   );
   await decrementEventAttendees(reg.event_id, delta);
 
-  const event = await getEventById(reg.event_id);
   const recipientEmail = (reg.email && String(reg.email).trim()) || (await getUserById(userId))?.email;
-  if (event && recipientEmail) {
+  if (recipientEmail) {
     await sendCancellationConfirmationEmail(
       recipientEmail,
       event.title,
@@ -403,8 +427,87 @@ export const cancelRegistration = async (
     await promoteFromWaitlist(reg.event_id);
   }
 
-  return true;
+  if (hoursUntilEvent >= 24 && reg.stripe_payment_intent_id) {
+    try {
+      await processInstantRefund(reg.stripe_payment_intent_id);
+      return {
+        success: true,
+        refundStatus: 'instant',
+        message: 'Your registration has been cancelled and a full refund is being processed. You should see it in your account within 5-10 business days.',
+      };
+    } catch (error) {
+      console.error('Failed to process instant refund:', error);
+      await pool.execute(
+        `UPDATE registrations SET refund_review_status = 'pending_review' WHERE id = ?`,
+        [registrationId]
+      );
+      return {
+        success: true,
+        refundStatus: 'pending_review',
+        message: "Your registration has been cancelled. We encountered an issue processing your refund automatically, but our team will review it and get back to you shortly.",
+      };
+    }
+  } else if (hoursUntilEvent < 24 && reg.stripe_payment_intent_id) {
+    return {
+      success: true,
+      refundStatus: 'pending_review',
+      message: "We've received your cancellation request. Since it's within 24 hours of the event, our team will review your situation and contact you shortly. We appreciate your understanding and will do our best to accommodate your request.",
+    };
+  }
+
+  return {
+    success: true,
+    refundStatus: 'no_refund',
+    message: 'Your registration has been cancelled successfully.',
+  };
 };
+
+function parseEventDateTime(date: string, time: string): Date {
+  const cleanTime = time.replace(/\s*(AM|PM)/i, (_, meridiem) => ` ${meridiem.toUpperCase()}`);
+  const timeParts = cleanTime.match(/^(\d{1,2}):?(\d{2})?\s*(AM|PM)?/i);
+  
+  if (timeParts) {
+    let hours = parseInt(timeParts[1], 10);
+    const minutes = parseInt(timeParts[2] || '0', 10);
+    const meridiem = timeParts[3]?.toUpperCase();
+    
+    if (meridiem === 'PM' && hours !== 12) hours += 12;
+    if (meridiem === 'AM' && hours === 12) hours = 0;
+    
+    return new Date(`${date}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`);
+  }
+  
+  return new Date(`${date}T${time}`);
+}
+
+async function processInstantRefund(paymentIntentId: string): Promise<void> {
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeKey) {
+    throw new Error('STRIPE_SECRET_KEY not configured');
+  }
+
+  const stripeModule = await import('stripe');
+  const Stripe = stripeModule.default;
+  const stripe = new Stripe(stripeKey);
+
+  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+  if (paymentIntent.status !== 'succeeded') {
+    console.log(`Payment intent ${paymentIntentId} not succeeded, skipping refund`);
+    return;
+  }
+
+  const chargeId = paymentIntent.latest_charge;
+  if (typeof chargeId === 'string' && chargeId) {
+    await stripe.refunds.create({ charge: chargeId });
+    console.log(`Refund created for charge ${chargeId}`);
+
+    const { findByStripeIntentId, updateStatus } = await import('./paymentService.js');
+    const payment = await findByStripeIntentId(paymentIntentId);
+    if (payment) {
+      await updateStatus(payment.id, 'refunded');
+    }
+  }
+}
 
 export const getRegistrationById = async (registrationId: string): Promise<Registration | null> => {
   const [rows] = await pool.execute<RegRow[]>(

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaSpinner, FaExternalLinkAlt, FaSearch, FaFilter } from "react-icons/fa";
+import { FaSpinner, FaExternalLinkAlt, FaSearch, FaFilter, FaTrash } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import {
@@ -27,11 +27,21 @@ const STATUS_OPTIONS = [
   { value: "completed", label: "Completed" },
   { value: "failed", label: "Failed" },
   { value: "refunded", label: "Refunded" },
+  { value: "expired", label: "Expired" },
+  { value: "disputed", label: "Disputed" },
+  { value: "requires_action", label: "Requires Action" },
 ];
 
 const STATUS_FILTER_OPTIONS = [
   { value: "all", label: "All Statuses" },
   ...STATUS_OPTIONS,
+];
+
+const CLEANUP_STATUS_OPTIONS = [
+  { value: "pending", label: "Pending" },
+  { value: "failed", label: "Failed" },
+  { value: "expired", label: "Expired" },
+  { value: "refunded", label: "Refunded" },
 ];
 
 const getStatusBadgeClass = (status: string) => {
@@ -44,6 +54,12 @@ const getStatusBadgeClass = (status: string) => {
       return "bg-red-100 text-red-800";
     case "refunded":
       return "bg-gray-100 text-gray-800";
+    case "expired":
+      return "bg-gray-200 text-gray-600";
+    case "disputed":
+      return "bg-orange-100 text-orange-800";
+    case "requires_action":
+      return "bg-blue-100 text-blue-800";
     default:
       return "bg-gray-100 text-gray-700";
   }
@@ -107,6 +123,16 @@ const PaymentsSection: React.FC = () => {
   const [form, setForm] = useState({ status: "pending" });
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  
+  const [cleanupModalOpen, setCleanupModalOpen] = useState(false);
+  const [cleanupForm, setCleanupForm] = useState({
+    status: "pending",
+    startDate: "",
+    endDate: "",
+  });
+  const [cleanupPreviewCount, setCleanupPreviewCount] = useState<number | null>(null);
+  const [cleanupLoading, setCleanupLoading] = useState(false);
+  const [cleanupConfirmed, setCleanupConfirmed] = useState(false);
 
   const fetchPayments = async () => {
     setLoading(true);
@@ -150,6 +176,69 @@ const PaymentsSection: React.FC = () => {
       setError(err instanceof Error ? err.message : "Failed to update payment");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const openCleanupModal = () => {
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    setCleanupForm({
+      status: "pending",
+      startDate: thirtyDaysAgo.toISOString().split("T")[0],
+      endDate: today.toISOString().split("T")[0],
+    });
+    setCleanupPreviewCount(null);
+    setCleanupConfirmed(false);
+    setCleanupModalOpen(true);
+  };
+
+  const previewCleanup = async () => {
+    if (!cleanupForm.startDate || !cleanupForm.endDate) return;
+    
+    setCleanupLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/payments/bulk-delete/preview", {
+        method: "POST",
+        body: JSON.stringify({
+          status: cleanupForm.status,
+          startDate: cleanupForm.startDate,
+          endDate: cleanupForm.endDate,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to preview cleanup");
+      const data = await res.json();
+      setCleanupPreviewCount(data.count);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to preview cleanup");
+    } finally {
+      setCleanupLoading(false);
+    }
+  };
+
+  const executeCleanup = async () => {
+    if (!cleanupConfirmed || cleanupPreviewCount === null || cleanupPreviewCount === 0) return;
+    
+    setCleanupLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/payments/bulk-delete", {
+        method: "POST",
+        body: JSON.stringify({
+          status: cleanupForm.status,
+          startDate: cleanupForm.startDate,
+          endDate: cleanupForm.endDate,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to execute cleanup");
+      const data = await res.json();
+      await fetchPayments();
+      setCleanupModalOpen(false);
+      alert(`Successfully deleted ${data.deleted} payment record(s).`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to execute cleanup");
+    } finally {
+      setCleanupLoading(false);
     }
   };
 
@@ -216,8 +305,17 @@ const PaymentsSection: React.FC = () => {
             </select>
           </div>
         </div>
-        <div className="text-sm text-gray-500 font-calibri">
-          {filteredItems.length} of {items.length} payment{items.length !== 1 ? "s" : ""}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={openCleanupModal}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            <FaTrash size={12} />
+            Clean Up
+          </button>
+          <div className="text-sm text-gray-500 font-calibri">
+            {filteredItems.length} of {items.length} payment{items.length !== 1 ? "s" : ""}
+          </div>
         </div>
       </div>
 
@@ -271,6 +369,130 @@ const PaymentsSection: React.FC = () => {
             />
           </div>
         )}
+      </FormModal>
+
+      <FormModal
+        title="Clean Up Payment Records"
+        open={cleanupModalOpen}
+        onClose={() => setCleanupModalOpen(false)}
+        onSubmit={(e) => { e.preventDefault(); executeCleanup(); }}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Delete payment records by status and date range. This helps reduce database size by removing stale records.
+          </p>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-sm text-amber-800 font-medium">Warning</p>
+            <p className="text-xs text-amber-700 mt-1">
+              This action is permanent and cannot be undone. Only delete records you no longer need.
+            </p>
+          </div>
+
+          <Select
+            label="Payment Status"
+            name="cleanupStatus"
+            value={cleanupForm.status}
+            onChange={(e) => {
+              setCleanupForm((f) => ({ ...f, status: e.target.value }));
+              setCleanupPreviewCount(null);
+              setCleanupConfirmed(false);
+            }}
+            options={CLEANUP_STATUS_OPTIONS}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              <input
+                type="date"
+                value={cleanupForm.startDate}
+                onChange={(e) => {
+                  setCleanupForm((f) => ({ ...f, startDate: e.target.value }));
+                  setCleanupPreviewCount(null);
+                  setCleanupConfirmed(false);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+              <input
+                type="date"
+                value={cleanupForm.endDate}
+                onChange={(e) => {
+                  setCleanupForm((f) => ({ ...f, endDate: e.target.value }));
+                  setCleanupPreviewCount(null);
+                  setCleanupConfirmed(false);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm"
+              />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={previewCleanup}
+            disabled={cleanupLoading || !cleanupForm.startDate || !cleanupForm.endDate}
+            className="w-full px-4 py-2 text-sm font-medium text-rose-600 border border-rose-300 rounded-lg hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {cleanupLoading ? (
+              <span className="inline-flex items-center gap-2">
+                <FaSpinner className="animate-spin" size={14} />
+                Calculating...
+              </span>
+            ) : (
+              "Preview Records to Delete"
+            )}
+          </button>
+
+          {cleanupPreviewCount !== null && (
+            <div className="bg-gray-50 rounded-lg p-4 text-center">
+              <p className="text-2xl font-bold text-gray-800">{cleanupPreviewCount}</p>
+              <p className="text-sm text-gray-600">
+                {cleanupPreviewCount === 1 ? "record" : "records"} will be deleted
+              </p>
+            </div>
+          )}
+
+          {cleanupPreviewCount !== null && cleanupPreviewCount > 0 && (
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={cleanupConfirmed}
+                onChange={(e) => setCleanupConfirmed(e.target.checked)}
+                className="w-4 h-4 text-rose-600 border-gray-300 rounded focus:ring-rose-500"
+              />
+              <span className="text-sm text-gray-700">
+                I understand this action is permanent and want to proceed
+              </span>
+            </label>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setCleanupModalOpen(false)}
+              className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={cleanupLoading || !cleanupConfirmed || cleanupPreviewCount === null || cleanupPreviewCount === 0}
+              className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {cleanupLoading ? (
+                <span className="inline-flex items-center gap-2 justify-center">
+                  <FaSpinner className="animate-spin" size={14} />
+                  Deleting...
+                </span>
+              ) : (
+                `Delete ${cleanupPreviewCount ?? 0} Records`
+              )}
+            </button>
+          </div>
+        </div>
       </FormModal>
     </div>
   );

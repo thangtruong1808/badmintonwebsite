@@ -2,7 +2,7 @@ import type { RowDataPacket, ResultSetHeader } from 'mysql2';
 import pool from '../db/connection.js';
 import { v4 as uuidv4 } from 'uuid';
 
-export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded' | 'expired' | 'disputed' | 'requires_action';
 export type PaymentMethod = 'stripe' | 'points' | 'mixed';
 
 export interface PaymentRow {

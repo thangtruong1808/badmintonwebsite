@@ -31,19 +31,58 @@ export async function getUserRegistrations(
   return [];
 }
 
+export interface CancellationResult {
+  success: boolean;
+  refundStatus: 'instant' | 'pending_review' | 'no_refund' | 'not_found' | 'error';
+  message: string;
+}
+
 /**
  * Cancel a single registration by ID (requires auth).
- * Returns true on success, false on failure.
+ * Returns the cancellation result with refund status and friendly message.
  */
-export async function cancelUserRegistration(registrationId: string): Promise<boolean> {
+export async function cancelUserRegistration(
+  registrationId: string,
+  cancellationReason?: string
+): Promise<CancellationResult> {
   try {
     const res = await apiFetch(`/api/registrations/${registrationId}`, {
       method: "DELETE",
+      body: cancellationReason ? JSON.stringify({ cancellationReason }) : undefined,
     });
-    return res.ok;
+    
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        success: true,
+        refundStatus: data.refundStatus || 'no_refund',
+        message: data.message || 'Your registration has been cancelled successfully.',
+      };
+    }
+    
+    const data = await res.json().catch(() => ({}));
+    return {
+      success: false,
+      refundStatus: 'error',
+      message: data.message || 'Failed to cancel registration.',
+    };
   } catch {
-    return false;
+    return {
+      success: false,
+      refundStatus: 'error',
+      message: 'Could not cancel registration. Please try again.',
+    };
   }
+}
+
+/**
+ * Cancel a single registration by ID (requires auth).
+ * Simple boolean return for backward compatibility.
+ * @deprecated Use cancelUserRegistration instead for detailed response.
+ */
+export async function cancelUserRegistrationSimple(registrationId: string): Promise<boolean> {
+  const result = await cancelUserRegistration(registrationId);
+  return result.success;
 }
 
 /**

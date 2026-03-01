@@ -14,7 +14,7 @@ import type { UserEventHistory } from "../../types/user";
 import type { RegistrationWithEventDetails, SocialEvent } from "../../types/socialEvent";
 import { formatPoints } from "../../utils/rewardPoints";
 import { claimPointsForEvent } from "../../utils/rewardPointsService";
-import { cancelUserRegistration } from "../../utils/registrationService";
+import { cancelUserRegistration, type CancellationResult } from "../../utils/registrationService";
 import { getCurrentUser } from "../../utils/mockAuth";
 import ConfirmDialog from "../Dashboard/Shared/ConfirmDialog";
 
@@ -48,6 +48,7 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
   const [cancelOneReg, setCancelOneReg] = useState<RegistrationWithEventDetails | null>(null);
   const [showCancelSelectedConfirm, setShowCancelSelectedConfirm] = useState(false);
   const [registerAgainReg, setRegisterAgainReg] = useState<RegistrationWithEventDetails | null>(null);
+  const [cancellationResultDialog, setCancellationResultDialog] = useState<CancellationResult | null>(null);
 
   const filteredByTab = useMemo(() => {
     if (activeTab === "all") {
@@ -92,8 +93,13 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
     if (!reg?.id) return;
     setCancellingIds((prev) => new Set(prev).add(reg.id!));
     try {
-      const ok = await cancelUserRegistration(reg.id);
-      if (ok) await onRefetch();
+      const result = await cancelUserRegistration(reg.id);
+      if (result.success) {
+        await onRefetch();
+        setCancellationResultDialog(result);
+      } else {
+        setCancellationResultDialog(result);
+      }
     } finally {
       setCancellingIds((prev) => {
         const next = new Set(prev);
@@ -112,12 +118,20 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
     const toCancel = canCancelRegs.filter((r) => r.id && selectedIds.has(r.id)).map((r) => r.id as string);
     if (toCancel.length === 0) return;
     setCancellingIds((prev) => new Set([...prev, ...toCancel]));
+    let lastResult: CancellationResult | null = null;
     try {
       for (const id of toCancel) {
-        await cancelUserRegistration(id);
+        lastResult = await cancelUserRegistration(id);
       }
       setSelectedIds(new Set());
       await onRefetch();
+      if (lastResult) {
+        setCancellationResultDialog({
+          success: true,
+          refundStatus: lastResult.refundStatus,
+          message: `Successfully cancelled ${toCancel.length} registration(s). ${lastResult.refundStatus === 'instant' ? 'Refunds are being processed.' : lastResult.refundStatus === 'pending_review' ? 'Some cancellations are under review.' : ''}`,
+        });
+      }
     } finally {
       setCancellingIds(new Set());
     }
@@ -548,6 +562,24 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
         variant="default"
         onConfirm={handleRegisterAgainConfirm}
         onCancel={() => setRegisterAgainReg(null)}
+      />
+      <ConfirmDialog
+        open={!!cancellationResultDialog}
+        title={
+          cancellationResultDialog?.refundStatus === 'instant'
+            ? "Registration Cancelled - Refund Initiated"
+            : cancellationResultDialog?.refundStatus === 'pending_review'
+            ? "Registration Cancelled - Under Review"
+            : cancellationResultDialog?.success
+            ? "Registration Cancelled"
+            : "Cancellation Failed"
+        }
+        message={cancellationResultDialog?.message || ""}
+        confirmLabel="OK"
+        cancelLabel=""
+        variant={cancellationResultDialog?.success ? "default" : "danger"}
+        onConfirm={() => setCancellationResultDialog(null)}
+        onCancel={() => setCancellationResultDialog(null)}
       />
     </div>
   );

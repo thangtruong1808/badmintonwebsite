@@ -95,7 +95,7 @@ export const registerForEvents = async (
 };
 
 export const cancelRegistration = async (
-  req: AuthRequest<{ registrationId: string }>,
+  req: AuthRequest<{ registrationId: string }, unknown, { cancellationReason?: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -105,13 +105,18 @@ export const cancelRegistration = async (
     }
 
     const { registrationId } = req.params;
-    const success = await cancelRegistrationService(req.userId, registrationId);
+    const { cancellationReason } = req.body || {};
+    const result = await cancelRegistrationService(req.userId, registrationId, cancellationReason);
 
-    if (!success) {
-      throw createError('Registration not found or unauthorized', 404);
+    if (!result.success) {
+      throw createError(result.message || 'Registration not found or unauthorized', 404);
     }
 
-    res.status(204).send();
+    res.status(200).json({
+      success: true,
+      refundStatus: result.refundStatus,
+      message: result.message,
+    });
   } catch (error) {
     next(error);
   }

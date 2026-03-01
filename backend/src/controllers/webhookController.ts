@@ -9,6 +9,7 @@ import {
   findByStripeCheckoutSessionId,
   updateByStripeCheckoutSessionId,
   findByStripeIntentId as findPaymentByIntentId,
+  updateStatus as updatePaymentStatus,
 } from '../services/paymentService.js';
 import {
   create as createDispute,
@@ -94,6 +95,22 @@ export const handleStripeWebhook = async (
 
       case 'charge.dispute.closed':
         await handleDisputeClosed(event.data.object as Stripe.Dispute);
+        break;
+
+      case 'checkout.session.expired':
+        await handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session);
+        break;
+
+      case 'checkout.session.async_payment_failed':
+        await handleAsyncPaymentFailed(event.data.object as Stripe.Checkout.Session);
+        break;
+
+      case 'payment_intent.requires_action':
+        await handlePaymentRequiresAction(event.data.object as Stripe.PaymentIntent);
+        break;
+
+      case 'charge.refunded':
+        await handleChargeRefunded(event.data.object as Stripe.Charge);
         break;
 
       default:
@@ -281,6 +298,11 @@ async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
       evidenceDueBy,
     });
 
+    if (paymentId) {
+      await updatePaymentStatus(paymentId, 'disputed');
+      console.log(`Updated payment ${paymentId} to disputed status`);
+    }
+
     console.log(`Created dispute record for ${dispute.id}`);
   } catch (error) {
     console.error('Failed to handle dispute created:', error);
@@ -320,7 +342,147 @@ async function handleDisputeClosed(dispute: Stripe.Dispute): Promise<void> {
 
     await updateDisputeStatus(dispute.id, dispute.status, dispute.reason ?? null);
     console.log(`Closed dispute ${dispute.id} with final status: ${dispute.status}`);
+
+    const paymentIntentId = typeof dispute.payment_intent === 'string'
+      ? dispute.payment_intent
+      : dispute.payment_intent?.id;
+
+    if (paymentIntentId) {
+      const payment = await findPaymentByIntentId(paymentIntentId);
+      if (payment) {
+        if (dispute.status === 'won') {
+          await updatePaymentStatus(payment.id, 'completed');
+          console.log(`Dispute won - restored payment ${payment.id} to completed status`);
+        } else if (dispute.status === 'lost') {
+          await updatePaymentStatus(payment.id, 'refunded');
+          console.log(`Dispute lost - updated payment ${payment.id} to refunded status`);
+        }
+      }
+    }
   } catch (error) {
     console.error('Failed to handle dispute closed:', error);
+  }
+}
+
+async function handleCheckoutSessionExpired(session: Stripe.Checkout.Session): Promise<void> {
+  console.log('Checkout session expired:', session.id);
+
+  try {
+    await updateByStripeCheckoutSessionId(session.id, 'expired');
+    console.log(`Updated payment to expired for session: ${session.id}`);
+
+    const metadata = session.metadata as unknown as CheckoutMetadata;
+    if (metadata?.pendingRegistrationIds) {
+      const pendingIds: string[] = JSON.parse(metadata.pendingRegistrationIds);
+      const pool = (await import('../db/connection.js')).default;
+      
+      for (const pendingId of pendingIds) {
+        try {
+          await pool.execute(
+            `UPDATE registrations SET status = 'cancelled', cancelled_at = NOW() WHERE id = ? AND status = 'pending_payment'`,
+            [pendingId]
+          );
+          console.log(`Cancelled pending registration ${pendingId} due to expired checkout`);
+        } catch (err) {
+          console.error(`Failed to cancel pending registration ${pendingId}:`, err);
+        }
+      }
+    }
+
+    if (metadata?.pendingAddGuestsId) {
+      const pool = (await import('../db/connection.js')).default;
+      try {
+        await pool.execute(
+          `DELETE FROM pending_add_guests WHERE id = ?`,
+          [metadata.pendingAddGuestsId]
+        );
+        console.log(`Removed pending add guests ${metadata.pendingAddGuestsId} due to expired checkout`);
+      } catch (err) {
+        console.error(`Failed to remove pending add guests ${metadata.pendingAddGuestsId}:`, err);
+      }
+    }
+
+    if (metadata?.pendingWaitlistId) {
+      const pool = (await import('../db/connection.js')).default;
+      try {
+        await pool.execute(
+          `DELETE FROM pending_event_waitlist WHERE id = ?`,
+          [metadata.pendingWaitlistId]
+        );
+        console.log(`Removed pending waitlist ${metadata.pendingWaitlistId} due to expired checkout`);
+      } catch (err) {
+        console.error(`Failed to remove pending waitlist ${metadata.pendingWaitlistId}:`, err);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to handle checkout session expired:', error);
+  }
+}
+
+async function handleAsyncPaymentFailed(session: Stripe.Checkout.Session): Promise<void> {
+  console.log('Async payment failed for session:', session.id);
+
+  try {
+    const paymentIntentId =
+      typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : session.payment_intent?.id || null;
+
+    await updateByStripeCheckoutSessionId(session.id, 'failed', paymentIntentId);
+    console.log(`Updated payment to failed for session: ${session.id}`);
+
+    const metadata = session.metadata as unknown as CheckoutMetadata;
+    if (metadata?.pendingRegistrationIds) {
+      const pendingIds: string[] = JSON.parse(metadata.pendingRegistrationIds);
+      const pool = (await import('../db/connection.js')).default;
+      
+      for (const pendingId of pendingIds) {
+        try {
+          await pool.execute(
+            `UPDATE registrations SET status = 'cancelled', cancelled_at = NOW() WHERE id = ? AND status IN ('pending_payment', 'confirmed')`,
+            [pendingId]
+          );
+          console.log(`Cancelled registration ${pendingId} due to async payment failure`);
+        } catch (err) {
+          console.error(`Failed to cancel registration ${pendingId}:`, err);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Failed to handle async payment failed:', error);
+  }
+}
+
+async function handlePaymentRequiresAction(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+  console.log('Payment requires action:', paymentIntent.id);
+
+  try {
+    const payment = await findPaymentByIntentId(paymentIntent.id);
+    if (payment) {
+      await updatePaymentStatus(payment.id, 'requires_action');
+      console.log(`Updated payment ${payment.id} to requires_action status`);
+    }
+  } catch (error) {
+    console.error('Failed to handle payment requires action:', error);
+  }
+}
+
+async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
+  console.log('Charge refunded:', charge.id);
+
+  try {
+    const paymentIntentId = typeof charge.payment_intent === 'string'
+      ? charge.payment_intent
+      : charge.payment_intent?.id;
+
+    if (paymentIntentId) {
+      const payment = await findPaymentByIntentId(paymentIntentId);
+      if (payment) {
+        await updatePaymentStatus(payment.id, 'refunded');
+        console.log(`Updated payment ${payment.id} to refunded status`);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to handle charge refunded:', error);
   }
 }

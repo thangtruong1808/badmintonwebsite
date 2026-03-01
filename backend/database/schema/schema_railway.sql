@@ -203,6 +203,9 @@ CREATE TABLE IF NOT EXISTS registrations (
     stripe_payment_intent_id VARCHAR(255) NULL,
     guest_count INT NOT NULL DEFAULT 0,
     pending_payment_expires_at DATETIME NULL,
+    refund_review_status ENUM('none', 'pending_review', 'approved', 'denied') DEFAULT 'none',
+    cancellation_reason TEXT DEFAULT NULL,
+    cancelled_at DATETIME DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -224,6 +227,7 @@ CREATE INDEX idx_registrations_email ON registrations(email);
 CREATE INDEX idx_registrations_points_claimed ON registrations(points_claimed);
 CREATE INDEX idx_registrations_stripe_pi ON registrations(stripe_payment_intent_id);
 CREATE INDEX idx_registrations_user_status_date ON registrations(user_id, status, registration_date);
+CREATE INDEX idx_registrations_refund_review ON registrations(refund_review_status);
 
 -- =====================================================
 -- Table: registration_guests
@@ -663,7 +667,7 @@ CREATE TABLE IF NOT EXISTS payments (
     user_id VARCHAR(255) NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     currency VARCHAR(3) NOT NULL DEFAULT 'AUD',
-    status ENUM('pending', 'completed', 'failed', 'refunded') NOT NULL DEFAULT 'pending',
+    status ENUM('pending', 'completed', 'failed', 'refunded', 'expired', 'disputed', 'requires_action') NOT NULL DEFAULT 'pending',
     payment_method ENUM('stripe', 'points', 'mixed') NOT NULL DEFAULT 'stripe',
     stripe_payment_intent_id VARCHAR(255) DEFAULT NULL,
     stripe_checkout_session_id VARCHAR(255) DEFAULT NULL,
@@ -682,6 +686,7 @@ CREATE INDEX idx_payments_payment_method ON payments(payment_method);
 CREATE INDEX idx_payments_created_at ON payments(created_at);
 CREATE INDEX idx_payments_stripe_intent ON payments(stripe_payment_intent_id);
 CREATE INDEX idx_payments_user_status_date ON payments(user_id, status, created_at);
+CREATE INDEX idx_payments_status_created ON payments(status, created_at);
 
 -- =====================================================
 -- Table: invoices

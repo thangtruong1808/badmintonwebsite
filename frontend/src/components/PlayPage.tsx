@@ -5,7 +5,8 @@ import PlayCalendar from "./PlayPage/PlayCalendar";
 import SessionDetailModal from "./PlayPage/SessionDetailModal";
 import { setCartItems, getCartItems, clearCart } from "../utils/cartStorage";
 import { getCurrentUser } from "../utils/mockAuth";
-import { getUserRegistrations, cancelUserRegistration } from "../utils/registrationService";
+import { getUserRegistrations, cancelUserRegistration, type CancellationResult } from "../utils/registrationService";
+import ConfirmDialog from "./Dashboard/Shared/ConfirmDialog";
 
 const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:3001").replace(/\/$/, "");
 
@@ -17,6 +18,7 @@ const PlayPage: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<SocialEvent | null>(null);
   const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
   const [cancellingRegistrationId, setCancellingRegistrationId] = useState<string | null>(null);
+  const [cancellationResultDialog, setCancellationResultDialog] = useState<CancellationResult | null>(null);
 
   useEffect(() => {
     document.title = "ChibiBadminton - Play Sessions";
@@ -130,22 +132,22 @@ const PlayPage: React.FC = () => {
     if (!reg || !reg.id) return;
 
     setCancellingRegistrationId(reg.id);
-    const ok = await cancelUserRegistration(reg.id);
-    if (ok) {
-      // Update local registrations state
+    const result = await cancelUserRegistration(reg.id);
+    if (result.success) {
       setMyRegistrations((prev) =>
         (prev as (Registration & { id?: string })[]).map((r) =>
           r.id === reg.id ? { ...r, status: "cancelled" } : r
         )
       );
-      // Remove this event from local cart selection as well
       setSelectedEventIds((prev) => {
         const next = prev.filter((id) => id !== eventId);
         setCartItems(next);
         return next;
       });
-      // Refresh events list so capacities/attendees update
       fetchEvents();
+      setCancellationResultDialog(result);
+    } else {
+      setCancellationResultDialog(result);
     }
     setCancellingRegistrationId(null);
   };
@@ -275,6 +277,25 @@ const PlayPage: React.FC = () => {
             />
           );
         })()}
+
+        <ConfirmDialog
+          open={!!cancellationResultDialog}
+          title={
+            cancellationResultDialog?.refundStatus === 'instant'
+              ? "Registration Cancelled - Refund Initiated"
+              : cancellationResultDialog?.refundStatus === 'pending_review'
+              ? "Registration Cancelled - Under Review"
+              : cancellationResultDialog?.success
+              ? "Registration Cancelled"
+              : "Cancellation Failed"
+          }
+          message={cancellationResultDialog?.message || ""}
+          confirmLabel="OK"
+          cancelLabel=""
+          variant={cancellationResultDialog?.success ? "default" : "danger"}
+          onConfirm={() => setCancellationResultDialog(null)}
+          onCancel={() => setCancellationResultDialog(null)}
+        />
       </div>
     </div>
   );
