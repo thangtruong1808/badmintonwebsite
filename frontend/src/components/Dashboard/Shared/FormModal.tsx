@@ -9,7 +9,7 @@ interface FormModalProps {
   onSubmit?: (e: React.FormEvent) => void;
   /** Optional wider modal (e.g. "xl" for max-w-4xl). Default: "lg" (max-w-lg). */
   maxWidth?: "lg" | "xl" | "2xl" | "4xl" | "5xl";
-  /** Optional custom class for title text (defaults to font-huglove styling) */
+  /** Optional custom class for title text (defaults to font-calibri styling) */
   titleClassName?: string;
 }
 
@@ -53,7 +53,7 @@ const FormModal: React.FC<FormModalProps> = ({
       />
       <div className={`relative w-full ${WIDTH_CLASS[maxWidth]} rounded-xl bg-white shadow-xl`}>
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className={titleClassName ?? "font-huglove text-xl text-gray-800"}>{title}</h2>
+          <h2 className={titleClassName ?? "font-calibri text-xl font-semibold text-gray-800"}>{title}</h2>
           <button
             type="button"
             onClick={onClose}

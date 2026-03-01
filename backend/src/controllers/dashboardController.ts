@@ -831,17 +831,14 @@ export const previewBulkDeletePayments = async (
       throw createError('Start date and end date are required', 400);
     }
     
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      throw createError('Invalid date format', 400);
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
+      throw createError('Invalid date format. Use YYYY-MM-DD', 400);
     }
     
-    end.setHours(23, 59, 59, 999);
-    
     const [rows] = await pool.execute<(RowDataPacket & { count: number })[]>(
-      `SELECT COUNT(*) as count FROM payments WHERE status = ? AND created_at BETWEEN ? AND ?`,
-      [status, start.toISOString().slice(0, 19).replace('T', ' '), end.toISOString().slice(0, 19).replace('T', ' ')]
+      `SELECT COUNT(*) as count FROM payments WHERE status = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?`,
+      [status, startDate, endDate]
     );
     
     res.json({ count: rows[0]?.count ?? 0 });
@@ -868,17 +865,14 @@ export const bulkDeletePayments = async (
       throw createError('Start date and end date are required', 400);
     }
     
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      throw createError('Invalid date format', 400);
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(startDate) || !dateRegex.test(endDate)) {
+      throw createError('Invalid date format. Use YYYY-MM-DD', 400);
     }
     
-    end.setHours(23, 59, 59, 999);
-    
     const [result] = await pool.execute<ResultSetHeader>(
-      `DELETE FROM payments WHERE status = ? AND created_at BETWEEN ? AND ?`,
-      [status, start.toISOString().slice(0, 19).replace('T', ' '), end.toISOString().slice(0, 19).replace('T', ' ')]
+      `DELETE FROM payments WHERE status = ? AND DATE(created_at) >= ? AND DATE(created_at) <= ?`,
+      [status, startDate, endDate]
     );
     
     res.json({ deleted: result.affectedRows });
