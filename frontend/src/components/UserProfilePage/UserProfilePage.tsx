@@ -96,6 +96,13 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
+  const handleNameUpdate = (firstName: string, lastName: string) => {
+    // Update local user state with new name
+    if (user) {
+      setUser({ ...user, firstName, lastName });
+    }
+  };
+
   if (loading) {
     return (
       <div className="absolute inset-0 w-full bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center">
@@ -124,7 +131,7 @@ const UserProfilePage: React.FC = () => {
       <div className="container mx-auto px-4 pt-28 pb-6">
         {/* Profile Header */}
         <div className="mb-8">
-          <ProfileHeader user={user} onAvatarUpdate={handleAvatarUpdate} />
+          <ProfileHeader user={user} onAvatarUpdate={handleAvatarUpdate} onNameUpdate={handleNameUpdate} />
         </div>
 
         {pendingPayments.length > 0 && (

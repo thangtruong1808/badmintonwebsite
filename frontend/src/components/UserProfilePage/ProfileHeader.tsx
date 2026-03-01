@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { FaEnvelope, FaPhone, FaCalendarAlt, FaCamera, FaSpinner } from "react-icons/fa";
+import { FaEnvelope, FaPhone, FaCalendarAlt, FaCamera, FaSpinner, FaEdit, FaCheck, FaTimes } from "react-icons/fa";
 import type { User } from "../../types/user";
 import RewardPointsCard from "./RewardPointsCard";
 import { apiFetch } from "../../utils/api";
@@ -9,13 +9,21 @@ import { useDispatch } from "react-redux";
 interface ProfileHeaderProps {
   user: User;
   onAvatarUpdate?: (newAvatarUrl: string) => void;
+  onNameUpdate?: (firstName: string, lastName: string) => void;
 }
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate }) => {
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate, onNameUpdate }) => {
   const dispatch = useDispatch();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Name editing state
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editFirstName, setEditFirstName] = useState(user.firstName);
+  const [editLastName, setEditLastName] = useState(user.lastName);
+  const [savingName, setSavingName] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -102,6 +110,68 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate }) =
     }
   };
 
+  const handleStartEditName = () => {
+    setEditFirstName(user.firstName);
+    setEditLastName(user.lastName);
+    setNameError(null);
+    setIsEditingName(true);
+  };
+
+  const handleCancelEditName = () => {
+    setEditFirstName(user.firstName);
+    setEditLastName(user.lastName);
+    setNameError(null);
+    setIsEditingName(false);
+  };
+
+  const handleSaveName = async () => {
+    const trimmedFirst = editFirstName.trim();
+    const trimmedLast = editLastName.trim();
+
+    if (!trimmedFirst || !trimmedLast) {
+      setNameError('First name and last name are required');
+      return;
+    }
+
+    setSavingName(true);
+    setNameError(null);
+
+    try {
+      const res = await apiFetch('/api/users/me', {
+        method: 'PUT',
+        body: JSON.stringify({
+          firstName: trimmedFirst,
+          lastName: trimmedLast,
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || 'Failed to update profile');
+      }
+
+      const updatedUser = await res.json();
+
+      // Update Redux store
+      dispatch(setCredentials({
+        user: updatedUser,
+        refreshTokenExpiresAt: undefined,
+      }));
+
+      // Notify parent component
+      if (onNameUpdate) {
+        onNameUpdate(trimmedFirst, trimmedLast);
+      }
+
+      setIsEditingName(false);
+    } catch (error) {
+      console.error('Name update error:', error);
+      setNameError(error instanceof Error ? error.message : 'Failed to update name');
+    } finally {
+      setSavingName(false);
+    }
+  };
+
   return (
     <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-xl p-6 md:p-8 shadow-lg">
       <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
@@ -151,9 +221,89 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate }) =
 
         {/* User Info */}
         <div className="flex-1 text-center md:text-left">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl mb-2 font-huglove">
-            {user.firstName} {user.lastName}
-          </h1>
+          {isEditingName ? (
+            <div className="mb-4">
+              <div className="flex flex-col sm:flex-row gap-3 mb-3">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 font-calibri">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editFirstName}
+                    onChange={(e) => setEditFirstName(e.target.value)}
+                    disabled={savingName}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    placeholder="First Name"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 font-calibri">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editLastName}
+                    onChange={(e) => setEditLastName(e.target.value)}
+                    disabled={savingName}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    placeholder="Last Name"
+                  />
+                </div>
+              </div>
+              
+              {/* Name error message */}
+              {nameError && (
+                <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm font-calibri">
+                  {nameError}
+                </div>
+              )}
+              
+              <div className="flex gap-2 justify-center md:justify-start">
+                <button
+                  type="button"
+                  onClick={handleSaveName}
+                  disabled={savingName}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-rose-500 text-white font-medium rounded-lg hover:bg-rose-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-calibri text-sm"
+                >
+                  {savingName ? (
+                    <>
+                      <FaSpinner className="animate-spin" size={14} />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <FaCheck size={14} />
+                      Save
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEditName}
+                  disabled={savingName}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-calibri text-sm"
+                >
+                  <FaTimes size={14} />
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-huglove">
+                {user.firstName} {user.lastName}
+              </h1>
+              <button
+                type="button"
+                onClick={handleStartEditName}
+                className="p-2 text-gray-500 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                title="Edit name"
+              >
+                <FaEdit size={18} />
+              </button>
+            </div>
+          )}
 
           {/* Upload error message */}
           {uploadError && (
