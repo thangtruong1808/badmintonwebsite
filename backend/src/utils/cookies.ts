@@ -5,9 +5,20 @@ const REFRESH_TOKEN_COOKIE = process.env.REFRESH_TOKEN_COOKIE || 'refreshToken';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-// In production, frontend and API are often on different domains (e.g. app.com vs api.vercel.app).
-// SameSite=None; Secure is required for cross-origin cookies to be sent.
-const sameSiteValue = isProduction ? ('none' as const) : ('lax' as const);
+// COOKIE_DOMAIN: Set to ".yourdomain.com" (with leading dot) to share cookies across subdomains.
+// This enables Safari compatibility when frontend (chibibadminton.com.au) and backend (api.chibibadminton.com.au) 
+// are on the same root domain. When set, cookies become "first-party" and work in all browsers.
+// Leave unset for cross-origin setup (requires SameSite=None which Safari blocks).
+const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
+
+// When using same-domain (COOKIE_DOMAIN set), use SameSite=Lax for better security.
+// When cross-origin (no COOKIE_DOMAIN), use SameSite=None (required but blocked by Safari ITP).
+const getSameSiteValue = (): 'none' | 'lax' | 'strict' => {
+  if (cookieDomain) {
+    return 'lax';
+  }
+  return isProduction ? 'none' : 'lax';
+};
 
 /** Get access token cookie maxAge in seconds from ACCESS_TOKEN_EXPIRY env (e.g. "15m" -> 900) */
 function getAccessTokenMaxAge(): number {
@@ -34,12 +45,27 @@ function getRefreshTokenMaxAge(): number {
   return value * 24 * 3600;
 }
 
-const cookieOptions = {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: sameSiteValue,
-  path: '/',
-};
+/** Build cookie options dynamically to pick up COOKIE_DOMAIN at runtime */
+function getCookieOptions() {
+  const options: {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'none' | 'lax' | 'strict';
+    path: string;
+    domain?: string;
+  } = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: getSameSiteValue(),
+    path: '/',
+  };
+  
+  if (cookieDomain) {
+    options.domain = cookieDomain;
+  }
+  
+  return options;
+}
 
 export function setAuthCookies(
   res: Response,
@@ -48,6 +74,7 @@ export function setAuthCookies(
 ): void {
   const accessMaxAge = getAccessTokenMaxAge();
   const refreshMaxAge = getRefreshTokenMaxAge();
+  const cookieOptions = getCookieOptions();
 
   res.cookie(ACCESS_TOKEN_COOKIE, accessToken, {
     ...cookieOptions,
@@ -60,6 +87,7 @@ export function setAuthCookies(
 }
 
 export function clearAuthCookies(res: Response): void {
+  const cookieOptions = getCookieOptions();
   res.cookie(ACCESS_TOKEN_COOKIE, '', { ...cookieOptions, maxAge: 0 });
   res.cookie(REFRESH_TOKEN_COOKIE, '', { ...cookieOptions, maxAge: 0 });
 }

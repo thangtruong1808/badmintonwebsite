@@ -242,7 +242,10 @@ export const requestPasswordReset = async (
       if (process.env.SEND_PASSWORD_RESET_EMAIL === 'true') {
         const baseUrl = getFrontendBaseUrl();
         const resetLink = `${baseUrl}/reset-password?token=${token}`;
-        await sendPasswordResetEmail(user.email, resetLink, expiresAt, user.firstName);
+        // Send email asynchronously (fire-and-forget) to avoid blocking the response
+        // This significantly improves response time on production servers
+        sendPasswordResetEmail(user.email, resetLink, expiresAt, user.firstName)
+          .catch((err) => console.error('Failed to send password reset email:', err));
       }
     }
     res.status(200).json({
