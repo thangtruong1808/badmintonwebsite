@@ -56,7 +56,7 @@ const PlayPaymentCancelPage: React.FC = () => {
             {isPaymentFailed ? "Try Again" : "Back to Play Sessions"}
           </button>
           <button
-            onClick={() => navigate("/contact")}
+            onClick={() => navigate("/contact-us")}
             className="flex-1 border border-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors font-calibri"
           >
             Contact Support

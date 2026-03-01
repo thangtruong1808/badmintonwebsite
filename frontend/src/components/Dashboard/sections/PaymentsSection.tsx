@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaSpinner, FaExternalLinkAlt, FaSearch, FaFilter, FaTrash } from "react-icons/fa";
+import { FaSpinner, FaExternalLinkAlt, FaSearch, FaFilter, FaTrash, FaCheckCircle } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import {
@@ -133,6 +133,7 @@ const PaymentsSection: React.FC = () => {
   const [cleanupPreviewCount, setCleanupPreviewCount] = useState<number | null>(null);
   const [cleanupLoading, setCleanupLoading] = useState(false);
   const [cleanupConfirmed, setCleanupConfirmed] = useState(false);
+  const [successDialog, setSuccessDialog] = useState<{ open: boolean; count: number }>({ open: false, count: 0 });
 
   const fetchPayments = async () => {
     setLoading(true);
@@ -234,7 +235,7 @@ const PaymentsSection: React.FC = () => {
       const data = await res.json();
       await fetchPayments();
       setCleanupModalOpen(false);
-      alert(`Successfully deleted ${data.deleted} payment record(s).`);
+      setSuccessDialog({ open: true, count: data.deleted });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to execute cleanup");
     } finally {
@@ -494,6 +495,35 @@ const PaymentsSection: React.FC = () => {
           </div>
         </div>
       </FormModal>
+
+      {/* Success Dialog */}
+      {successDialog.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setSuccessDialog({ open: false, count: 0 })}
+            aria-hidden
+          />
+          <div className="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+            <div className="flex flex-col items-center text-center font-calibri">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                <FaCheckCircle className="text-green-600" size={24} />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">Success</h3>
+              <p className="text-gray-600 mb-6">
+                {successDialog.count} payment {successDialog.count === 1 ? "record has" : "records have"} been deleted.
+              </p>
+              <button
+                type="button"
+                onClick={() => setSuccessDialog({ open: false, count: 0 })}
+                className="w-full rounded-lg bg-rose-500 px-4 py-2 font-medium text-white hover:bg-rose-600 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
