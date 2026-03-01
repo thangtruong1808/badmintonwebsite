@@ -308,7 +308,7 @@ const PaymentsSection: React.FC = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={openCleanupModal}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium font-calibri text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
           >
             <FaTrash size={12} />
             Clean Up
@@ -377,7 +377,7 @@ const PaymentsSection: React.FC = () => {
         onClose={() => setCleanupModalOpen(false)}
         onSubmit={(e) => { e.preventDefault(); executeCleanup(); }}
       >
-        <div className="space-y-4">
+        <div className="space-y-4 font-calibri">
           <p className="text-sm text-gray-600">
             Delete payment records by status and date range. This helps reduce database size by removing stale records.
           </p>
@@ -412,7 +412,7 @@ const PaymentsSection: React.FC = () => {
                   setCleanupPreviewCount(null);
                   setCleanupConfirmed(false);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-calibri"
               />
             </div>
             <div>
@@ -425,7 +425,7 @@ const PaymentsSection: React.FC = () => {
                   setCleanupPreviewCount(null);
                   setCleanupConfirmed(false);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-calibri"
               />
             </div>
           </div>
@@ -434,7 +434,7 @@ const PaymentsSection: React.FC = () => {
             type="button"
             onClick={previewCleanup}
             disabled={cleanupLoading || !cleanupForm.startDate || !cleanupForm.endDate}
-            className="w-full px-4 py-2 text-sm font-medium text-rose-600 border border-rose-300 rounded-lg hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full px-4 py-2 text-sm font-medium font-calibri text-rose-600 border border-rose-300 rounded-lg hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {cleanupLoading ? (
               <span className="inline-flex items-center gap-2">
@@ -473,14 +473,14 @@ const PaymentsSection: React.FC = () => {
             <button
               type="button"
               onClick={() => setCleanupModalOpen(false)}
-              className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="flex-1 px-4 py-2 text-sm font-medium font-calibri text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={cleanupLoading || !cleanupConfirmed || cleanupPreviewCount === null || cleanupPreviewCount === 0}
-              className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 px-4 py-2 text-sm font-medium font-calibri text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {cleanupLoading ? (
                 <span className="inline-flex items-center gap-2 justify-center">
