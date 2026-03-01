@@ -1,7 +1,7 @@
 /**
  * Registration-related emails: confirmation, cancellation.
  */
-import { getTransporter, getEmailTemplateWithLogo } from './emailTransporter.js';
+import { isEmailConfigured, sendEmail, getEmailTemplateWithLogo } from './emailTransporter.js';
 import { escapeHtml, extractFirstName, formatPlaytimeLineForEmail } from './emailUtils.js';
 
 export interface RegistrationSessionDetails {
@@ -37,14 +37,13 @@ export async function sendRegistrationConfirmationEmailForSessions(
   sessions: RegistrationSessionDetails[],
   recipientName?: string | null
 ): Promise<void> {
-  const trans = getTransporter();
-  if (!trans) return;
+  if (!isEmailConfigured()) return;
   const toTrimmed = typeof to === 'string' ? to.trim() : '';
   if (!toTrimmed) {
     console.warn('[email] Cannot send registration confirmation: no recipient email');
     return;
   }
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  
   const firstName = extractFirstName(recipientName);
   const greeting = `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'Registration confirmed - ChibiBadminton';
@@ -69,18 +68,18 @@ export async function sendRegistrationConfirmationEmailForSessions(
   htmlParts.push('</ul>');
   textParts.push('', 'We look forward to seeing you on the court!');
   htmlParts.push('<p>We look forward to seeing you on the court!</p>');
-  try {
-    const { html, attachments } = getEmailTemplateWithLogo(htmlParts.join(''));
-    await trans.sendMail({
-      from,
-      to: toTrimmed,
-      subject,
-      text: textParts.join('\n'),
-      html,
-      attachments,
-    });
-  } catch (err) {
-    console.error('[email] Failed to send registration confirmation email:', err);
+  
+  const { html, attachments } = getEmailTemplateWithLogo(htmlParts.join(''));
+  const sent = await sendEmail({
+    to: toTrimmed,
+    subject,
+    html,
+    text: textParts.join('\n'),
+    attachments,
+  });
+  
+  if (!sent) {
+    console.error('[email] Failed to send registration confirmation email');
   }
 }
 
@@ -95,14 +94,13 @@ export async function sendCancellationConfirmationEmail(
   eventLocation?: string,
   recipientName?: string | null
 ): Promise<void> {
-  const trans = getTransporter();
-  if (!trans) return;
+  if (!isEmailConfigured()) return;
   const toTrimmed = typeof to === 'string' ? to.trim() : '';
   if (!toTrimmed) {
     console.warn('[email] Cannot send cancellation confirmation: no recipient email');
     return;
   }
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  
   const firstName = extractFirstName(recipientName);
   const greeting = `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'Registration cancelled - ChibiBadminton';
@@ -122,10 +120,11 @@ export async function sendCancellationConfirmationEmail(
     `<p>Session: ${escapeHtml(sessionLine)}</p>`,
     '<p>You can register again from the Play or Profile page when spots are available. We hope to see you on the court soon!</p>',
   ].join('\n');
-  try {
-    const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
-    await trans.sendMail({ from, to: toTrimmed, subject, text, html, attachments });
-  } catch (err) {
-    console.error('[email] Failed to send cancellation confirmation email:', err);
+  
+  const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
+  const sent = await sendEmail({ to: toTrimmed, subject, html, text, attachments });
+  
+  if (!sent) {
+    console.error('[email] Failed to send cancellation confirmation email');
   }
 }

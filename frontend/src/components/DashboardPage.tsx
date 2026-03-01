@@ -24,6 +24,7 @@ import {
   FaUserFriends,
   FaPhotoVideo,
   FaShoppingBag,
+  FaSpinner,
 } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
 import { getCurrentUser } from "../utils/mockAuth";
@@ -327,7 +328,10 @@ const DashboardPage = () => {
                 </div>
               )}
               {loading && (
-                <p className="font-calibri text-gray-600">Loading stats…</p>
+                <div className="flex items-center justify-center gap-3 py-12">
+                  <FaSpinner className="animate-spin text-rose-500" size={24} />
+                  <p className="font-calibri text-gray-600">Loading stats…</p>
+                </div>
               )}
               {error && (
                 <p className="font-calibri text-rose-600 mb-4">{error}</p>
@@ -339,7 +343,7 @@ const DashboardPage = () => {
                       <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
                         Total Users
                       </p>
-                      <p className="font-huglove text-2xl md:text-3xl text-rose-600">
+                      <p className="font-calibri font-bold text-2xl md:text-3xl text-rose-600">
                         {stats.usersCount}
                       </p>
                     </div>
@@ -347,7 +351,7 @@ const DashboardPage = () => {
                       <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
                         Total Events
                       </p>
-                      <p className="font-huglove text-2xl md:text-3xl text-rose-600">
+                      <p className="font-calibri font-bold text-2xl md:text-3xl text-rose-600">
                         {stats.eventsCount}
                       </p>
                     </div>
@@ -355,7 +359,7 @@ const DashboardPage = () => {
                       <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
                         Registrations
                       </p>
-                      <p className="font-huglove text-2xl md:text-3xl text-rose-600">
+                      <p className="font-calibri font-bold text-2xl md:text-3xl text-rose-600">
                         {stats.registrationsCount}
                       </p>
                     </div>
@@ -363,7 +367,7 @@ const DashboardPage = () => {
                       <p className="font-calibri text-sm text-gray-500 uppercase tracking-wide mb-1">
                         Reward Transactions
                       </p>
-                      <p className="font-huglove text-2xl md:text-3xl text-rose-600">
+                      <p className="font-calibri font-bold text-2xl md:text-3xl text-rose-600">
                         {stats.rewardTransactionsCount}
                       </p>
                     </div>

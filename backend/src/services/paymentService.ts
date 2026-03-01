@@ -14,6 +14,7 @@ export interface PaymentRow {
   payment_method: PaymentMethod;
   stripe_payment_intent_id: string | null;
   stripe_checkout_session_id: string | null;
+  stripe_payment_method_type: string | null;
   metadata: Record<string, unknown> | null;
   created_at?: string;
   updated_at?: string;
@@ -39,6 +40,7 @@ interface PaymentDbRow extends RowDataPacket {
   payment_method: string;
   stripe_payment_intent_id: string | null;
   stripe_checkout_session_id: string | null;
+  stripe_payment_method_type: string | null;
   metadata: unknown;
   created_at: Date | string | null;
   updated_at: Date | string | null;
@@ -67,6 +69,7 @@ function rowToPayment(r: PaymentDbRow): PaymentRow {
     payment_method: r.payment_method as PaymentMethod,
     stripe_payment_intent_id: r.stripe_payment_intent_id ?? null,
     stripe_checkout_session_id: r.stripe_checkout_session_id ?? null,
+    stripe_payment_method_type: r.stripe_payment_method_type ?? null,
     metadata: parsedMetadata,
     created_at: r.created_at ? String(r.created_at) : undefined,
     updated_at: r.updated_at ? String(r.updated_at) : undefined,
@@ -170,7 +173,8 @@ export const updateStatus = async (
 export const updateByStripeCheckoutSessionId = async (
   sessionId: string,
   status: PaymentStatus,
-  stripePaymentIntentId?: string | null
+  stripePaymentIntentId?: string | null,
+  stripePaymentMethodType?: string | null
 ): Promise<PaymentRow | null> => {
   const updates: string[] = ['status = ?'];
   const params: (string | null)[] = [status];
@@ -178,6 +182,11 @@ export const updateByStripeCheckoutSessionId = async (
   if (stripePaymentIntentId !== undefined) {
     updates.push('stripe_payment_intent_id = ?');
     params.push(stripePaymentIntentId);
+  }
+
+  if (stripePaymentMethodType !== undefined) {
+    updates.push('stripe_payment_method_type = ?');
+    params.push(stripePaymentMethodType);
   }
 
   params.push(sessionId);

@@ -21,6 +21,7 @@ import * as paymentService from '../services/paymentService.js';
 import * as invoiceService from '../services/invoiceService.js';
 import * as paymentStatsService from '../services/paymentStatsService.js';
 import { createError } from '../middleware/errorHandler.js';
+import { stripe, isStripeConfigured } from '../utils/stripe.js';
 
 export const testDbConnection = async (req: Request, res: Response): Promise<void> => {
   const result = await testConnection();
@@ -876,6 +877,69 @@ export const bulkDeletePayments = async (
     );
     
     res.json({ deleted: result.affectedRows });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Sync Stripe Payment Types - Backfill existing payments with their actual Stripe payment method types
+export const syncStripePaymentTypes = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    if (!isStripeConfigured || !stripe) {
+      throw createError('Stripe is not configured', 500);
+    }
+
+    // Get all payments that have a stripe_payment_intent_id but no stripe_payment_method_type
+    const [rows] = await pool.execute<(RowDataPacket & { id: string; stripe_payment_intent_id: string })[]>(
+      `SELECT id, stripe_payment_intent_id FROM payments 
+       WHERE stripe_payment_intent_id IS NOT NULL 
+       AND (stripe_payment_method_type IS NULL OR stripe_payment_method_type = '')
+       AND payment_method = 'stripe'`
+    );
+
+    const total = rows.length;
+    let synced = 0;
+    const errors: string[] = [];
+
+    for (const payment of rows) {
+      try {
+        // Retrieve the payment intent from Stripe
+        const paymentIntent = await stripe.paymentIntents.retrieve(payment.stripe_payment_intent_id);
+        
+        // Get the payment method ID
+        const pmId = typeof paymentIntent.payment_method === 'string' 
+          ? paymentIntent.payment_method 
+          : paymentIntent.payment_method?.id;
+
+        if (pmId) {
+          // Retrieve the payment method to get its type
+          const pm = await stripe.paymentMethods.retrieve(pmId);
+          const methodType = pm.type || null;
+
+          if (methodType) {
+            // Update the database with the payment method type
+            await pool.execute<ResultSetHeader>(
+              `UPDATE payments SET stripe_payment_method_type = ? WHERE id = ?`,
+              [methodType, payment.id]
+            );
+            synced++;
+          }
+        }
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        errors.push(`Payment ${payment.id}: ${errorMsg}`);
+      }
+    }
+
+    res.json({ 
+      synced, 
+      total,
+      errors: errors.length > 0 ? errors : undefined
+    });
   } catch (error) {
     next(error);
   }

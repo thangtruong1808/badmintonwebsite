@@ -51,6 +51,7 @@ import {
   getPaymentStats,
   previewBulkDeletePayments,
   bulkDeletePayments,
+  syncStripePaymentTypes,
 } from '../controllers/dashboardController.js';
 import {
   getDashboardOrders,
@@ -175,6 +176,7 @@ router.get('/payments/:id', authenticateToken, requireAdmin, getDashboardPayment
 router.put('/payments/:id', authenticateToken, requireAdmin, updateDashboardPayment);
 router.post('/payments/bulk-delete/preview', authenticateToken, requireAdmin, previewBulkDeletePayments);
 router.post('/payments/bulk-delete', authenticateToken, requireAdmin, bulkDeletePayments);
+router.post('/payments/sync-stripe-types', authenticateToken, requireAdmin, syncStripePaymentTypes);
 router.get('/payment-stats', authenticateToken, requireAdmin, getPaymentStats);
 
 router.get('/orders', authenticateToken, requireAdmin, getDashboardOrders);

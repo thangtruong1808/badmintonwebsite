@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaSpinner, FaDollarSign, FaCreditCard, FaExclamationTriangle, FaUndo, FaChartLine } from "react-icons/fa";
+import { FaSpinner, FaDollarSign, FaCreditCard, FaExclamationTriangle, FaUndo, FaChartLine, FaSync } from "react-icons/fa";
 import {
   LineChart,
   Line,
@@ -28,6 +28,7 @@ interface PaymentStats {
     points: number;
     mixed: number;
   };
+  revenueByStripeType: Record<string, number>;
   paymentsByStatus: {
     pending: number;
     completed: number;
@@ -48,8 +49,17 @@ const PERIOD_OPTIONS = [
   { value: "month", label: "Monthly (12 months)" },
 ];
 
-const PIE_COLORS = ["#be123c", "#f472b6", "#fda4af"];
+const PIE_COLORS = ["#be123c", "#f472b6", "#fda4af", "#fb7185", "#fecdd3", "#9f1239"];
 const BAR_COLORS = ["#fbbf24", "#22c55e", "#ef4444", "#6b7280"];
+
+const STRIPE_TYPE_LABELS: Record<string, string> = {
+  card: "Card",
+  au_becs_debit: "BECS Direct Debit",
+  link: "Link / Google Pay",
+  apple_pay: "Apple Pay",
+  google_pay: "Google Pay",
+  unknown: "Other",
+};
 
 const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat("en-AU", {
@@ -65,6 +75,27 @@ const PaymentStatsSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<StatsPeriod>("month");
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ synced: number; total: number } | null>(null);
+
+  const handleSyncPaymentTypes = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await apiFetch("/api/dashboard/payments/sync-stripe-types", {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Failed to sync payment types");
+      const data = await res.json();
+      setSyncResult({ synced: data.synced, total: data.total });
+      // Refresh stats after successful sync
+      fetchStats();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to sync payment types");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const fetchStats = async () => {
     setLoading(true);
@@ -96,7 +127,7 @@ const PaymentStatsSection: React.FC = () => {
 
   if (error) {
     return (
-      <div className="bg-red-50 text-red-700 p-4 rounded-lg">
+      <div className="bg-red-50 text-red-700 p-4 rounded-lg font-calibri">
         <p className="font-medium">Error loading payment statistics</p>
         <p className="text-sm">{error}</p>
         <button
@@ -111,11 +142,21 @@ const PaymentStatsSection: React.FC = () => {
 
   if (!stats) return null;
 
-  const revenueByMethodData = [
-    { name: "Card/Stripe", value: stats.revenueByMethod.stripe },
-    { name: "Points", value: stats.revenueByMethod.points },
-    { name: "Mixed", value: stats.revenueByMethod.mixed },
-  ].filter(item => item.value > 0);
+  // Use Stripe payment types for detailed breakdown, fallback to payment method if no Stripe type data
+  const hasStripeTypeData = stats.revenueByStripeType && Object.keys(stats.revenueByStripeType).length > 0;
+  
+  const revenueByMethodData = hasStripeTypeData
+    ? Object.entries(stats.revenueByStripeType)
+        .map(([type, value]) => ({
+          name: STRIPE_TYPE_LABELS[type] || type.replace(/_/g, " "),
+          value: Number(value),
+        }))
+        .filter(item => item.value > 0)
+    : [
+        { name: "Card/Stripe", value: stats.revenueByMethod.stripe },
+        { name: "Points", value: stats.revenueByMethod.points },
+        { name: "Mixed", value: stats.revenueByMethod.mixed },
+      ].filter(item => item.value > 0);
 
   const paymentsByStatusData = [
     { name: "Pending", value: stats.paymentsByStatus.pending, fill: BAR_COLORS[0] },
@@ -132,21 +173,50 @@ const PaymentStatsSection: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Period Filter */}
-      <div className="flex items-center justify-between">
-        <h3 className="font-huglove text-xl text-gray-800">Payment Statistics</h3>
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value as StatsPeriod)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm"
-        >
-          {PERIOD_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+      {/* Period Filter and Sync Button */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h3 className="font-calibri font-semibold text-xl text-gray-800">Payment Statistics</h3>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={handleSyncPaymentTypes}
+            disabled={syncing}
+            className="flex items-center gap-2 px-3 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed font-calibri text-sm transition-colors"
+          >
+            {syncing ? (
+              <FaSpinner className="animate-spin" size={14} />
+            ) : (
+              <FaSync size={14} />
+            )}
+            {syncing ? "Syncing..." : "Sync Payment Types"}
+          </button>
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as StatsPeriod)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm"
+          >
+            {PERIOD_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
+
+      {/* Sync Result Message */}
+      {syncResult && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg font-calibri flex items-center justify-between">
+          <span>
+            Successfully synced {syncResult.synced} of {syncResult.total} payment{syncResult.total !== 1 ? "s" : ""} with Stripe.
+          </span>
+          <button
+            onClick={() => setSyncResult(null)}
+            className="text-green-700 hover:text-green-900 font-medium"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -157,7 +227,7 @@ const PaymentStatsSection: React.FC = () => {
               Revenue
             </p>
           </div>
-          <p className="font-huglove text-xl md:text-2xl text-gray-800">
+          <p className="font-calibri font-bold text-xl md:text-2xl text-gray-800">
             {formatCurrency(stats.totalRevenue)}
           </p>
         </div>
@@ -169,7 +239,7 @@ const PaymentStatsSection: React.FC = () => {
               Payments
             </p>
           </div>
-          <p className="font-huglove text-xl md:text-2xl text-gray-800">
+          <p className="font-calibri font-bold text-xl md:text-2xl text-gray-800">
             {stats.totalPayments}
           </p>
         </div>
@@ -181,7 +251,7 @@ const PaymentStatsSection: React.FC = () => {
               Avg. Payment
             </p>
           </div>
-          <p className="font-huglove text-xl md:text-2xl text-gray-800">
+          <p className="font-calibri font-bold text-xl md:text-2xl text-gray-800">
             {formatCurrency(stats.averagePaymentAmount)}
           </p>
         </div>
@@ -193,7 +263,7 @@ const PaymentStatsSection: React.FC = () => {
               Refunds
             </p>
           </div>
-          <p className="font-huglove text-xl md:text-2xl text-gray-800">
+          <p className="font-calibri font-bold text-xl md:text-2xl text-gray-800">
             {stats.totalRefunds}
           </p>
         </div>
@@ -205,7 +275,7 @@ const PaymentStatsSection: React.FC = () => {
               Disputes
             </p>
           </div>
-          <p className={`font-huglove text-xl md:text-2xl ${stats.totalDisputes > 0 ? 'text-red-600' : 'text-gray-800'}`}>
+          <p className={`font-calibri font-bold text-xl md:text-2xl ${stats.totalDisputes > 0 ? 'text-red-600' : 'text-gray-800'}`}>
             {stats.totalDisputes}
           </p>
         </div>
@@ -217,7 +287,7 @@ const PaymentStatsSection: React.FC = () => {
               Dispute Rate
             </p>
           </div>
-          <p className={`font-huglove text-xl md:text-2xl ${stats.disputeRate > 1 ? 'text-red-600' : 'text-gray-800'}`}>
+          <p className={`font-calibri font-bold text-xl md:text-2xl ${stats.disputeRate > 1 ? 'text-red-600' : 'text-gray-800'}`}>
             {stats.disputeRate.toFixed(2)}%
           </p>
         </div>
@@ -234,7 +304,7 @@ const PaymentStatsSection: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                 <XAxis 
                   dataKey="date" 
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
+                  tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }}
                   tickFormatter={(value) => {
                     if (period === 'day') return value.slice(5);
                     if (period === 'week') return `W${value.split('-')[1]}`;
@@ -242,12 +312,14 @@ const PaymentStatsSection: React.FC = () => {
                   }}
                 />
                 <YAxis 
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
+                  tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }}
                   tickFormatter={(value) => `$${value}`}
                 />
                 <Tooltip 
                   formatter={(value) => [formatCurrency(Number(value)), 'Revenue']}
                   labelFormatter={(label) => `Date: ${label}`}
+                  contentStyle={{ fontFamily: 'Calibri, sans-serif', fontSize: 13 }}
+                  labelStyle={{ fontFamily: 'Calibri, sans-serif', fontWeight: 600 }}
                 />
                 <Line 
                   type="monotone" 
@@ -282,12 +354,16 @@ const PaymentStatsSection: React.FC = () => {
                   dataKey="value"
                   label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   labelLine={false}
+                  style={{ fontFamily: 'Calibri, sans-serif', fontSize: 12 }}
                 >
                   {revenueByMethodData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Tooltip 
+                  formatter={(value) => formatCurrency(Number(value))} 
+                  contentStyle={{ fontFamily: 'Calibri, sans-serif', fontSize: 13 }}
+                />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -304,14 +380,16 @@ const PaymentStatsSection: React.FC = () => {
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={paymentsByStatusData} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-            <XAxis type="number" tick={{ fontSize: 11, fill: '#6b7280' }} />
+            <XAxis type="number" tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }} />
             <YAxis 
               dataKey="name" 
               type="category" 
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }}
               width={80}
             />
-            <Tooltip />
+            <Tooltip 
+              contentStyle={{ fontFamily: 'Calibri, sans-serif', fontSize: 13 }}
+            />
             <Bar dataKey="value" name="Count" radius={[0, 4, 4, 0]}>
               {paymentsByStatusData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -337,13 +415,15 @@ const PaymentStatsSection: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                   <XAxis 
                     dataKey="name" 
-                    tick={{ fontSize: 10, fill: '#6b7280' }}
+                    tick={{ fontSize: 10, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }}
                     angle={-45}
                     textAnchor="end"
                     height={60}
                   />
-                  <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} />
-                  <Tooltip />
+                  <YAxis tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }} />
+                  <Tooltip 
+                    contentStyle={{ fontFamily: 'Calibri, sans-serif', fontSize: 13 }}
+                  />
                   <Bar dataKey="count" fill="#ef4444" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

@@ -1,7 +1,7 @@
 /**
  * Contact form and service request emails (sent to admin/support).
  */
-import { getTransporter, getEmailTemplateWithLogo } from './emailTransporter.js';
+import { isEmailConfigured, sendEmail, getEmailTemplateWithLogo } from './emailTransporter.js';
 import { escapeHtml } from './emailUtils.js';
 
 export interface ContactFormData {
@@ -16,14 +16,16 @@ export interface ContactFormData {
  * Send contact form email to CONTACT_MAIL_TO.
  */
 export async function sendContactFormEmail(data: ContactFormData): Promise<void> {
-  const trans = getTransporter();
   const to = process.env.CONTACT_MAIL_TO;
-  if (!trans || !to) {
-    if (!to) console.warn('[email] CONTACT_MAIL_TO not set; skipping contact form email.');
-    else console.warn('[email] SMTP not configured; skipping contact form email.');
+  if (!to) {
+    console.warn('[email] CONTACT_MAIL_TO not set; skipping contact form email.');
     return;
   }
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  if (!isEmailConfigured()) {
+    console.warn('[email] No email provider configured; skipping contact form email.');
+    return;
+  }
+  
   const phone = data.phone ?? 'Not provided';
   const subject = `Contact form: ${data.subject}`;
   const text = [
@@ -43,19 +45,19 @@ export async function sendContactFormEmail(data: ContactFormData): Promise<void>
     '<p><strong>Message:</strong></p>',
     '<p>' + escapeHtml(data.message).replace(/\n/g, '<br>') + '</p>',
   ].join('\n');
-  try {
-    const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
-    await trans.sendMail({
-      from,
-      to,
-      replyTo: data.email,
-      subject,
-      text,
-      html,
-      attachments,
-    });
-  } catch (err) {
-    console.error('[email] Failed to send contact form email:', err);
+  
+  const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
+  const sent = await sendEmail({
+    to,
+    subject,
+    html,
+    text,
+    replyTo: data.email,
+    attachments,
+  });
+  
+  if (!sent) {
+    console.error('[email] Failed to send contact form email');
   }
 }
 
@@ -77,14 +79,16 @@ export interface ServiceRequestEmailData {
  * Send stringing service request email to CONTACT_MAIL_TO.
  */
 export async function sendServiceRequestEmail(data: ServiceRequestEmailData): Promise<void> {
-  const trans = getTransporter();
   const to = process.env.CONTACT_MAIL_TO;
-  if (!trans || !to) {
-    if (!to) console.warn('[email] CONTACT_MAIL_TO not set; skipping service request email.');
-    else console.warn('[email] SMTP not configured; skipping service request email.');
+  if (!to) {
+    console.warn('[email] CONTACT_MAIL_TO not set; skipping service request email.');
     return;
   }
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  if (!isEmailConfigured()) {
+    console.warn('[email] No email provider configured; skipping service request email.');
+    return;
+  }
+  
   const subject = 'Stringing Service Request - ChibiBadminton';
   const extras: string[] = [];
   if (data.stencil) extras.push('Stencil');
@@ -124,18 +128,18 @@ export async function sendServiceRequestEmail(data: ServiceRequestEmailData): Pr
   ]
     .filter(Boolean)
     .join('\n');
-  try {
-    const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
-    await trans.sendMail({
-      from,
-      to,
-      replyTo: data.email,
-      subject,
-      text,
-      html,
-      attachments,
-    });
-  } catch (err) {
-    console.error('[email] Failed to send service request email:', err);
+  
+  const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
+  const sent = await sendEmail({
+    to,
+    subject,
+    html,
+    text,
+    replyTo: data.email,
+    attachments,
+  });
+  
+  if (!sent) {
+    console.error('[email] Failed to send service request email');
   }
 }

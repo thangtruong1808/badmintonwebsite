@@ -15,6 +15,7 @@ export interface PaymentStats {
     points: number;
     mixed: number;
   };
+  revenueByStripeType: Record<string, number>;
   paymentsByStatus: {
     pending: number;
     completed: number;
@@ -95,6 +96,19 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
     [startStr]
   );
 
+  const [stripeTypeRows] = await pool.execute<(RowDataPacket & { 
+    stripe_payment_method_type: string | null; 
+    total: number 
+  })[]>(
+    `SELECT 
+       COALESCE(stripe_payment_method_type, 'unknown') as stripe_payment_method_type, 
+       COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total
+     FROM payments
+     WHERE created_at >= ? AND payment_method = 'stripe'
+     GROUP BY stripe_payment_method_type`,
+    [startStr]
+  );
+
   const [statusRows] = await pool.execute<(RowDataPacket & { 
     status: string; 
     count: number 
@@ -164,6 +178,12 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
     }
   }
 
+  const revenueByStripeType: Record<string, number> = {};
+  for (const row of stripeTypeRows) {
+    const typeKey = row.stripe_payment_method_type || 'unknown';
+    revenueByStripeType[typeKey] = Number(row.total);
+  }
+
   const paymentsByStatus: { pending: number; completed: number; failed: number; refunded: number; expired: number; disputed: number; requires_action: number } = {
     pending: 0,
     completed: 0,
@@ -201,6 +221,7 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
     totalDisputes,
     disputeRate: Math.round(disputeRate * 100) / 100,
     revenueByMethod,
+    revenueByStripeType,
     paymentsByStatus,
     revenueOverTime: revenueTimeRows.map(r => ({
       date: r.date_group,

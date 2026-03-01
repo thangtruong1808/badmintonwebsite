@@ -1,7 +1,7 @@
 /**
  * Waitlist emails: promotion (legacy / unused after direct-promotion change), spot confirmed (congratulations).
  */
-import { getTransporter, getEmailTemplateWithLogo } from './emailTransporter.js';
+import { isEmailConfigured, sendEmail, getEmailTemplateWithLogo } from './emailTransporter.js';
 import { escapeHtml, extractFirstName, formatPlaytimeLineForEmail, formatDateObjectForEmail, parseDateAndTimeForEmail } from './emailUtils.js';
 
 /**
@@ -16,9 +16,8 @@ export async function sendSpotConfirmedEmail(
   eventLocation?: string | null,
   recipientName?: string | null
 ): Promise<void> {
-  const trans = getTransporter();
-  if (!trans) return;
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  if (!isEmailConfigured()) return;
+  
   const firstName = extractFirstName(recipientName);
   const greeting = `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'You\'re in! Spot confirmed - ChibiBadminton';
@@ -38,11 +37,12 @@ export async function sendSpotConfirmedEmail(
     `<p>${escapeHtml(playtimeLine)}</p>`,
     '<p>We look forward to seeing you on the court!</p>',
   ].join('\n');
-  try {
-    const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
-    await trans.sendMail({ from, to, subject, text, html, attachments });
-  } catch (err) {
-    console.error('[email] Failed to send spot confirmed email:', err);
+  
+  const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
+  const sent = await sendEmail({ to, subject, html, text, attachments });
+  
+  if (!sent) {
+    console.error('[email] Failed to send spot confirmed email');
   }
 }
 
@@ -60,9 +60,8 @@ export async function sendWaitlistPromotionEmail(
   recipientName?: string | null,
   eventLocation?: string | null
 ): Promise<void> {
-  const trans = getTransporter();
-  if (!trans) return;
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  if (!isEmailConfigured()) return;
+  
   const firstName = extractFirstName(recipientName);
   const greeting = `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'A spot opened - ChibiBadminton Play Session';
@@ -90,10 +89,11 @@ export async function sendWaitlistPromotionEmail(
     `<p><a href="${escapeHtml(paymentLink)}" style="display: inline-block; background: #be123c; color: white !important; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">Confirm my spot</a></p>`,
     '<p>We look forward to seeing you on the court!</p>',
   ].join('\n');
-  try {
-    const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
-    await trans.sendMail({ from, to, subject, text, html, attachments });
-  } catch (err) {
-    console.error('[email] Failed to send waitlist promotion email:', err);
+  
+  const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
+  const sent = await sendEmail({ to, subject, html, text, attachments });
+  
+  if (!sent) {
+    console.error('[email] Failed to send waitlist promotion email');
   }
 }

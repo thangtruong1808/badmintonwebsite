@@ -137,7 +137,24 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
       ? session.payment_intent
       : session.payment_intent?.id || null;
 
-  await updateByStripeCheckoutSessionId(session.id, 'completed', paymentIntentId);
+  // Extract the payment method type from the session
+  let paymentMethodType: string | null = null;
+  try {
+    if (stripe && paymentIntentId) {
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const pmId = typeof paymentIntent.payment_method === 'string' 
+        ? paymentIntent.payment_method 
+        : paymentIntent.payment_method?.id;
+      if (pmId) {
+        const pm = await stripe.paymentMethods.retrieve(pmId);
+        paymentMethodType = pm.type || null;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to retrieve payment method type:', err);
+  }
+
+  await updateByStripeCheckoutSessionId(session.id, 'completed', paymentIntentId, paymentMethodType);
 
   console.log(`Processing ${metadata.type} checkout for user ${metadata.userId}`);
 

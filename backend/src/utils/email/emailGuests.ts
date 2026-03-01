@@ -1,7 +1,7 @@
 /**
  * Add-guests / friends related emails.
  */
-import { getTransporter, getEmailTemplateWithLogo } from './emailTransporter.js';
+import { isEmailConfigured, sendEmail, getEmailTemplateWithLogo } from './emailTransporter.js';
 import { escapeHtml, extractFirstName, formatPlaytimeLineForEmail, parseDateAndTimeForEmail } from './emailUtils.js';
 
 /**
@@ -15,9 +15,8 @@ export async function sendFriendsPromotedEmail(
   recipientName?: string | null,
   eventLocation?: string | null
 ): Promise<void> {
-  const trans = getTransporter();
-  if (!trans) return;
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  if (!isEmailConfigured()) return;
+  
   const firstName = extractFirstName(recipientName);
   const greeting = `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const friendText = count === 1 ? 'friend has' : 'friends have';
@@ -39,11 +38,12 @@ export async function sendFriendsPromotedEmail(
     `<p><strong>${escapeHtml(eventTitle)}</strong> — ${escapeHtml(playtimeLine)}.</p>`,
     '<p>We look forward to seeing you on the court!</p>',
   ].join('\n');
-  try {
-    const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
-    await trans.sendMail({ from, to, subject, text, html, attachments });
-  } catch (err) {
-    console.error('[email] Failed to send friends promoted email:', err);
+  
+  const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
+  const sent = await sendEmail({ to, subject, html, text, attachments });
+  
+  if (!sent) {
+    console.error('[email] Failed to send friends promoted email');
   }
 }
 
@@ -60,9 +60,8 @@ export async function sendAddGuestsConfirmationEmail(
   recipientName?: string | null,
   eventLocation?: string | null
 ): Promise<void> {
-  const trans = getTransporter();
-  if (!trans) return;
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  if (!isEmailConfigured()) return;
+  
   const firstName = extractFirstName(recipientName);
   const greeting = `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'Friends added to your registration - ChibiBadminton';
@@ -94,11 +93,12 @@ export async function sendAddGuestsConfirmationEmail(
     summary ? `<p>${escapeHtml(summary)}</p>` : '',
     '<p>We look forward to seeing you on the court!</p>',
   ].join('\n');
-  try {
-    const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
-    await trans.sendMail({ from, to, subject, text, html, attachments });
-  } catch (err) {
-    console.error('[email] Failed to send add guests confirmation email:', err);
+  
+  const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
+  const sent = await sendEmail({ to, subject, html, text, attachments });
+  
+  if (!sent) {
+    console.error('[email] Failed to send add guests confirmation email');
   }
 }
 
@@ -114,9 +114,8 @@ export async function sendRemoveGuestsConfirmationEmail(
   recipientName?: string | null,
   eventLocation?: string | null
 ): Promise<void> {
-  const trans = getTransporter();
-  if (!trans) return;
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  if (!isEmailConfigured()) return;
+  
   const firstName = extractFirstName(recipientName);
   const greeting = `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'Friends removed from your registration - ChibiBadminton';
@@ -145,11 +144,12 @@ export async function sendRemoveGuestsConfirmationEmail(
     `<p>${escapeHtml(removedStr)}${promotedStr ? ` ${escapeHtml(promotedStr)}` : ''}</p>`,
     '<p>We look forward to seeing you on the court!</p>',
   ].join('\n');
-  try {
-    const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
-    await trans.sendMail({ from, to, subject, text, html, attachments });
-  } catch (err) {
-    console.error('[email] Failed to send remove guests confirmation email:', err);
+  
+  const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
+  const sent = await sendEmail({ to, subject, html, text, attachments });
+  
+  if (!sent) {
+    console.error('[email] Failed to send remove guests confirmation email');
   }
 }
 
@@ -164,9 +164,8 @@ export async function sendWaitlistFriendsUpdateConfirmationEmail(
   recipientName?: string | null,
   eventLocation?: string | null
 ): Promise<void> {
-  const trans = getTransporter();
-  if (!trans) return;
-  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  if (!isEmailConfigured()) return;
+  
   const firstName = extractFirstName(recipientName);
   const greeting = `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)},`;
   const subject = 'Waitlist update confirmed - ChibiBadminton';
@@ -191,10 +190,11 @@ export async function sendWaitlistFriendsUpdateConfirmationEmail(
     `<p>${reduced} ${friendText} been removed from the waitlist.</p>`,
     '<p>We look forward to seeing you on the court!</p>',
   ].join('\n');
-  try {
-    const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
-    await trans.sendMail({ from, to, subject, text, html, attachments });
-  } catch (err) {
-    console.error('[email] Failed to send waitlist friends update confirmation email:', err);
+  
+  const { html, attachments } = getEmailTemplateWithLogo(bodyHtml);
+  const sent = await sendEmail({ to, subject, html, text, attachments });
+  
+  if (!sent) {
+    console.error('[email] Failed to send waitlist friends update confirmation email');
   }
 }

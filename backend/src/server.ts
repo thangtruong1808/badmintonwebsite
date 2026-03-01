@@ -159,7 +159,13 @@ if (!process.env.VERCEL) {
     if (railwayUrl) {
       console.log(`🌐 Environment: Production (Railway)`);
     } else {
+      
       console.log(`🔧 Environment: ${process.env.NODE_ENV || 'development'}`);
+      // Verify SMTP configuration
+      const smtpHost = process.env.SMTP_HOST;
+      const smtpPort = process.env.SMTP_PORT;
+      const smtpUser = process.env.SMTP_USER;
+      console.log(`📧 SMTP Config: ${smtpHost}:${smtpPort} (user: ${smtpUser ? 'set' : 'missing'})`);
     }
     
     // Test database connection AFTER server is listening

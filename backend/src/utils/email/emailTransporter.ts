@@ -1,15 +1,27 @@
 /**
  * Email transporter, logo attachment, and HTML template wrapper.
+ * Supports Resend API (production) with SMTP fallback (local dev).
  */
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { escapeHtml } from './emailUtils.js';
 
 let transporter: Transporter | null = null;
+let resendClient: Resend | null = null;
 
 const LOGO_CID = 'chibibadminton.logo@email';
+
+function getResendClient(): Resend | null {
+  if (resendClient) return resendClient;
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey) return null;
+  console.log('[email] Using Resend API for email delivery');
+  resendClient = new Resend(apiKey);
+  return resendClient;
+}
 
 export function getTransporter(): Transporter | null {
   if (transporter) return transporter;
@@ -46,8 +58,72 @@ export function getTransporter(): Transporter | null {
   return transporter;
 }
 
-/** Returns logo as CID attachment for reliable display in email clients. */
+export function isEmailConfigured(): boolean {
+  return getResendClient() !== null || getTransporter() !== null;
+}
+
+export interface SendEmailOptions {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  replyTo?: string;
+  attachments?: nodemailer.SendMailOptions['attachments'];
+}
+
+export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
+  const from = process.env.MAIL_FROM || process.env.SMTP_USER || 'noreply@localhost';
+  const resend = getResendClient();
+  
+  if (resend) {
+    try {
+      await resend.emails.send({
+        from,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+        replyTo: options.replyTo,
+      });
+      console.log(`[email] Email sent via Resend to: ${options.to}`);
+      return true;
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`[email] Resend failed to send email to ${options.to}:`, errorMessage);
+      return false;
+    }
+  }
+  
+  const smtp = getTransporter();
+  if (smtp) {
+    try {
+      await smtp.sendMail({
+        from,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+        replyTo: options.replyTo,
+        attachments: options.attachments,
+      });
+      console.log(`[email] Email sent via SMTP to: ${options.to}`);
+      return true;
+    } catch (err: unknown) {
+      const errorCode = err && typeof err === 'object' && 'code' in err ? (err as { code?: string }).code : 'UNKNOWN';
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error(`[email] SMTP failed to send email to ${options.to}:`, errorMessage);
+      console.error(`[email] Error code: ${errorCode}`);
+      return false;
+    }
+  }
+  
+  console.error('[email] No email provider configured (set RESEND_API_KEY or SMTP_* vars)');
+  return false;
+}
+
+/** Returns logo as CID attachment for reliable display in email clients (SMTP only). */
 export function getLogoAttachment(): { filename: string; content: Buffer; cid: string } | null {
+  if (getResendClient()) return null;
   const logoPath = join(process.cwd(), 'assets', 'ChibiLogo.png');
   if (!existsSync(logoPath)) return null;
   try {
@@ -58,14 +134,32 @@ export function getLogoAttachment(): { filename: string; content: Buffer; cid: s
   }
 }
 
-/** Returns { html, attachments } for email. Uses CID attachment when logo exists. */
+function getLogoUrl(): string {
+  // If LOGO_URL is explicitly set, use it
+  if (process.env.LOGO_URL?.trim()) {
+    return process.env.LOGO_URL.trim();
+  }
+  
+  const frontendUrl = (process.env.FRONTEND_URL || '').replace(/\/$/, '').trim();
+  
+  // If FRONTEND_URL is localhost, use production frontend URL for logo
+  // (localhost URLs are not accessible from email clients)
+  if (!frontendUrl || frontendUrl.includes('localhost') || frontendUrl.includes('127.0.0.1')) {
+    // Fallback to production frontend URL for logo
+    const productionUrl = 'https://badmintonwebsitefrontend.vercel.app';
+    console.log(`[email] Using production logo URL (localhost not accessible from email clients)`);
+    return `${productionUrl}/ChibiLogo.png`;
+  }
+  
+  return `${frontendUrl}/ChibiLogo.png`;
+}
+
+/** Returns { html, attachments } for email. Uses URL for Resend, CID attachment for SMTP. */
 export function getEmailTemplateWithLogo(
   bodyHtml: string
 ): { html: string; attachments: nodemailer.SendMailOptions['attachments'] } {
   const attachment = getLogoAttachment();
-  const logoSrc = attachment
-    ? `cid:${LOGO_CID}`
-    : (process.env.LOGO_URL || `${(process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '')}/ChibiLogo.png`);
+  const logoSrc = attachment ? `cid:${LOGO_CID}` : getLogoUrl();
   const headerHtml = `<img src="${escapeHtml(logoSrc)}" alt="ChibiBadminton" width="160" style="max-width: 160px; height: auto; display: block; margin: 0 auto; border: 0;" />`;
   const html = `
 <!DOCTYPE html>

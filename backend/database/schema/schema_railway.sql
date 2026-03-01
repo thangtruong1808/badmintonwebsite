@@ -671,6 +671,7 @@ CREATE TABLE IF NOT EXISTS payments (
     payment_method ENUM('stripe', 'points', 'mixed') NOT NULL DEFAULT 'stripe',
     stripe_payment_intent_id VARCHAR(255) DEFAULT NULL,
     stripe_checkout_session_id VARCHAR(255) DEFAULT NULL,
+    stripe_payment_method_type VARCHAR(50) DEFAULT NULL,
     metadata JSON DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -683,6 +684,7 @@ CREATE INDEX idx_payments_user_id ON payments(user_id);
 CREATE INDEX idx_payments_checkout_session ON payments(stripe_checkout_session_id);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_payments_payment_method ON payments(payment_method);
+CREATE INDEX idx_payments_stripe_method_type ON payments(stripe_payment_method_type);
 CREATE INDEX idx_payments_created_at ON payments(created_at);
 CREATE INDEX idx_payments_stripe_intent ON payments(stripe_payment_intent_id);
 CREATE INDEX idx_payments_user_status_date ON payments(user_id, status, created_at);
