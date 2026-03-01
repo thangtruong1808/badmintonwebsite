@@ -17,7 +17,17 @@ export function getTransporter(): Transporter | null {
   const port = (process.env.SMTP_PORT ?? '').trim().replace(/[\x00-\x1F\x7F]/g, '');
   const user = (process.env.SMTP_USER ?? '').trim().replace(/[\x00-\x1F\x7F]/g, '');
   const pass = (process.env.SMTP_PASS ?? '').trim().replace(/[\x00-\x1F\x7F]/g, '');
-  if (!host || !port || !user || !pass) return null;
+  
+  if (!host || !port || !user || !pass) {
+    const missing = [];
+    if (!host) missing.push('SMTP_HOST');
+    if (!port) missing.push('SMTP_PORT');
+    if (!user) missing.push('SMTP_USER');
+    if (!pass) missing.push('SMTP_PASS');
+    console.warn(`[email] SMTP not configured. Missing: ${missing.join(', ')}`);
+    return null;
+  }
+  
   const portNum = parseInt(port, 10);
   const useSecure = process.env.SMTP_SECURE === 'true' && portNum === 465;
   const options = {
@@ -25,8 +35,13 @@ export function getTransporter(): Transporter | null {
     port: portNum,
     secure: useSecure,
     auth: { user, pass },
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 60000,
     ...(portNum === 587 && !useSecure ? { requireTLS: true } : {}),
   };
+  
+  console.log(`[email] Creating SMTP transporter: ${host}:${portNum} (secure: ${useSecure})`);
   transporter = nodemailer.createTransport(options as Parameters<typeof nodemailer.createTransport>[0]);
   return transporter;
 }
