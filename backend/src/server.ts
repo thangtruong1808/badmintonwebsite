@@ -29,6 +29,7 @@ import serviceRequestsRoutes from './routes/serviceRequests.js';
 import cronRoutes from './routes/cron.js';
 import paymentsRoutes from './routes/payments.js';
 import webhooksRoutes from './routes/webhooks.js';
+import vetsRoutes from './routes/vets.js';
 import { seedPlaySlotsIfEmpty } from './utils/initializeData.js';
 import { testConnection } from './db/connection.js';
 
@@ -124,6 +125,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/service-requests', serviceRequestsRoutes);
 app.use('/api/cron', cronRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/vets', vetsRoutes);
 
 // 404 handler
 app.use((req, res) => {

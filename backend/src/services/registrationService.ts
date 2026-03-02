@@ -59,6 +59,7 @@ interface RegRow extends RowDataPacket {
   created_at: Date | string | null;
   updated_at: Date | string | null;
   event_day_of_week?: string | null;
+  stripe_payment_intent_id?: string | null;
 }
 
 function rowToRegistration(r: RegRow): Registration {
@@ -575,8 +576,13 @@ export const getMyPendingPaymentRegistrations = async (userId: string): Promise<
 
 /**
  * Confirm payment for a pending_payment registration (called after Stripe webhook or success).
+ * @param registrationId - The ID of the pending registration
+ * @param stripePaymentIntentId - The Stripe payment intent ID to link for future refunds
  */
-export const confirmPaymentForPendingRegistration = async (registrationId: string): Promise<boolean> => {
+export const confirmPaymentForPendingRegistration = async (
+  registrationId: string,
+  stripePaymentIntentId?: string | null
+): Promise<boolean> => {
   const [rows] = await pool.execute<RegRow[]>(
     'SELECT * FROM registrations WHERE id = ? AND status = ?',
     [registrationId, 'pending_payment']
@@ -588,8 +594,8 @@ export const confirmPaymentForPendingRegistration = async (registrationId: strin
   if (!event) return false;
 
   await pool.execute(
-    `UPDATE registrations SET status = 'confirmed', pending_payment_expires_at = NULL WHERE id = ?`,
-    [registrationId]
+    `UPDATE registrations SET status = 'confirmed', pending_payment_expires_at = NULL, stripe_payment_intent_id = ? WHERE id = ?`,
+    [stripePaymentIntentId || null, registrationId]
   );
   await incrementEventAttendees(reg.event_id, 1);
   await sendRegistrationConfirmationEmail(

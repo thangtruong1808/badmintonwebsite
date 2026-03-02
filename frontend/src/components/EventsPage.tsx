@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import EventsHistory from "./EventsHistory";
 import UpcomingEvents from "./UpcomingEvents";
+import VetsSection from "./EventsPage/VetsSection";
 import type { EventDisplay } from "../types/event";
 import { useEventsData } from "./EventsPage/useEventsData";
 import EventsLoadingState from "./EventsPage/EventsLoadingState";
@@ -37,6 +38,7 @@ const EventsPage = () => {
         )}
         <UpcomingEvents upcomingEvents={upcomingEvents} />
         <EventsHistory completedEvents={completedEvents} onViewDetails={handleViewDetails} />
+        <VetsSection />
         {!loading && events.length === 0 && <EventsEmptyState />}
         {isModalOpen && selectedEvent && (
           <EventsRegistrationModal

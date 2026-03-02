@@ -17,3 +17,4 @@ export { default as PaymentsSection } from "./sections/PaymentsSection";
 export { default as OrdersSection } from "./sections/OrdersSection";
 export { default as InvoicesSection } from "./sections/InvoicesSection";
 export { default as PaymentStatsSection } from "./sections/PaymentStatsSection";
+export { default as VetsSection } from "./sections/VetsSection";

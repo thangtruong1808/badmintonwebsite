@@ -160,15 +160,15 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
 
   switch (metadata.type) {
     case 'play':
-      await handlePlayCheckout(metadata);
+      await handlePlayCheckout(metadata, paymentIntentId);
       break;
 
     case 'addGuests':
-      await handleAddGuestsCheckout(metadata);
+      await handleAddGuestsCheckout(metadata, paymentIntentId);
       break;
 
     case 'waitlist':
-      await handleWaitlistCheckout(metadata);
+      await handleWaitlistCheckout(metadata, paymentIntentId);
       break;
 
     case 'shop':
@@ -180,14 +180,14 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
   }
 }
 
-async function handlePlayCheckout(metadata: CheckoutMetadata): Promise<void> {
+async function handlePlayCheckout(metadata: CheckoutMetadata, paymentIntentId: string | null): Promise<void> {
   const pendingRegistrationIds: string[] = metadata.pendingRegistrationIds
     ? JSON.parse(metadata.pendingRegistrationIds)
     : [];
 
   for (const pendingId of pendingRegistrationIds) {
     try {
-      await confirmPaymentForPendingRegistration(pendingId);
+      await confirmPaymentForPendingRegistration(pendingId, paymentIntentId);
       console.log(`Confirmed payment for pending registration: ${pendingId}`);
     } catch (error) {
       console.error(`Failed to confirm pending registration ${pendingId}:`, error);
@@ -195,7 +195,7 @@ async function handlePlayCheckout(metadata: CheckoutMetadata): Promise<void> {
   }
 }
 
-async function handleAddGuestsCheckout(metadata: CheckoutMetadata): Promise<void> {
+async function handleAddGuestsCheckout(metadata: CheckoutMetadata, _paymentIntentId: string | null): Promise<void> {
   if (!metadata.registrationId || !metadata.guestCount) {
     console.error('Missing registration data in add guests checkout');
     return;
@@ -218,7 +218,7 @@ async function handleAddGuestsCheckout(metadata: CheckoutMetadata): Promise<void
   }
 }
 
-async function handleWaitlistCheckout(metadata: CheckoutMetadata): Promise<void> {
+async function handleWaitlistCheckout(metadata: CheckoutMetadata, _paymentIntentId: string | null): Promise<void> {
   if (!metadata.pendingWaitlistId) {
     console.error('Missing pendingWaitlistId in waitlist checkout');
     return;

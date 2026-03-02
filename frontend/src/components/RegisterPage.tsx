@@ -10,6 +10,7 @@ import {
   FaCheckCircle,
   FaExclamationCircle,
   FaPhone,
+  FaSpinner,
 } from "react-icons/fa";
 import { setCredentials } from "../store/authSlice";
 import type { User } from "../types/user";
@@ -22,6 +23,7 @@ interface RegisterFormData {
   phone: string;
   password: string;
   confirmPassword: string;
+  subscribeNewsletter: boolean;
 }
 
 interface FormErrors {
@@ -44,6 +46,7 @@ const RegisterPage = () => {
     phone: "",
     password: "",
     confirmPassword: "",
+    subscribeNewsletter: false,
   });
   const [registerErrors, setRegisterErrors] = useState<FormErrors>({});
   const [isRegistering, setIsRegistering] = useState(false);
@@ -108,6 +111,7 @@ const RegisterPage = () => {
           email: registerData.email.trim(),
           phone: registerData.phone.trim() || undefined,
           password: registerData.password,
+          subscribeNewsletter: registerData.subscribeNewsletter,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -127,6 +131,7 @@ const RegisterPage = () => {
           phone: "",
           password: "",
           confirmPassword: "",
+          subscribeNewsletter: false,
         });
         setTimeout(() => navigate("/signin"), 1500);
       } else {
@@ -381,15 +386,44 @@ const RegisterPage = () => {
                 </div>
               </div>
 
+              {/* Newsletter Subscription Checkbox */}
+              <div className="flex items-start gap-3 p-4 bg-white/50 rounded-lg border border-gray-200">
+                <input
+                  type="checkbox"
+                  id="subscribeNewsletter"
+                  name="subscribeNewsletter"
+                  checked={registerData.subscribeNewsletter}
+                  onChange={(e) =>
+                    setRegisterData((prev) => ({
+                      ...prev,
+                      subscribeNewsletter: e.target.checked,
+                    }))
+                  }
+                  className="mt-1 h-5 w-5 rounded border-gray-300 text-rose-500 focus:ring-rose-500 cursor-pointer flex-shrink-0"
+                />
+                <label
+                  htmlFor="subscribeNewsletter"
+                  className="text-gray-700 font-calibri text-base leading-relaxed cursor-pointer select-none"
+                >
+                  <span className="font-semibold">Stay in the loop!</span> Sign me up for the ChibiBadminton newsletter to receive updates on upcoming events, exclusive offers, tips to improve my game, and community news.
+                </label>
+              </div>
+
               {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isRegistering}
-                className={`w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-lg ${isRegistering ? "opacity-50 cursor-not-allowed" : ""
+                className={`w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 font-calibri text-lg flex items-center justify-center gap-2 ${isRegistering ? "opacity-70 cursor-not-allowed" : ""
                   }`}
               >
-                {isRegistering ? <><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span className="font-calibri text-lg">Creating Account...</span></> : "Create Account"}
+                {isRegistering ? (
+                  <>
+                    <FaSpinner className="animate-spin" size={18} />
+                    <span className="font-calibri text-lg">Creating Account...</span>
+                  </>
+                ) : (
+                  "Create Account"
+                )}
               </button>
 
               {/* Submit Status */}

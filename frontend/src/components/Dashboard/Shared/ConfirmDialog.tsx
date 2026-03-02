@@ -9,6 +9,8 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   variant?: "danger" | "default";
+  /** If true, only show the confirm button (useful for acknowledgment dialogs) */
+  singleButton?: boolean;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -20,6 +22,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   onCancel,
   variant = "danger",
+  singleButton = false,
 }) => {
   if (!open) return null;
 
@@ -27,6 +30,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     variant === "danger"
       ? "bg-red-600 text-white hover:bg-red-700"
       : "bg-rose-500 text-white hover:bg-rose-600";
+
+  const showCancelButton = !singleButton && cancelLabel && cancelLabel.trim() !== "";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -40,13 +45,15 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <hr className="mt-3 mb-3 border-gray-200" />
         <p className="font-calibri text-base text-gray-700">{message}</p>
         <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-calibri text-gray-700 hover:bg-gray-50"
-          >
-            {cancelLabel}
-          </button>
+          {showCancelButton && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-calibri text-gray-700 hover:bg-gray-50"
+            >
+              {cancelLabel}
+            </button>
+          )}
           <button
             type="button"
             onClick={onConfirm}

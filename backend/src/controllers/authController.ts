@@ -8,6 +8,7 @@ import { createResetToken, findValidResetToken, consumeResetToken } from '../ser
 import { setAuthCookies, clearAuthCookies, getRefreshTokenCookieName } from '../utils/cookies.js';
 import { sendPasswordResetEmail } from '../utils/email.js';
 import { getFrontendBaseUrl } from '../utils/appUrl.js';
+import { subscribe as subscribeToNewsletter } from '../services/newsletterSubscriptionService.js';
 import type { LoginRequest, RegisterRequest, User, UserResponse } from '../types/index.js';
 import type { AuthRequest } from '../middleware/auth.js';
 
@@ -67,7 +68,7 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { firstName, lastName, email, password, phone } = req.body;
+    const { firstName, lastName, email, password, phone, subscribeNewsletter } = req.body;
 
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
@@ -89,6 +90,16 @@ export const register = async (
       totalPointsSpent: 0,
       memberSince: new Date().toISOString().slice(0, 10),
     });
+
+    // Subscribe to newsletter if user opted in
+    if (subscribeNewsletter) {
+      try {
+        await subscribeToNewsletter(email);
+        console.log(`Newsletter subscription created for ${email}`);
+      } catch (err) {
+        console.error(`Failed to subscribe ${email} to newsletter:`, err);
+      }
+    }
 
     const accessToken = generateAccessToken(user.id, user.email);
     const { token: refreshToken, expiresAt: refreshExpiresAt } = await createRefreshTokenRecord(user.id);

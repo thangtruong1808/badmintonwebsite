@@ -117,6 +117,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   phone?: string;
+  subscribeNewsletter?: boolean;
 }
 
 export interface AuthResponse {

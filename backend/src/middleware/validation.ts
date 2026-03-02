@@ -55,6 +55,15 @@ const serviceRequestSchema = z.object({
   message: z.string().optional().nullable(),
 });
 
+const vetsInterestSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().optional(),
+  playerRating: z.string().optional(),
+  eventIds: z.array(z.number()).min(1, 'Please select at least one event'),
+});
+
 // Validation middleware
 export const validateLogin = (
   req: Request,
@@ -165,6 +174,23 @@ export const validateServiceRequest = (
 ): void => {
   try {
     req.body = serviceRequestSchema.parse(req.body);
+    next();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errorMessage = error.errors.map((e) => e.message).join(', ');
+      throw createError(errorMessage, 400);
+    }
+    next(error);
+  }
+};
+
+export const validateVetsInterest = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  try {
+    vetsInterestSchema.parse(req.body);
     next();
   } catch (error) {
     if (error instanceof z.ZodError) {

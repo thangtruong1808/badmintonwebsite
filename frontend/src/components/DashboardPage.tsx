@@ -25,6 +25,7 @@ import {
   FaPhotoVideo,
   FaShoppingBag,
   FaSpinner,
+  FaMedal,
 } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
 import { getCurrentUser } from "../utils/mockAuth";
@@ -52,6 +53,7 @@ import {
   InvoicesSection,
   OrdersSection,
   PaymentStatsSection,
+  VetsSection,
 } from "./Dashboard";
 
 
@@ -82,7 +84,8 @@ type DashboardSection =
   | "service-options"
   | "payments"
   | "orders"
-  | "invoices";
+  | "invoices"
+  | "vets";
 
 const SIDEBAR_ICON_SIZE = 24;
 const SIDEBAR_ITEMS: { id: DashboardSection; label: string; icon: React.ReactNode }[] = [
@@ -105,6 +108,7 @@ const SIDEBAR_ITEMS: { id: DashboardSection; label: string; icon: React.ReactNod
   { id: "payments", label: "Payments", icon: <FaCreditCard size={SIDEBAR_ICON_SIZE} /> },
   { id: "orders", label: "Orders", icon: <FaShoppingBag size={SIDEBAR_ICON_SIZE} /> },
   { id: "invoices", label: "Invoices", icon: <FaFileInvoice size={SIDEBAR_ICON_SIZE} /> },
+  { id: "vets", label: "VETS", icon: <FaMedal size={SIDEBAR_ICON_SIZE} /> },
 ];
 
 const DashboardPage = () => {
@@ -396,6 +400,7 @@ const DashboardPage = () => {
           {activeSection === "payments" && <PaymentsSection />}
           {activeSection === "orders" && <OrdersSection />}
           {activeSection === "invoices" && <InvoicesSection />}
+          {activeSection === "vets" && <VetsSection />}
         </main>
       </div>
     </div>
