@@ -509,7 +509,7 @@ const VetsSection: React.FC = () => {
         </div>
         <FormActions
           onCancel={() => setEventModalOpen(false)}
-          submitting={savingEvent}
+          submitDisabled={savingEvent}
         />
       </FormModal>
 
@@ -518,7 +518,7 @@ const VetsSection: React.FC = () => {
         open={interestModalOpen}
         onClose={() => setInterestModalOpen(false)}
         onSubmit={handleInterestSubmit}
-        maxWidth="md"
+        maxWidth="lg"
       >
         {interestFormError && (
           <p className="text-sm text-red-600 font-calibri mb-2 col-span-full">
@@ -569,7 +569,7 @@ const VetsSection: React.FC = () => {
         )}
         <FormActions
           onCancel={() => setInterestModalOpen(false)}
-          submitting={savingInterest}
+          submitDisabled={savingInterest}
         />
       </FormModal>
 
