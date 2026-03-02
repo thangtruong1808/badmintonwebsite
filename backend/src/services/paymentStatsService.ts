@@ -1,8 +1,6 @@
 import type { RowDataPacket } from 'mysql2';
 import pool from '../db/connection.js';
 
-export type StatsPeriod = 'day' | 'week' | 'month';
-
 export interface PaymentStats {
   totalRevenue: number;
   totalPayments: number;
@@ -31,35 +29,43 @@ export interface PaymentStats {
   disputesByReason: Record<string, number>;
 }
 
-function getDateRangeForPeriod(period: StatsPeriod): { start: Date; end: Date; groupFormat: string } {
-  const end = new Date();
-  const start = new Date();
+/**
+ * Calculate date range and auto-detect appropriate grouping format.
+ * - 1-31 days: Group by day (%Y-%m-%d)
+ * - 32-90 days: Group by week (%Y-%u)
+ * - 91+ days: Group by month (%Y-%m)
+ */
+function getDateRangeAndGrouping(startDate?: string, endDate?: string): { start: Date; end: Date; groupFormat: string } {
+  const end = endDate ? new Date(endDate + 'T23:59:59') : new Date();
+  const start = startDate ? new Date(startDate + 'T00:00:00') : new Date();
+  
+  // Default to last 30 days if no dates provided
+  if (!startDate) {
+    start.setDate(end.getDate() - 30);
+    start.setHours(0, 0, 0, 0);
+  }
+  
+  // Calculate the span in days
+  const spanMs = end.getTime() - start.getTime();
+  const spanDays = Math.ceil(spanMs / (1000 * 60 * 60 * 24));
+  
+  // Auto-detect grouping format based on span
   let groupFormat: string;
-
-  switch (period) {
-    case 'day':
-      start.setDate(start.getDate() - 30);
-      groupFormat = '%Y-%m-%d';
-      break;
-    case 'week':
-      start.setDate(start.getDate() - 12 * 7);
-      groupFormat = '%Y-%u';
-      break;
-    case 'month':
-      start.setMonth(start.getMonth() - 12);
-      groupFormat = '%Y-%m';
-      break;
-    default:
-      start.setDate(start.getDate() - 30);
-      groupFormat = '%Y-%m-%d';
+  if (spanDays <= 31) {
+    groupFormat = '%Y-%m-%d'; // Group by day
+  } else if (spanDays <= 90) {
+    groupFormat = '%Y-%u'; // Group by week
+  } else {
+    groupFormat = '%Y-%m'; // Group by month
   }
 
   return { start, end, groupFormat };
 }
 
-export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<PaymentStats> => {
-  const { start, groupFormat } = getDateRangeForPeriod(period);
+export const getPaymentStats = async (startDate?: string, endDate?: string): Promise<PaymentStats> => {
+  const { start, end, groupFormat } = getDateRangeAndGrouping(startDate, endDate);
   const startStr = start.toISOString().slice(0, 19).replace('T', ' ');
+  const endStr = end.toISOString().slice(0, 19).replace('T', ' ');
 
   const [summaryRows] = await pool.execute<(RowDataPacket & {
     total_revenue: number;
@@ -71,18 +77,18 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
       COUNT(*) as total_payments,
       COALESCE(AVG(CASE WHEN status = 'completed' THEN amount ELSE NULL END), 0) as avg_payment
     FROM payments
-    WHERE created_at >= ?`,
-    [startStr]
+    WHERE created_at >= ? AND created_at <= ?`,
+    [startStr, endStr]
   );
 
   const [refundRows] = await pool.execute<(RowDataPacket & { total_refunds: number })[]>(
-    `SELECT COUNT(*) as total_refunds FROM payments WHERE status = 'refunded' AND created_at >= ?`,
-    [startStr]
+    `SELECT COUNT(*) as total_refunds FROM payments WHERE status = 'refunded' AND created_at >= ? AND created_at <= ?`,
+    [startStr, endStr]
   );
 
   const [disputeCountRows] = await pool.execute<(RowDataPacket & { total_disputes: number })[]>(
-    `SELECT COUNT(*) as total_disputes FROM disputes WHERE created_at >= ?`,
-    [startStr]
+    `SELECT COUNT(*) as total_disputes FROM disputes WHERE created_at >= ? AND created_at <= ?`,
+    [startStr, endStr]
   );
 
   const [methodRows] = await pool.execute<(RowDataPacket & { 
@@ -91,9 +97,9 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
   })[]>(
     `SELECT payment_method, COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total
      FROM payments
-     WHERE created_at >= ?
+     WHERE created_at >= ? AND created_at <= ?
      GROUP BY payment_method`,
-    [startStr]
+    [startStr, endStr]
   );
 
   const [stripeTypeRows] = await pool.execute<(RowDataPacket & { 
@@ -104,9 +110,9 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
        COALESCE(stripe_payment_method_type, 'unknown') as stripe_payment_method_type, 
        COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total
      FROM payments
-     WHERE created_at >= ? AND payment_method = 'stripe'
+     WHERE created_at >= ? AND created_at <= ? AND payment_method = 'stripe'
      GROUP BY stripe_payment_method_type`,
-    [startStr]
+    [startStr, endStr]
   );
 
   const [statusRows] = await pool.execute<(RowDataPacket & { 
@@ -115,9 +121,9 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
   })[]>(
     `SELECT status, COUNT(*) as count
      FROM payments
-     WHERE created_at >= ?
+     WHERE created_at >= ? AND created_at <= ?
      GROUP BY status`,
-    [startStr]
+    [startStr, endStr]
   );
 
   const [revenueTimeRows] = await pool.execute<(RowDataPacket & { 
@@ -127,10 +133,10 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
     `SELECT DATE_FORMAT(created_at, '${groupFormat}') as date_group, 
             COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total
      FROM payments
-     WHERE created_at >= ?
+     WHERE created_at >= ? AND created_at <= ?
      GROUP BY date_group
      ORDER BY date_group ASC`,
-    [startStr]
+    [startStr, endStr]
   );
 
   const [paymentCountTimeRows] = await pool.execute<(RowDataPacket & { 
@@ -139,10 +145,10 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
   })[]>(
     `SELECT DATE_FORMAT(created_at, '${groupFormat}') as date_group, COUNT(*) as count
      FROM payments
-     WHERE created_at >= ?
+     WHERE created_at >= ? AND created_at <= ?
      GROUP BY date_group
      ORDER BY date_group ASC`,
-    [startStr]
+    [startStr, endStr]
   );
 
   const [disputeStatusRows] = await pool.execute<(RowDataPacket & { 
@@ -151,9 +157,9 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
   })[]>(
     `SELECT status, COUNT(*) as count
      FROM disputes
-     WHERE created_at >= ?
+     WHERE created_at >= ? AND created_at <= ?
      GROUP BY status`,
-    [startStr]
+    [startStr, endStr]
   );
 
   const [disputeReasonRows] = await pool.execute<(RowDataPacket & { 
@@ -162,9 +168,9 @@ export const getPaymentStats = async (period: StatsPeriod = 'month'): Promise<Pa
   })[]>(
     `SELECT COALESCE(reason, 'unknown') as reason, COUNT(*) as count
      FROM disputes
-     WHERE created_at >= ?
+     WHERE created_at >= ? AND created_at <= ?
      GROUP BY reason`,
-    [startStr]
+    [startStr, endStr]
   );
 
   const revenueByMethod: { stripe: number; points: number; mixed: number } = {

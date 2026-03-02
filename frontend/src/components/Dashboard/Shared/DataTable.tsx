@@ -4,7 +4,7 @@ import { FaEdit, FaTrash, FaChevronUp, FaChevronDown, FaChevronLeft, FaChevronRi
 export interface Column<T> {
   key: string;
   label: string;
-  render?: (row: T) => React.ReactNode;
+  render?: (row: T, index: number) => React.ReactNode;
 }
 
 interface DataTableProps<T> {
@@ -203,12 +203,14 @@ function DataTable<T>({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {displayData.map((row) => (
+              {displayData.map((row, idx) => {
+                const globalIndex = startIdx + idx;
+                return (
                 <tr key={String(getRowId(row))} className="hover:bg-rose-50/30">
                   {columns.map((col) => (
                     <td key={col.key} className="px-4 py-3 text-gray-700">
                       {col.render
-                        ? col.render(row)
+                        ? col.render(row, globalIndex)
                         : String((row as Record<string, unknown>)[col.key] ?? "")}
                     </td>
                   ))}
@@ -249,7 +251,8 @@ function DataTable<T>({
                     </td>
                   )}
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}

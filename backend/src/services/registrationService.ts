@@ -29,6 +29,7 @@ export interface RegistrationRow {
   points_used: number;
   created_at?: string;
   updated_at?: string;
+  event_day_of_week?: string | null;
 }
 
 export interface PublicRegistrationPlayer {
@@ -57,6 +58,7 @@ interface RegRow extends RowDataPacket {
   pending_payment_expires_at?: Date | string | null;
   created_at: Date | string | null;
   updated_at: Date | string | null;
+  event_day_of_week?: string | null;
 }
 
 function rowToRegistration(r: RegRow): Registration {
@@ -85,7 +87,10 @@ function rowToRegistration(r: RegRow): Registration {
 
 export const getAllRegistrations = async (): Promise<RegistrationRow[]> => {
   const [rows] = await pool.execute<RegRow[]>(
-    'SELECT * FROM registrations ORDER BY registration_date DESC'
+    `SELECT r.*, e.day_of_week AS event_day_of_week
+     FROM registrations r
+     LEFT JOIN events e ON r.event_id = e.id
+     ORDER BY r.registration_date DESC`
   );
   return rows.map((r) => ({
     id: r.id,
@@ -103,6 +108,7 @@ export const getAllRegistrations = async (): Promise<RegistrationRow[]> => {
     points_used: r.points_used ?? 0,
     created_at: r.created_at ? String(r.created_at) : undefined,
     updated_at: r.updated_at ? String(r.updated_at) : undefined,
+    event_day_of_week: r.event_day_of_week ?? null,
   }));
 };
 

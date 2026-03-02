@@ -797,17 +797,32 @@ export const getDashboardInvoiceById = async (
 
 // Payment Statistics
 export const getPaymentStats = async (
-  req: Request<{}, {}, {}, { period?: string }>,
+  req: Request<{}, {}, {}, { startDate?: string; endDate?: string }>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const period = (req.query.period as 'day' | 'week' | 'month') || 'month';
-    const validPeriods = ['day', 'week', 'month'];
-    if (!validPeriods.includes(period)) {
-      throw createError('Invalid period. Must be day, week, or month', 400);
+    const { startDate, endDate } = req.query;
+    
+    // Validate date format if provided (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (startDate && !dateRegex.test(startDate)) {
+      throw createError('Invalid startDate format. Use YYYY-MM-DD', 400);
     }
-    const stats = await paymentStatsService.getPaymentStats(period);
+    if (endDate && !dateRegex.test(endDate)) {
+      throw createError('Invalid endDate format. Use YYYY-MM-DD', 400);
+    }
+    
+    // Validate date range if both provided
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (start > end) {
+        throw createError('startDate cannot be after endDate', 400);
+      }
+    }
+    
+    const stats = await paymentStatsService.getPaymentStats(startDate, endDate);
     res.json(stats);
   } catch (error) {
     next(error);

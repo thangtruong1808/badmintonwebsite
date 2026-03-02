@@ -8,6 +8,8 @@ export type PaymentMethod = 'stripe' | 'points' | 'mixed';
 export interface PaymentRow {
   id: string;
   user_id: string;
+  user_first_name?: string | null;
+  user_last_name?: string | null;
   amount: number;
   currency: string;
   status: PaymentStatus;
@@ -34,6 +36,8 @@ export interface CreatePaymentData {
 interface PaymentDbRow extends RowDataPacket {
   id: string;
   user_id: string;
+  user_first_name?: string | null;
+  user_last_name?: string | null;
   amount: number;
   currency: string;
   status: string;
@@ -63,6 +67,8 @@ function rowToPayment(r: PaymentDbRow): PaymentRow {
   return {
     id: r.id,
     user_id: r.user_id,
+    user_first_name: r.user_first_name ?? null,
+    user_last_name: r.user_last_name ?? null,
     amount: Number(r.amount),
     currency: r.currency,
     status: r.status as PaymentStatus,
@@ -78,7 +84,10 @@ function rowToPayment(r: PaymentDbRow): PaymentRow {
 
 export const findAll = async (): Promise<PaymentRow[]> => {
   const [rows] = await pool.execute<PaymentDbRow[]>(
-    'SELECT * FROM payments ORDER BY created_at DESC'
+    `SELECT p.*, u.first_name AS user_first_name, u.last_name AS user_last_name
+     FROM payments p
+     LEFT JOIN users u ON p.user_id = u.id
+     ORDER BY p.created_at DESC`
   );
   return rows.map(rowToPayment);
 };

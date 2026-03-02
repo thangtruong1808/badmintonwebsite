@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaSpinner } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import { apiFetch } from "../../../utils/api";
 import FormModal from "../Shared/FormModal";
@@ -28,6 +28,7 @@ export interface RegistrationRow {
   points_used: number;
   guest_count?: number;
   created_at?: string;
+  event_day_of_week?: string | null;
 }
 
 interface GuestRow {
@@ -56,8 +57,24 @@ const PAYMENT_OPTIONS = [
 ];
 
 const COLUMNS: Column<RegistrationRow>[] = [
-  { key: "id", label: "ID", render: (r) => r.id.slice(0, 8) + "…" },
-  { key: "event_id", label: "Event ID" },
+  {
+    key: "seq",
+    label: "No.",
+    render: (_r, index) => (
+      <span className="font-calibri text-sm font-medium text-gray-700">
+        {index + 1}
+      </span>
+    ),
+  },
+  {
+    key: "event_day_of_week",
+    label: "Day",
+    render: (r) => (
+      <span className="font-calibri text-sm text-gray-700">
+        {r.event_day_of_week ?? "—"}
+      </span>
+    ),
+  },
   { key: "name", label: "Name" },
   { key: "email", label: "Email" },
   { key: "status", label: "Status" },
@@ -233,7 +250,10 @@ const RegistrationsSection: React.FC = () => {
         </button>
       </div>
       {loading ? (
-        <p className="font-calibri text-gray-600">Loading...</p>
+        <div className="flex items-center justify-center gap-3 py-12">
+          <FaSpinner className="animate-spin text-rose-500" size={24} />
+          <span className="font-calibri text-gray-600">Loading registrations...</span>
+        </div>
       ) : (
         <DataTable
           columns={COLUMNS}
@@ -392,7 +412,10 @@ const RegistrationsSection: React.FC = () => {
               )}
             </div>
             {guestsLoading ? (
-              <p className="font-calibri text-gray-500 text-sm">Loading guests…</p>
+              <div className="flex items-center gap-2 py-2">
+                <FaSpinner className="animate-spin text-rose-500" size={14} />
+                <span className="font-calibri text-gray-500 text-sm">Loading guests…</span>
+              </div>
             ) : guests.length === 0 ? (
               <p className="font-calibri text-gray-500 text-sm">No guest names. Add above.</p>
             ) : (

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { FaSpinner, FaDollarSign, FaCreditCard, FaExclamationTriangle, FaUndo, FaChartLine, FaSync } from "react-icons/fa";
+import React, { useState, useEffect, useCallback } from "react";
+import { FaSpinner, FaDollarSign, FaCreditCard, FaExclamationTriangle, FaUndo, FaChartLine, FaSync, FaCalendarAlt } from "react-icons/fa";
 import {
   LineChart,
   Line,
@@ -41,13 +41,16 @@ interface PaymentStats {
   disputesByReason: Record<string, number>;
 }
 
-type StatsPeriod = "day" | "week" | "month";
-
-const PERIOD_OPTIONS = [
-  { value: "day", label: "Daily (30 days)" },
-  { value: "week", label: "Weekly (12 weeks)" },
-  { value: "month", label: "Monthly (12 months)" },
-];
+// Helper to get default date range (last 30 days)
+const getDefaultDateRange = () => {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 30);
+  return {
+    startDate: start.toISOString().split("T")[0],
+    endDate: end.toISOString().split("T")[0],
+  };
+};
 
 const PIE_COLORS = ["#be123c", "#f472b6", "#fda4af", "#fb7185", "#fecdd3", "#9f1239"];
 const BAR_COLORS = ["#fbbf24", "#22c55e", "#ef4444", "#6b7280"];
@@ -74,9 +77,13 @@ const PaymentStatsSection: React.FC = () => {
   const [stats, setStats] = useState<PaymentStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [period, setPeriod] = useState<StatsPeriod>("month");
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<{ synced: number; total: number } | null>(null);
+  
+  // Date range filter state
+  const defaultRange = getDefaultDateRange();
+  const [startDate, setStartDate] = useState(defaultRange.startDate);
+  const [endDate, setEndDate] = useState(defaultRange.endDate);
 
   const handleSyncPaymentTypes = async () => {
     setSyncing(true);
@@ -97,11 +104,14 @@ const PaymentStatsSection: React.FC = () => {
     }
   };
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiFetch(`/api/dashboard/payment-stats?period=${period}`);
+      const params = new URLSearchParams();
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+      const res = await apiFetch(`/api/dashboard/payment-stats?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch payment stats");
       const data = await res.json();
       setStats(data);
@@ -110,11 +120,11 @@ const PaymentStatsSection: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate]);
 
   useEffect(() => {
     fetchStats();
-  }, [period]);
+  }, [fetchStats]);
 
   if (loading) {
     return (
@@ -173,10 +183,43 @@ const PaymentStatsSection: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Period Filter and Sync Button */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Date Range Filter and Sync Button */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <h3 className="font-calibri font-semibold text-xl text-gray-800">Payment Statistics</h3>
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-wrap w-full lg:w-auto">
+          {/* Date Range Pickers */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <FaCalendarAlt className="text-gray-400" size={14} />
+              <label className="font-calibri text-sm text-gray-600">From:</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                max={endDate}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="font-calibri text-sm text-gray-600">To:</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={startDate}
+                max={new Date().toISOString().split("T")[0]}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm"
+              />
+            </div>
+            {/* Loading Spinner */}
+            {loading && (
+              <div className="flex items-center gap-2 text-rose-500">
+                <FaSpinner className="animate-spin" size={16} />
+                <span className="font-calibri text-sm text-gray-500">Loading...</span>
+              </div>
+            )}
+          </div>
+          {/* Sync Button */}
           <button
             onClick={handleSyncPaymentTypes}
             disabled={syncing}
@@ -189,17 +232,6 @@ const PaymentStatsSection: React.FC = () => {
             )}
             {syncing ? "Syncing..." : "Sync Payment Types"}
           </button>
-          <select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value as StatsPeriod)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm"
-          >
-            {PERIOD_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
@@ -305,10 +337,19 @@ const PaymentStatsSection: React.FC = () => {
                 <XAxis 
                   dataKey="date" 
                   tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }}
-                  tickFormatter={(value) => {
-                    if (period === 'day') return value.slice(5);
-                    if (period === 'week') return `W${value.split('-')[1]}`;
-                    return value.slice(0, 7);
+                  tickFormatter={(value: string) => {
+                    // Auto-detect format based on value pattern
+                    if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                      // Daily format: YYYY-MM-DD -> MM-DD
+                      return value.slice(5);
+                    }
+                    if (value.match(/^\d{4}-\d{1,2}$/)) {
+                      // Weekly format: YYYY-WW -> W##
+                      const parts = value.split('-');
+                      return `W${parts[1]}`;
+                    }
+                    // Monthly format: YYYY-MM -> keep as is
+                    return value;
                   }}
                 />
                 <YAxis 

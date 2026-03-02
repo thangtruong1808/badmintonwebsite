@@ -11,6 +11,8 @@ import { apiFetch } from "../../../utils/api";
 export interface PaymentRow {
   id: string;
   user_id: string;
+  user_first_name?: string | null;
+  user_last_name?: string | null;
   amount: number;
   currency: string;
   status: string;
@@ -66,16 +68,23 @@ const getStatusBadgeClass = (status: string) => {
 };
 
 const COLUMNS: Column<PaymentRow>[] = [
-  { key: "id", label: "ID", render: (r) => (
-    <span title={r.id} className="font-mono text-xs">
-      {r.id.slice(0, 8)}…
+  { key: "seq", label: "No.", render: (_r, index) => (
+    <span className="font-calibri text-sm font-medium text-gray-700">
+      {index + 1}
     </span>
   )},
-  { key: "user_id", label: "User ID", render: (r) => (
-    <span title={r.user_id} className="font-mono text-xs">
-      {r.user_id.slice(0, 8)}…
-    </span>
-  )},
+  { key: "user_id", label: "User", render: (r) => {
+    const fullName = [r.user_first_name, r.user_last_name].filter(Boolean).join(" ");
+    return fullName ? (
+      <span title={`${fullName} (${r.user_id})`} className="font-calibri text-sm">
+        {fullName}
+      </span>
+    ) : (
+      <span title={r.user_id} className="font-mono text-xs text-gray-400">
+        {r.user_id.slice(0, 8)}…
+      </span>
+    );
+  }},
   { key: "amount", label: "Amount", render: (r) => (
     <span className="font-medium">${Number(r.amount).toFixed(2)}</span>
   )},
@@ -245,10 +254,12 @@ const PaymentsSection: React.FC = () => {
 
   const filteredItems = items.filter((item) => {
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    const fullName = [item.user_first_name, item.user_last_name].filter(Boolean).join(" ").toLowerCase();
     const matchesSearch =
       !searchQuery ||
       item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.user_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      fullName.includes(searchQuery.toLowerCase()) ||
       (item.stripe_payment_intent_id?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     return matchesStatus && matchesSearch;
   });
@@ -285,7 +296,7 @@ const PaymentsSection: React.FC = () => {
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
             <input
               type="text"
-              placeholder="Search by ID, user, or Stripe ID..."
+              placeholder="Search by name, ID, or Stripe ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm"
