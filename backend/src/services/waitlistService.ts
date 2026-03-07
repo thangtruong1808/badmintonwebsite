@@ -416,11 +416,8 @@ export const promoteFromWaitlist = async (
       'SELECT id, guest_count FROM registrations WHERE id = ? AND event_id = ? AND status = ?',
       [entry.registrationId, eventId, 'confirmed']
     );
-    if (regRows.length === 0) {
-      await removeFromWaitlist(entry.id);
-      return { promoted: false };
-    }
-    const reg = regRows[0];
+    if (regRows.length > 0) {
+      const reg = regRows[0];
     const toAdd = Math.min(1, entry.guestCount);
 
     const existingGuests = await getGuestsByRegistrationId(entry.registrationId);
@@ -449,7 +446,9 @@ export const promoteFromWaitlist = async (
       entry.name,
       event.location ?? null
     );
-    return { promoted: true, registrationId: entry.registrationId };
+      return { promoted: true, registrationId: entry.registrationId };
+    }
+    // Registration cancelled or missing: fall through to new spot path
   }
 
   const id = uuidv4();
