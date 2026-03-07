@@ -488,6 +488,8 @@ function parseEventDateTime(date: string, time: string): Date {
 }
 
 async function processInstantRefund(paymentIntentId: string): Promise<void> {
+  console.log(`[Refund] Starting instant refund for payment intent: ${paymentIntentId}`);
+
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeKey) {
     throw new Error('STRIPE_SECRET_KEY not configured');
@@ -498,21 +500,30 @@ async function processInstantRefund(paymentIntentId: string): Promise<void> {
   const stripe = new Stripe(stripeKey);
 
   const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+  console.log(`[Refund] Payment intent status: ${paymentIntent.status}`);
+
   if (paymentIntent.status !== 'succeeded') {
     console.log(`Payment intent ${paymentIntentId} not succeeded, skipping refund`);
     return;
   }
 
   const chargeId = paymentIntent.latest_charge;
-  if (typeof chargeId === 'string' && chargeId) {
-    await stripe.refunds.create({ charge: chargeId });
-    console.log(`Refund created for charge ${chargeId}`);
+  console.log(`[Refund] latest_charge: ${chargeId} (type: ${typeof chargeId})`);
 
-    const { findByStripeIntentId, updateStatus } = await import('./paymentService.js');
-    const payment = await findByStripeIntentId(paymentIntentId);
-    if (payment) {
-      await updateStatus(payment.id, 'refunded');
-    }
+  if (typeof chargeId !== 'string' || !chargeId) {
+    console.warn(`[Refund] Cannot create refund: latest_charge is missing or invalid`);
+    return;
+  }
+
+  const refund = await stripe.refunds.create({ charge: chargeId });
+  console.log(`[Refund] Stripe refund created: ${refund.id}, status: ${refund.status}`);
+  console.log(`Refund created for charge ${chargeId}`);
+
+  const { findByStripeIntentId, updateStatus } = await import('./paymentService.js');
+  const payment = await findByStripeIntentId(paymentIntentId);
+  if (payment) {
+    await updateStatus(payment.id, 'refunded');
+    console.log(`[Refund] Updated payment ${payment.id} to refunded`);
   }
 }
 
