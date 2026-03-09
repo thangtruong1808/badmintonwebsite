@@ -48,12 +48,19 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
 
   return (
     <div className="bg-gradient-to-r from-rose-50 to-rose-100 rounded-xl p-6 shadow-lg">
-      <h2 className="text-2xl md:text-3xl lg:text-4xl font-medium mb-6 font-huglove">
-        Transactions List
+      <h2 className="text-2xl md:text-3xl lg:text-4xl font-medium mb-2 font-huglove">
+        Activity &amp; Rewards (coming soon)
       </h2>
+      <p className="text-sm md:text-base text-gray-700 mb-6 font-calibri">
+        Here you&apos;ll soon see a history of your event activity and Chibi perks. For now,
+        points are not yet active, but we&apos;re tracking your events behind the scenes.
+      </p>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <p className="text-xs text-gray-500 mb-2 font-calibri">
+        Filters will apply when rewards are active. At the moment, data shown here is preview-only.
+      </p>
+      <div className="flex flex-wrap gap-2 mb-4">
         {(["all", "earned", "spent"] as const).map((tab) => (
           <button
             key={tab}
@@ -72,7 +79,10 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
       <div className="space-y-4 max-h-[560px] overflow-y-auto pr-2">
         {filteredTransactions.length === 0 ? (
           <div className="text-center py-8 text-gray-500 font-calibri">
-            No transactions found
+            <p>Your rewards activity will appear here once Chibi perks go live. Stay tuned!</p>
+            <p className="mt-2 text-sm text-gray-400">
+              In the meantime, your event registrations are visible in the Event History section.
+            </p>
           </div>
         ) : (
           filteredTransactions.map((transaction) => (
@@ -106,7 +116,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                     }`}
                 >
                   {transaction.points > 0 ? "+" : ""}
-                  {formatPoints(transaction.points)}
+                  {formatPoints(transaction.points)} pts (placeholder)
                 </div>
               </div>
             </div>

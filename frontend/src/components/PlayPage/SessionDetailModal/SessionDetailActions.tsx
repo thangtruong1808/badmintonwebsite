@@ -221,7 +221,7 @@ const SessionDetailActions: React.FC<SessionDetailActionsProps> = ({
           onClick={onClose}
           className="flex-1 min-w-[120px] py-2.5 px-3 rounded-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-100 font-medium transition-colors font-calibri text-sm sm:text-base"
         >
-          Continue to shop
+          Continue
         </button>
         {selectedCount > 0 && (
           <button
