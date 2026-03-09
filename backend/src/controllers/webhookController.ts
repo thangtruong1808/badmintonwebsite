@@ -244,10 +244,9 @@ async function handleShopCheckout(
   try {
     const items = JSON.parse(metadata.items);
 
-    // Import order service dynamically to avoid circular dependencies
     const { createOrderFromCheckout } = await import('../services/orderService.js');
-    
-    await createOrderFromCheckout({
+
+    const order = await createOrderFromCheckout({
       userId: metadata.userId,
       paymentId: metadata.paymentId,
       items,
@@ -255,6 +254,17 @@ async function handleShopCheckout(
     });
 
     console.log(`Created order for user ${metadata.userId}`);
+
+    try {
+      const { getUserById } = await import('../services/userService.js');
+      const { sendShopOrderConfirmationEmail } = await import('../utils/email/index.js');
+      const user = await getUserById(metadata.userId);
+      if (user?.email) {
+        await sendShopOrderConfirmationEmail(user.email, order, user.firstName);
+      }
+    } catch (emailErr) {
+      console.error('Failed to send shop order confirmation email:', emailErr);
+    }
   } catch (error) {
     console.error('Failed to create order:', error);
   }

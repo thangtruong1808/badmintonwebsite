@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { FaEnvelope, FaPhone, FaCalendarAlt, FaCamera, FaSpinner, FaEdit, FaCheck, FaTimes } from "react-icons/fa";
 import type { User } from "../../types/user";
-import RewardPointsCard from "./RewardPointsCard";
+import ChibiPerksComingSoon from "./ChibiPerksComingSoon";
 import { apiFetch } from "../../utils/api";
 import { setCredentials } from "../../store/authSlice";
 import { useDispatch } from "react-redux";
@@ -332,7 +332,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onAvatarUpdate, onN
 
         {/* Reward Points Card - centered on mobile, flexes within bounds on md+ */}
         <div className="w-full min-w-0 flex justify-center md:flex-1 md:min-w-0 md:flex md:justify-end md:items-start">
-          <RewardPointsCard user={user} />
+          <ChibiPerksComingSoon />
         </div>
       </div>
     </div>

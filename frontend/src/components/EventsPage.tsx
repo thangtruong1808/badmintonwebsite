@@ -37,7 +37,11 @@ const EventsPage = () => {
           </div>
         )}
         <UpcomingEvents upcomingEvents={upcomingEvents} />
-        <EventsHistory completedEvents={completedEvents} onViewDetails={handleViewDetails} />
+        <EventsHistory
+          completedEvents={completedEvents}
+          loading={loading}
+          onViewDetails={handleViewDetails}
+        />
         <VetsSection />
         {!loading && events.length === 0 && <EventsEmptyState />}
         {isModalOpen && selectedEvent && (

@@ -29,7 +29,20 @@ export function useEventsData() {
     fetchEvents();
   }, []);
 
-  const completedEvents = events.filter((e) => e.status === "completed");
+  const completedEvents = [...events]
+    .filter((e) => e.status === "completed")
+    .sort((a, b) => {
+      const da = Date.parse(a.date);
+      const db = Date.parse(b.date);
+
+      if (!Number.isNaN(db) && !Number.isNaN(da) && db !== da) {
+        // Newest date first
+        return db - da;
+      }
+
+      // Fallback: higher id treated as newer
+      return (b.id ?? 0) - (a.id ?? 0);
+    });
   const upcomingEvents = events.filter(
     (e) => e.status === "available" || e.status === "upcoming" || e.status === "full"
   );

@@ -22,6 +22,12 @@ export interface NewsArticle {
 
 const FEATURED_LIMIT = 3;
 
+const BADGE_ORDER: Record<string, number> = {
+  announcement: 0,
+  upcoming: 1,
+  "coming soon": 2,
+};
+
 const badgeColor = (badge: string) => {
   switch (badge) {
     case "UPCOMING":
@@ -61,7 +67,12 @@ const FeaturedNews: React.FC = () => {
     fetchData();
   }, []);
 
-  const featuredItems = articles.slice(0, FEATURED_LIMIT);
+  const sortedArticles = [...articles].sort((a, b) => {
+    const pa = BADGE_ORDER[a.badge?.toLowerCase().trim() ?? ""] ?? 999;
+    const pb = BADGE_ORDER[b.badge?.toLowerCase().trim() ?? ""] ?? 999;
+    return pa - pb;
+  });
+  const featuredItems = sortedArticles.slice(0, FEATURED_LIMIT);
 
   const handleReadMore = (article: NewsArticle) => {
     if (article.link && article.link.trim()) {

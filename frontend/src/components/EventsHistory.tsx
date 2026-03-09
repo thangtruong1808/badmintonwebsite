@@ -10,9 +10,10 @@ import type { EventDisplay } from "../types/event";
 interface EventsHistoryProps {
   completedEvents: EventDisplay[];
   onViewDetails?: (event: EventDisplay) => void;
+  loading?: boolean;
 }
 
-const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents, onViewDetails }) => {
+const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents, onViewDetails, loading }) => {
   return (
     <>
       <div className="bg-gradient-to-r from-rose-50 to-rose-100">
@@ -31,8 +32,16 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents, onViewDe
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-              {completedEvents.map((event) => (
+            {loading ? (
+              <div className="flex justify-center py-6">
+                <div className="flex items-center gap-3 text-gray-600 font-calibri">
+                  <div className="h-6 w-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm md:text-base">Loading past tournaments…</span>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                {completedEvents.map((event) => (
                 <div
                   key={event.id}
                   className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group"
@@ -101,8 +110,9 @@ const EventsHistory: React.FC<EventsHistoryProps> = ({ completedEvents, onViewDe
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </div>

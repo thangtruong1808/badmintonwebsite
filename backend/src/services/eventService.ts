@@ -126,6 +126,40 @@ export const generateEventsFromSlots = async (
   return generated;
 };
 
+/** Get today's date in Australia/Sydney timezone as YYYY-MM-DD. */
+function getTodayInAustralia(): string {
+  const formatter = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Sydney',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
+  const parts = formatter.formatToParts(new Date());
+  const lookup = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+  const year = lookup.year;
+  const month = lookup.month;
+  const day = lookup.day;
+
+  return `${year}-${month}-${day}`;
+}
+
+/** Automatically mark past tournament events as completed based on Australia time. */
+export const autoCompletePastTournaments = async (): Promise<number> => {
+  const today = getTodayInAustralia();
+
+  const [result] = await pool.execute(
+    "UPDATE events SET status = 'completed' WHERE category = 'tournament' AND status <> 'completed' AND date < ?",
+    [today]
+  );
+
+  const affected = Number((result as { affectedRows?: number })?.affectedRows ?? 0);
+  if (affected > 0) {
+    console.log(`[events] Auto-completed ${affected} past tournament event(s) for date < ${today}`);
+  }
+  return affected;
+};
+
 /**
  * Deduplicate event rows by (date, title, location) so the play page shows one session per slot per date.
  * Keeps the row with the smallest id so existing registrations (event_id) remain valid.
@@ -150,6 +184,11 @@ export const getAllEvents = async (
   toDate?: string,
   category?: string
 ): Promise<SocialEvent[]> => {
+  if (category === 'tournament') {
+    // Ensure past tournaments are marked completed based on Australia time
+    await autoCompletePastTournaments();
+  }
+
   if (fromDate && toDate && category !== 'tournament') {
     await generateEventsFromSlots(fromDate, toDate);
   }

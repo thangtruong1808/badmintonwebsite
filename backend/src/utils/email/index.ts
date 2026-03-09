@@ -29,3 +29,5 @@ export {
   sendRemoveGuestsConfirmationEmail,
   sendWaitlistFriendsUpdateConfirmationEmail,
 } from './emailGuests.js';
+
+export { sendShopOrderConfirmationEmail } from './emailShopOrder.js';

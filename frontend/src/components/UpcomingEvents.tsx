@@ -42,7 +42,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({
                           alt={event.title}
                           className="w-full h-full object-contain"
                         />
-                        <div className="absolute top-4 left-4 bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-lg">
+                        <div className="absolute top-4 left-4 bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-lg font-calibri">
                           Upcoming
                         </div>
                       </div>

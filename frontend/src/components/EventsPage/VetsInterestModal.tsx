@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes, FaSpinner, FaCheck } from "react-icons/fa";
 import { apiFetch } from "../../utils/api";
+import type { User } from "../../types/user";
 
 interface VetsEvent {
   id: number;
@@ -13,6 +14,7 @@ interface VetsEvent {
 
 interface VetsInterestModalProps {
   onClose: () => void;
+  user?: User | null;
 }
 
 interface FormData {
@@ -32,20 +34,32 @@ interface FormErrors {
   submit?: string;
 }
 
-const VetsInterestModal: React.FC<VetsInterestModalProps> = ({ onClose }) => {
+const VetsInterestModal: React.FC<VetsInterestModalProps> = ({ onClose, user }) => {
   const [events, setEvents] = useState<VetsEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
+  const [formData, setFormData] = useState<FormData>(() => ({
+    firstName: user?.firstName ?? "",
+    lastName: user?.lastName ?? "",
+    email: user?.email ?? "",
+    phone: user?.phone ?? "",
     playerRating: "",
     eventIds: [],
-  });
+  }));
   const [errors, setErrors] = useState<FormErrors>({});
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone ?? "",
+      }));
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -202,10 +216,11 @@ const VetsInterestModal: React.FC<VetsInterestModalProps> = ({ onClose }) => {
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleInputChange}
+                readOnly={!!user}
                 className={`w-full px-4 py-3 border rounded-lg font-calibri focus:outline-none focus:ring-2 focus:ring-green-500 ${
                   errors.firstName ? "border-red-500" : "border-gray-300"
-                }`}
-                placeholder="Enter your first name"
+                } ${user ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                placeholder={user ? undefined : "Enter your first name"}
               />
               {errors.firstName && (
                 <p className="text-red-500 text-sm mt-1 font-calibri">{errors.firstName}</p>
@@ -221,10 +236,11 @@ const VetsInterestModal: React.FC<VetsInterestModalProps> = ({ onClose }) => {
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleInputChange}
+                readOnly={!!user}
                 className={`w-full px-4 py-3 border rounded-lg font-calibri focus:outline-none focus:ring-2 focus:ring-green-500 ${
                   errors.lastName ? "border-red-500" : "border-gray-300"
-                }`}
-                placeholder="Enter your last name"
+                } ${user ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                placeholder={user ? undefined : "Enter your last name"}
               />
               {errors.lastName && (
                 <p className="text-red-500 text-sm mt-1 font-calibri">{errors.lastName}</p>
@@ -241,10 +257,11 @@ const VetsInterestModal: React.FC<VetsInterestModalProps> = ({ onClose }) => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
+              readOnly={!!user}
               className={`w-full px-4 py-3 border rounded-lg font-calibri focus:outline-none focus:ring-2 focus:ring-green-500 ${
                 errors.email ? "border-red-500" : "border-gray-300"
-              }`}
-              placeholder="Enter your email address"
+              } ${user ? "bg-gray-100 cursor-not-allowed" : ""}`}
+              placeholder={user ? undefined : "Enter your email address"}
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1 font-calibri">{errors.email}</p>
