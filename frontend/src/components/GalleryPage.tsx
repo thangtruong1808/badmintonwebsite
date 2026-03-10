@@ -63,7 +63,7 @@ function getVideoUrl(video: GalleryVideoFromApi): string | null {
 
 const GalleryPage = () => {
   useEffect(() => {
-    document.title = "ChibiBadminton - Gallery";
+    document.title = "Chibi | Gallery";
   }, []);
 
   const [allPhotos, setAllPhotos] = useState<Photo[]>([]);

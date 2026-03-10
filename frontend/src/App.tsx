@@ -34,7 +34,9 @@ import NewsDetailPage from "./components/NewsDetailPage";
 import UserProfilePage from "./components/UserProfilePage/UserProfilePage";
 import DashboardPage from "./components/DashboardPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import GuestOnlyRoute from "./components/GuestOnlyRoute";
 import AdminRoute from "./components/AdminRoute";
+import NotFoundPage from "./components/NotFoundPage";
 
 function App() {
   const location = useLocation();
@@ -94,7 +96,7 @@ function App() {
 
   if (!fontsReady) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-r from-rose-50 to-rose-100">
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-r from-rose-50 to-rose-100" role="status" aria-live="polite" aria-busy="true">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-8">
           <div
             className="animate-spin rounded-full h-10 w-10 border-2 border-rose-500 border-t-transparent flex-shrink-0"
@@ -144,10 +146,10 @@ function App() {
           <Route path="/featured-news" element={<FeaturedNewsPage />} />
           <Route path="/featured-news/:id" element={<NewsDetailPage />} />
 
-          {/* Auth Routes (public) */}
-          <Route path="/signin" element={<SignInPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          {/* Auth Routes (guest only; redirect to profile if logged in) */}
+          <Route path="/signin" element={<GuestOnlyRoute><SignInPage /></GuestOnlyRoute>} />
+          <Route path="/register" element={<GuestOnlyRoute><RegisterPage /></GuestOnlyRoute>} />
+          <Route path="/reset-password" element={<GuestOnlyRoute><ResetPasswordPage /></GuestOnlyRoute>} />
 
           {/* Protected Routes (require login) */}
           <Route
@@ -168,6 +170,9 @@ function App() {
               </AdminRoute>
             }
           />
+
+          {/* Catch-all: invalid URLs */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
       {!isDashboard && <Footer />}

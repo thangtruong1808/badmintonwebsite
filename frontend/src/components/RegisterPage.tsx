@@ -34,7 +34,7 @@ const RegisterPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   useEffect(() => {
-    document.title = "ChibiBadminton - Register";
+    document.title = "Chibi | Register";
   }, []);
 
   const [showPassword, setShowPassword] = useState(false);

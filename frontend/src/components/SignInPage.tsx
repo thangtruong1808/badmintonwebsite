@@ -32,7 +32,7 @@ const SignInPage = () => {
   const from = (location.state as { from?: string })?.from;
 
   useEffect(() => {
-    document.title = "ChibiBadminton - Sign In";
+    document.title = "Chibi | Sign In";
   }, []);
   const [showPassword, setShowPassword] = useState(false);
   const [signInData, setSignInData] = useState<SignInFormData>({

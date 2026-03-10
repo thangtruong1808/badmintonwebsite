@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
   FaEnvelope,
   FaCheckCircle,
@@ -23,10 +23,11 @@ interface FormErrors {
 
 const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const tokenFromUrl = searchParams.get("token");
 
   useEffect(() => {
-    document.title = "ChibiBadminton - Reset Password";
+    document.title = "Chibi | Reset Password";
   }, []);
 
   const [resetData, setResetData] = useState<ResetFormData>({
@@ -149,6 +150,7 @@ const ResetPasswordPage = () => {
           message: data.message || "Password has been reset. You can now sign in with your new password.",
         });
         setSetPasswordData({ newPassword: "", confirmPassword: "" });
+        setTimeout(() => navigate("/signin", { replace: true }), 1500);
       } else {
         setSubmitStatus({
           type: "error",

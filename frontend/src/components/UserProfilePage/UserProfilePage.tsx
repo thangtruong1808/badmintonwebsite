@@ -81,7 +81,7 @@ const UserProfilePage: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    document.title = "ChibiBadminton - My Profile";
+    document.title = "Chibi | My Profile";
     fetchProfile();
   }, [fetchProfile]);
 

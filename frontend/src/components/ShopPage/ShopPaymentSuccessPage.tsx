@@ -10,6 +10,11 @@ const ShopPaymentSuccessPage: React.FC = () => {
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
+    document.title = "Chibi | Order Confirmed";
+    return () => { document.title = "Chibi | Home"; };
+  }, []);
+
+  useEffect(() => {
     clearShopCart();
   }, []);
 

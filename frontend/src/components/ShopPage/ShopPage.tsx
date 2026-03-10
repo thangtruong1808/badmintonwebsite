@@ -17,7 +17,7 @@ const ShopPage = () => {
   } = useShopProducts();
 
   useEffect(() => {
-    document.title = "ChibiBadminton - Shop";
+    document.title = "Chibi | Shop";
   }, []);
 
   return (

@@ -43,7 +43,7 @@ const reviews: Review[] = [
 
 const ReviewsPage = () => {
   useEffect(() => {
-    document.title = "ChibiBadminton - Reviews";
+    document.title = "Chibi | Reviews";
   }, []);
 
   const averageRating =

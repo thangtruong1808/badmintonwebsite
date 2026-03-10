@@ -48,6 +48,11 @@ const PlayCheckoutPage: React.FC = () => {
   const authInitialized = useSelector(selectAuthInitialized);
 
   useEffect(() => {
+    document.title = "Chibi | Checkout";
+    return () => { document.title = "Chibi | Home"; };
+  }, []);
+
+  useEffect(() => {
     if (!pendingId) {
       if (!addGuestsPendingId && !pendingWaitlistId) setPendingLoading(false);
       return;

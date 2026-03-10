@@ -71,12 +71,12 @@ export function useProductDetail(id: string | undefined) {
 
   useEffect(() => {
     if (product) {
-      document.title = `ChibiBadminton - ${product.name}`;
+      document.title = `Chibi | ${product.name}`;
     } else {
-      document.title = "ChibiBadminton - Product Not Found";
+      document.title = "Chibi | Product Not Found";
     }
     return () => {
-      document.title = "ChibiBadminton";
+      document.title = "Chibi | Home";
     };
   }, [product]);
 

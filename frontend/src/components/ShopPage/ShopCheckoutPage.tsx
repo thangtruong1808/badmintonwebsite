@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { Product } from "./types";
 
@@ -22,6 +22,11 @@ const ShopCheckoutPage: React.FC = () => {
     state?.items ?? legacyProducts.map((p) => ({ product: p, quantity: 1, unitPrice: p.price }));
 
   const totalPrice = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+
+  useEffect(() => {
+    document.title = "Chibi | Checkout";
+    return () => { document.title = "Chibi | Home"; };
+  }, []);
 
   const handleContinueToPayment = () => {
     navigate("/shop/payment", { state: { items } });

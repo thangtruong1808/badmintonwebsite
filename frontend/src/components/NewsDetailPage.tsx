@@ -38,9 +38,9 @@ const NewsDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = article ? `${article.title} - ChibiBadminton` : "News - ChibiBadminton";
+    document.title = article ? `Chibi | ${article.title}` : "Chibi | News";
     return () => {
-      document.title = "ChibiBadminton";
+      document.title = "Chibi | Home";
     };
   }, [article]);
 

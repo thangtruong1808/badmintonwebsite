@@ -37,7 +37,7 @@ const FeaturedNewsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "ChibiBadminton - Featured News";
+    document.title = "Chibi | Featured News";
   }, []);
 
   useEffect(() => {

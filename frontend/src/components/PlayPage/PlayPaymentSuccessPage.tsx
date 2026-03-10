@@ -10,6 +10,11 @@ const PlayPaymentSuccessPage: React.FC = () => {
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
+    document.title = "Chibi | Payment Successful";
+    return () => { document.title = "Chibi | Home"; };
+  }, []);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {

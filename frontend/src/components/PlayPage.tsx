@@ -21,7 +21,7 @@ const PlayPage: React.FC = () => {
   const [cancellationResultDialog, setCancellationResultDialog] = useState<CancellationResult | null>(null);
 
   useEffect(() => {
-    document.title = "ChibiBadminton - Play Sessions";
+    document.title = "Chibi | Play Sessions";
   }, []);
 
   const fetchMyRegistrations = useCallback(async () => {

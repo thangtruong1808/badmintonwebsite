@@ -111,7 +111,7 @@ const ServicesPage = () => {
     serviceOptions?.grips?.map((g) => ({ value: g.value, label: g.label })) ?? [];
 
   useEffect(() => {
-    document.title = "ChibiBadminton - Stringing Services";
+    document.title = "Chibi | Stringing Services";
   }, []);
 
   useEffect(() => {

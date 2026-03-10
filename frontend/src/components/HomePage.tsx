@@ -7,7 +7,7 @@ import NewsletterPopup from "./NewsletterPopup";
 
 const HomePage = () => {
   useEffect(() => {
-    document.title = "ChibiBadminton - Home";
+    document.title = "Chibi | Home";
   }, []);
 
   return (

@@ -39,6 +39,11 @@ const PlayPaymentPage: React.FC = () => {
   const user = getCurrentUser();
   const authInitialized = useSelector(selectAuthInitialized);
 
+  useEffect(() => {
+    document.title = "Chibi | Payment";
+    return () => { document.title = "Chibi | Home"; };
+  }, []);
+
   const [pendingRegistration, setPendingRegistration] = useState<{
     id: string;
     eventId: number;

@@ -1,4 +1,4 @@
-import React, { useState, type FormEvent } from "react";
+import React, { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaCheckCircle, FaExclamationCircle, FaUser, FaEnvelope, FaPhone, FaMoneyBillWave, FaUserPlus, FaSignInAlt, FaTimes, FaSpinner } from "react-icons/fa";
 import type { CartItem } from "./ShopCheckoutPage";
@@ -36,6 +36,11 @@ const ShopPaymentPage: React.FC = () => {
   }>({ type: null, message: "" });
 
   const totalPrice = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+
+  useEffect(() => {
+    document.title = "Chibi | Payment";
+    return () => { document.title = "Chibi | Home"; };
+  }, []);
 
   const validate = () => {
     const err: Record<string, string> = {};

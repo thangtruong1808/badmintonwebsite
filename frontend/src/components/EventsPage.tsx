@@ -10,7 +10,7 @@ import EventsRegistrationModal from "./EventsPage/EventsRegistrationModal";
 
 const EventsPage = () => {
   useEffect(() => {
-    document.title = "ChibiBadminton - Events";
+    document.title = "Chibi | Events";
   }, []);
 
   const { events, loading, error, completedEvents, upcomingEvents } = useEventsData();

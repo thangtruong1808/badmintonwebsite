@@ -11,7 +11,7 @@ import KeyPersonsSection from "./AboutUsPage/KeyPersonsSection";
 
 const AboutUsPage = () => {
   useEffect(() => {
-    document.title = "ChibiBadminton - About Us";
+    document.title = "Chibi | About Us";
   }, []);
 
 

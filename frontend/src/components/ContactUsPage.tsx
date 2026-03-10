@@ -29,7 +29,7 @@ interface FormErrors {
 
 const ContactUsPage = () => {
   useEffect(() => {
-    document.title = "Chibi Badminton Club - Contact Us";
+    document.title = "Chibi | Contact Us";
   }, []);
 
   const [formData, setFormData] = useState<FormData>({

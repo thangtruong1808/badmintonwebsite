@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaTimes, FaExclamationTriangle } from "react-icons/fa";
 
@@ -6,8 +6,12 @@ const PlayPaymentCancelPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const reason = searchParams.get("reason");
-  
   const isPaymentFailed = reason === "failed";
+
+  useEffect(() => {
+    document.title = "Chibi | Payment Cancelled";
+    return () => { document.title = "Chibi | Home"; };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center px-4">

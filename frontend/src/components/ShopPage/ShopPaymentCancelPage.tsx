@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaTimes, FaShoppingCart } from "react-icons/fa";
 
 const ShopPaymentCancelPage: React.FC = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = "Chibi | Payment Cancelled";
+    return () => { document.title = "Chibi | Home"; };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-rose-50 to-rose-100 flex items-center justify-center px-4">

@@ -123,7 +123,7 @@ const DashboardPage = () => {
   const [dbStatus, setDbStatus] = useState<{ connected: boolean; message?: string } | null>(null);
 
   useEffect(() => {
-    document.title = "ChibiBadminton - Admin Dashboard";
+    document.title = "Chibi | Admin Dashboard";
   }, []);
 
   useEffect(() => {
