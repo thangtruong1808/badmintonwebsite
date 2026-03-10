@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaCheckCircle, FaSpinner } from "react-icons/fa";
+import { clearCart } from "../../utils/cartStorage";
 
 const PlayPaymentSuccessPage: React.FC = () => {
   const navigate = useNavigate();
@@ -10,24 +11,26 @@ const PlayPaymentSuccessPage: React.FC = () => {
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
+    clearCart();
+  }, []);
+
+  useEffect(() => {
     document.title = "Chibi | Payment Successful";
     return () => { document.title = "Chibi | Home"; };
   }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          navigate("/profile");
-          return 0;
-        }
-        return prev - 1;
-      });
+      setCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
-
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, []);
+
+  useEffect(() => {
+    if (countdown === 0) {
+      navigate("/profile");
+    }
+  }, [countdown, navigate]);
 
   const getMessage = () => {
     switch (type) {

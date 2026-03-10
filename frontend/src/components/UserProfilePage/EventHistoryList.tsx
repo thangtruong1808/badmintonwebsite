@@ -49,6 +49,8 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
   const [showCancelSelectedConfirm, setShowCancelSelectedConfirm] = useState(false);
   const [registerAgainReg, setRegisterAgainReg] = useState<RegistrationWithEventDetails | null>(null);
   const [cancellationResultDialog, setCancellationResultDialog] = useState<CancellationResult | null>(null);
+  const [isCancellingOne, setIsCancellingOne] = useState(false);
+  const [isCancellingSelected, setIsCancellingSelected] = useState(false);
 
   const filteredByTab = useMemo(() => {
     if (activeTab === "all") {
@@ -89,18 +91,15 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
 
   const handleCancelOneConfirm = async () => {
     const reg = cancelOneReg;
-    setCancelOneReg(null);
     if (!reg?.id) return;
+    setIsCancellingOne(true);
     setCancellingIds((prev) => new Set(prev).add(reg.id!));
     try {
       const result = await cancelUserRegistration(reg.id);
-      if (result.success) {
-        await onRefetch();
-        setCancellationResultDialog(result);
-      } else {
-        setCancellationResultDialog(result);
-      }
+      setCancelOneReg(null);
+      setCancellationResultDialog(result);
     } finally {
+      setIsCancellingOne(false);
       setCancellingIds((prev) => {
         const next = new Set(prev);
         next.delete(reg.id!);
@@ -109,30 +108,63 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
     }
   };
 
+  const handleCancellationResultDismiss = () => {
+    setCancellationResultDialog(null);
+    onRefetch();
+  };
+
   const handleCancelSelectedClick = () => {
     if (selectedCancelCount > 0) setShowCancelSelectedConfirm(true);
   };
 
   const handleCancelSelectedConfirm = async () => {
-    setShowCancelSelectedConfirm(false);
     const toCancel = canCancelRegs.filter((r) => r.id && selectedIds.has(r.id)).map((r) => r.id as string);
-    if (toCancel.length === 0) return;
+    if (toCancel.length === 0) {
+      setShowCancelSelectedConfirm(false);
+      return;
+    }
+    setIsCancellingSelected(true);
     setCancellingIds((prev) => new Set([...prev, ...toCancel]));
-    let lastResult: CancellationResult | null = null;
+    const results: CancellationResult[] = [];
     try {
       for (const id of toCancel) {
-        lastResult = await cancelUserRegistration(id);
+        const result = await cancelUserRegistration(id);
+        results.push(result);
       }
       setSelectedIds(new Set());
       await onRefetch();
-      if (lastResult) {
-        setCancellationResultDialog({
-          success: true,
-          refundStatus: lastResult.refundStatus,
-          message: `Successfully cancelled ${toCancel.length} registration(s). ${lastResult.refundStatus === 'instant' ? 'Refunds are being processed.' : lastResult.refundStatus === 'pending_review' ? 'Some cancellations are under review.' : ''}`,
-        });
+      const instantCount = results.filter((r) => r.refundStatus === "instant").length;
+      const pendingCount = results.filter((r) => r.refundStatus === "pending_review").length;
+      const noRefundCount = results.filter((r) => r.refundStatus === "no_refund").length;
+      const parts: string[] = [];
+      if (instantCount > 0) {
+        parts.push(
+          `${instantCount} refund${instantCount !== 1 ? "s" : ""} ${instantCount === 1 ? "is" : "are"} being processed.`
+        );
       }
+      if (pendingCount > 0) {
+        parts.push(
+          `${pendingCount} cancellation${pendingCount !== 1 ? "s" : ""} ${pendingCount === 1 ? "is" : "are"} under review for refund.`
+        );
+      }
+      if (noRefundCount > 0) {
+        parts.push(
+          `${noRefundCount} cancellation${noRefundCount !== 1 ? "s" : ""} have no refund applicable.`
+        );
+      }
+      const message = parts.length > 0
+        ? `Successfully cancelled ${toCancel.length} registration(s). ${parts.join(" ")}`
+        : `Successfully cancelled ${toCancel.length} registration(s).`;
+      const refundStatus: CancellationResult["refundStatus"] =
+        pendingCount > 0 ? "pending_review" : instantCount > 0 ? "instant" : "no_refund";
+      setCancellationResultDialog({
+        success: true,
+        refundStatus,
+        message,
+      });
+      setShowCancelSelectedConfirm(false);
     } finally {
+      setIsCancellingSelected(false);
       setCancellingIds(new Set());
     }
   };
@@ -532,8 +564,10 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
         confirmLabel="Yes, cancel"
         cancelLabel="Keep registration"
         variant="danger"
+        confirmLoading={isCancellingOne}
+        confirmLoadingLabel="Cancelling…"
         onConfirm={handleCancelOneConfirm}
-        onCancel={() => setCancelOneReg(null)}
+        onCancel={() => !isCancellingOne && setCancelOneReg(null)}
       />
       <ConfirmDialog
         open={showCancelSelectedConfirm}
@@ -546,8 +580,10 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
         confirmLabel="Yes, cancel"
         cancelLabel="Keep"
         variant="danger"
+        confirmLoading={isCancellingSelected}
+        confirmLoadingLabel="Cancelling…"
         onConfirm={handleCancelSelectedConfirm}
-        onCancel={() => setShowCancelSelectedConfirm(false)}
+        onCancel={() => !isCancellingSelected && setShowCancelSelectedConfirm(false)}
       />
       <ConfirmDialog
         open={!!registerAgainReg}
@@ -578,8 +614,8 @@ const EventHistoryList: React.FC<EventHistoryListProps> = ({
         confirmLabel="OK"
         cancelLabel=""
         variant={cancellationResultDialog?.success ? "default" : "danger"}
-        onConfirm={() => setCancellationResultDialog(null)}
-        onCancel={() => setCancellationResultDialog(null)}
+        onConfirm={handleCancellationResultDismiss}
+        onCancel={handleCancellationResultDismiss}
       />
     </div>
   );

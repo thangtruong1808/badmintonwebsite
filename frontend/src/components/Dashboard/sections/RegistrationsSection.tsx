@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { FaPlus, FaEdit, FaTrash, FaSpinner } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import { apiFetch } from "../../../utils/api";
-import { formatDateDDMonthYYYY } from "../../../utils/dateUtils";
+import { formatDateDDMonthYYYY, formatDateTime } from "../../../utils/dateUtils";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import {
@@ -30,6 +30,9 @@ export interface RegistrationRow {
   guest_count?: number;
   created_at?: string;
   event_day_of_week?: string | null;
+  refund_review_status?: string | null;
+  cancelled_at?: string | null;
+  stripe_payment_intent_id?: string | null;
 }
 
 interface GuestRow {
@@ -57,33 +60,13 @@ const PAYMENT_OPTIONS = [
   { value: "mixed", label: "Mixed" },
 ];
 
-const COLUMNS: Column<RegistrationRow>[] = [
-  {
-    key: "seq",
-    label: "No.",
-    render: (_r, index) => (
-      <span className="font-calibri text-sm font-medium text-gray-700">
-        {index + 1}
-      </span>
-    ),
-  },
-  {
-    key: "event_day_of_week",
-    label: "Day",
-    render: (r) => (
-      <span className="font-calibri text-sm text-gray-700">
-        {r.event_day_of_week ?? "—"}
-      </span>
-    ),
-  },
-  { key: "name", label: "Name" },
-  { key: "email", label: "Email" },
-  { key: "status", label: "Status" },
-  { key: "attendance_status", label: "Attendance" },
-  { key: "registration_date", label: "Date", render: (r) => formatDateDDMonthYYYY(r.registration_date) },
-  { key: "payment_method", label: "Payment" },
-  { key: "points_used", label: "Points Used" },
-];
+const getStatusDisplay = (r: RegistrationRow): string => {
+  if ((r.status ?? "").toLowerCase() !== "cancelled") {
+    return r.status ?? "";
+  }
+  const review = (r.refund_review_status ?? "none").toLowerCase();
+  return review === "pending_review" ? "Cancelled (<24hrs)" : "Cancelled (24hrs+)";
+};
 
 const RegistrationsSection: React.FC = () => {
   const [items, setItems] = useState<RegistrationRow[]>([]);
@@ -112,6 +95,121 @@ const RegistrationsSection: React.FC = () => {
   const [editingGuest, setEditingGuest] = useState<GuestRow | null>(null);
   const [guestFormError, setGuestFormError] = useState<string | null>(null);
   const [deleteGuestTarget, setDeleteGuestTarget] = useState<GuestRow | null>(null);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
+  const [refundError, setRefundError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const columns: Column<RegistrationRow>[] = [
+      {
+        key: "seq",
+        label: "No.",
+        render: (_r, index) => (
+          <span className="font-calibri text-sm font-medium text-gray-700">
+            {index + 1}
+          </span>
+        ),
+      },
+      {
+        key: "event_day_of_week",
+        label: "Day",
+        render: (r) => (
+          <span className="font-calibri text-sm text-gray-700">
+            {r.event_day_of_week ?? "—"}
+          </span>
+        ),
+      },
+      { key: "name", label: "Name" },
+      { key: "email", label: "Email" },
+      {
+        key: "status",
+        label: "Status",
+        render: (r) => (
+          <span className="font-calibri text-sm text-gray-700">
+            {getStatusDisplay(r)}
+          </span>
+        ),
+      },
+      { key: "attendance_status", label: "Attendance" },
+      {
+        key: "registration_date",
+        label: "Date",
+        render: (r) => formatDateDDMonthYYYY(r.registration_date),
+      },
+      {
+        key: "created_at",
+        label: "Registered at",
+        render: (r) => (
+          <span className="font-calibri text-sm text-gray-700">
+            {formatDateTime(r.created_at)}
+          </span>
+        ),
+      },
+      { key: "payment_method", label: "Payment" },
+      { key: "points_used", label: "Points Used" },
+      {
+        key: "refund_action",
+        label: "Refund",
+        render: (r) => {
+          const isCancelled = (r.status ?? "").toLowerCase() === "cancelled";
+          const review = (r.refund_review_status ?? "").toLowerCase();
+          const pendingReview = review === "pending_review";
+          const approved = review === "approved";
+          const none = review === "none";
+          const denied = review === "denied";
+          const hasStripe =
+            (r.stripe_payment_intent_id ?? "").trim().length > 0;
+          const isStripe =
+            (r.payment_method ?? "stripe").toLowerCase() === "stripe";
+          const eligible =
+            isCancelled && pendingReview && hasStripe && isStripe;
+          const isRefunding = refundingId === r.id;
+
+          if (eligible) {
+            return (
+              <button
+                type="button"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  if (!r.id || isRefunding) return;
+                  setRefundError(null);
+                  setRefundingId(r.id);
+                  try {
+                    const res = await apiFetch(
+                      `/api/dashboard/registrations/${r.id}/request-refund`,
+                      { method: "POST" }
+                    );
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok) {
+                      await fetchList();
+                    } else {
+                      setRefundError(data.message || "Failed to process refund.");
+                    }
+                  } catch {
+                    setRefundError("Failed to process refund. Please try again.");
+                  } finally {
+                    setRefundingId(null);
+                  }
+                }}
+                disabled={isRefunding}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-rose-300 bg-rose-50 px-2 py-1 text-sm font-calibri text-rose-700 hover:bg-rose-100 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+              >
+                {isRefunding ? (
+                  <FaSpinner className="animate-spin shrink-0" size={12} aria-hidden />
+                ) : null}
+                <span>{isRefunding ? "Processing…" : "Request refund"}</span>
+              </button>
+            );
+          }
+          if (isCancelled && isStripe && (approved || none)) {
+            return <span className="font-calibri text-sm text-green-600">Refunded</span>;
+          }
+          if (isCancelled && denied) {
+            return <span className="font-calibri text-sm text-gray-600">Denied</span>;
+          }
+          return <span className="font-calibri text-sm text-gray-400">—</span>;
+        },
+      },
+    ];
 
   const fetchList = async () => {
     setLoading(true);
@@ -139,7 +237,8 @@ const RegistrationsSection: React.FC = () => {
       (r) =>
         (r.name ?? "").toLowerCase().includes(q) ||
         (r.email ?? "").toLowerCase().includes(q) ||
-        (r.status ?? "").toLowerCase().includes(q)
+        (r.status ?? "").toLowerCase().includes(q) ||
+        getStatusDisplay(r).toLowerCase().includes(q)
     );
   }, [items, searchQuery]);
 
@@ -246,8 +345,26 @@ const RegistrationsSection: React.FC = () => {
     setGuests((prev) => prev.filter((x) => x.id !== g.id));
   };
 
-  const handleDelete = (_row: RegistrationRow) => {
-    setDeleteTarget(null);
+  const handleDelete = async (row: RegistrationRow) => {
+    if (!row.id) return;
+    setIsDeleting(true);
+    setRefundError(null);
+    try {
+      const res = await apiFetch(`/api/dashboard/registrations/${row.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setDeleteTarget(null);
+        await fetchList();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setRefundError(data.message || "Failed to delete registration.");
+      }
+    } catch {
+      setRefundError("Failed to delete registration. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -276,8 +393,20 @@ const RegistrationsSection: React.FC = () => {
           Add Registration
         </button>
       </div>
+      {refundError && (
+        <div className="rounded-lg bg-red-50 px-4 py-2 text-sm font-calibri text-red-700">
+          {refundError}
+          <button
+            type="button"
+            onClick={() => setRefundError(null)}
+            className="ml-2 underline hover:no-underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       <DataTable
-        columns={COLUMNS}
+        columns={columns}
         data={filteredItems}
         loading={loading}
         getRowId={(r) => r.id}
@@ -481,8 +610,14 @@ const RegistrationsSection: React.FC = () => {
             : ""
         }
         confirmLabel="Delete"
+        confirmLoading={isDeleting}
         onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => {
+          if (!isDeleting) {
+            setDeleteTarget(null);
+            setRefundError(null);
+          }
+        }}
       />
       <ConfirmDialog
         open={!!deleteGuestTarget}

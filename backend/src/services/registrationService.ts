@@ -30,6 +30,9 @@ export interface RegistrationRow {
   created_at?: string;
   updated_at?: string;
   event_day_of_week?: string | null;
+  refund_review_status?: string | null;
+  cancelled_at?: string | null;
+  stripe_payment_intent_id?: string | null;
 }
 
 export interface PublicRegistrationPlayer {
@@ -60,6 +63,8 @@ interface RegRow extends RowDataPacket {
   updated_at: Date | string | null;
   event_day_of_week?: string | null;
   stripe_payment_intent_id?: string | null;
+  refund_review_status?: string | null;
+  cancelled_at?: Date | string | null;
 }
 
 function rowToRegistration(r: RegRow): Registration {
@@ -110,7 +115,89 @@ export const getAllRegistrations = async (): Promise<RegistrationRow[]> => {
     created_at: r.created_at ? String(r.created_at) : undefined,
     updated_at: r.updated_at ? String(r.updated_at) : undefined,
     event_day_of_week: r.event_day_of_week ?? null,
+    refund_review_status: r.refund_review_status ?? null,
+    cancelled_at: r.cancelled_at ? (r.cancelled_at instanceof Date ? r.cancelled_at.toISOString().slice(0, 19) : String(r.cancelled_at).slice(0, 19)) : null,
+    stripe_payment_intent_id: r.stripe_payment_intent_id ?? null,
   }));
+};
+
+/**
+ * Admin-only: Delete a registration permanently.
+ * Decrements event attendees if status was confirmed, then deletes the registration (cascade deletes guests).
+ */
+export const deleteRegistrationAdmin = async (registrationId: string): Promise<{ success: boolean; message?: string }> => {
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT id, event_id, status, guest_count FROM registrations WHERE id = ?',
+    [registrationId]
+  );
+  if (rows.length === 0) {
+    return { success: false, message: 'Registration not found.' };
+  }
+  const reg = rows[0];
+  const guestCount = reg.guest_count ?? 0;
+  const delta = 1 + guestCount;
+  if ((reg.status ?? '').toLowerCase() === 'confirmed') {
+    await decrementEventAttendees(reg.event_id, delta);
+  }
+  await pool.execute('DELETE FROM registrations WHERE id = ?', [registrationId]);
+  return { success: true };
+};
+
+/**
+ * Admin-only: Request refund for a cancelled registration that has pending_review status.
+ * Validates registration is cancelled, has pending_review, and was paid via Stripe, then calls processInstantRefund.
+ */
+export const requestRefundForRegistration = async (registrationId: string): Promise<{ success: boolean; message: string }> => {
+  const [rows] = await pool.execute<RegRow[]>(
+    'SELECT id, status, refund_review_status, stripe_payment_intent_id, payment_method FROM registrations WHERE id = ?',
+    [registrationId]
+  );
+  if (rows.length === 0) {
+    return { success: false, message: 'Registration not found.' };
+  }
+  const r = rows[0];
+  if (r.status !== 'cancelled') {
+    return { success: false, message: 'Registration is not cancelled. Refund can only be requested for cancelled registrations.' };
+  }
+  if (r.refund_review_status !== 'pending_review') {
+    return { success: false, message: 'Refund has already been processed or is not eligible for review.' };
+  }
+  const pi = r.stripe_payment_intent_id?.trim();
+  if (!pi) {
+    return { success: false, message: 'No Stripe payment found for this registration.' };
+  }
+  const pm = (r.payment_method ?? 'stripe').toLowerCase();
+  if (pm !== 'stripe') {
+    return { success: false, message: 'Refund is only available for Stripe payments.' };
+  }
+  try {
+    await processInstantRefund(pi);
+    await pool.execute(
+      `UPDATE registrations SET refund_review_status = 'approved' WHERE id = ?`,
+      [registrationId]
+    );
+    return { success: true, message: 'Refund processed successfully.' };
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    const isAlreadyRefunded =
+      /already/i.test(errMsg) && /refund/i.test(errMsg);
+    if (isAlreadyRefunded) {
+      console.log('[requestRefundForRegistration] Charge already refunded (combined payment), marking as approved:', registrationId);
+      await pool.execute(
+        `UPDATE registrations SET refund_review_status = 'approved' WHERE id = ?`,
+        [registrationId]
+      );
+      return {
+        success: true,
+        message: 'This registration was part of a combined payment that was already refunded. No further action needed.',
+      };
+    }
+    console.error('[requestRefundForRegistration] Failed:', err);
+    return {
+      success: false,
+      message: errMsg || 'Failed to process refund. Please try again or contact support.',
+    };
+  }
 };
 
 export const getUserRegistrations = async (userId: string): Promise<Registration[]> => {

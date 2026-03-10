@@ -3,7 +3,7 @@ import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import pool, { testConnection } from '../db/connection.js';
 import { getAllUsersCount, getAllUsers, updateUser } from '../services/userService.js';
 import { getEventsCount } from '../services/eventService.js';
-import { getRegistrationsCount, getAllRegistrations } from '../services/registrationService.js';
+import { getRegistrationsCount, getAllRegistrations, requestRefundForRegistration, deleteRegistrationAdmin } from '../services/registrationService.js';
 import { getGuestsByRegistrationId, updateGuestsBulkAdmin } from '../services/registrationGuestService.js';
 import { getRewardTransactionsCount, getAllRewardTransactions } from '../services/rewardService.js';
 import * as productService from '../services/productService.js';
@@ -116,6 +116,40 @@ export const putDashboardRegistrationGuests = async (
     }
     const updated = await updateGuestsBulkAdmin(id, guests);
     res.json({ guests: updated });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const postRequestRefund = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const result = await requestRefundForRegistration(id);
+    if (!result.success) {
+      throw createError(result.message, 400);
+    }
+    res.json({ success: true, message: result.message });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteDashboardRegistration = async (
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const result = await deleteRegistrationAdmin(id);
+    if (!result.success) {
+      throw createError(result.message ?? 'Failed to delete registration', 404);
+    }
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

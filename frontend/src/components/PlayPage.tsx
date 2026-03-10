@@ -24,6 +24,14 @@ const PlayPage: React.FC = () => {
     document.title = "Chibi | Play Sessions";
   }, []);
 
+  useEffect(() => {
+    const onCartUpdated = () => {
+      setSelectedEventIds(getCartItems());
+    };
+    window.addEventListener("cartUpdated", onCartUpdated);
+    return () => window.removeEventListener("cartUpdated", onCartUpdated);
+  }, []);
+
   const fetchMyRegistrations = useCallback(async () => {
     const user = getCurrentUser();
     if (!user?.id) {

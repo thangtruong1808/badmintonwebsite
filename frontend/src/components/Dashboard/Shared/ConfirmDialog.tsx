@@ -1,4 +1,5 @@
 import React from "react";
+import { FaSpinner } from "react-icons/fa";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -11,6 +12,10 @@ interface ConfirmDialogProps {
   variant?: "danger" | "default";
   /** If true, only show the confirm button (useful for acknowledgment dialogs) */
   singleButton?: boolean;
+  /** If true, show spinner and loading state on confirm button, disable both buttons */
+  confirmLoading?: boolean;
+  /** Text to show when confirmLoading (e.g. "Deleting…", "Cancelling…") */
+  confirmLoadingLabel?: string;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -23,6 +28,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onCancel,
   variant = "danger",
   singleButton = false,
+  confirmLoading = false,
+  confirmLoadingLabel = "Deleting…",
 }) => {
   if (!open) return null;
 
@@ -32,12 +39,13 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       : "bg-rose-500 text-white hover:bg-rose-600";
 
   const showCancelButton = !singleButton && cancelLabel && cancelLabel.trim() !== "";
+  const disabled = confirmLoading;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/50"
-        onClick={onCancel}
+        onClick={disabled ? undefined : onCancel}
         aria-hidden
       />
       <div className="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
@@ -49,7 +57,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-calibri text-gray-700 hover:bg-gray-50"
+              disabled={disabled}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 font-calibri text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {cancelLabel}
             </button>
@@ -57,9 +66,17 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <button
             type="button"
             onClick={onConfirm}
-            className={`rounded-lg px-4 py-2 font-calibri ${confirmClass}`}
+            disabled={disabled}
+            className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-calibri ${confirmClass} disabled:opacity-70 disabled:cursor-not-allowed`}
           >
-            {confirmLabel}
+            {confirmLoading ? (
+              <>
+                <FaSpinner className="animate-spin h-4 w-4 shrink-0" aria-hidden />
+                <span>{confirmLoadingLabel}</span>
+              </>
+            ) : (
+              confirmLabel
+            )}
           </button>
         </div>
       </div>

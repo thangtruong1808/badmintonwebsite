@@ -9,6 +9,8 @@ import {
   getDashboardRegistrations,
   getDashboardRegistrationGuests,
   putDashboardRegistrationGuests,
+  postRequestRefund,
+  deleteDashboardRegistration,
   getDashboardRewardTransactions,
   getDashboardProducts,
   getDashboardProductById,
@@ -100,6 +102,8 @@ router.put('/users/:id', authenticateToken, requireAdmin, updateDashboardUser);
 router.get('/registrations', authenticateToken, requireAdmin, getDashboardRegistrations);
 router.get('/registrations/:id/guests', authenticateToken, requireAdmin, getDashboardRegistrationGuests);
 router.put('/registrations/:id/guests', authenticateToken, requireAdmin, putDashboardRegistrationGuests);
+router.post('/registrations/:id/request-refund', authenticateToken, requireAdmin, postRequestRefund);
+router.delete('/registrations/:id', authenticateToken, requireAdmin, deleteDashboardRegistration);
 
 router.get('/reward-transactions', authenticateToken, requireAdmin, getDashboardRewardTransactions);
 
