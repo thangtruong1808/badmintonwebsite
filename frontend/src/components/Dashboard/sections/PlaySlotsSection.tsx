@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { FaPlus, FaImage, FaTimes, FaCloudUploadAlt, FaEdit, FaTrash } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import { apiFetch, API_BASE } from "../../../utils/api";
@@ -46,6 +46,7 @@ async function fetchCourts(slotId: number): Promise<CourtRow[]> {
 const PlaySlotsSection: React.FC = () => {
   const [items, setItems] = useState<PlaySlotRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<PlaySlotRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PlaySlotRow | null>(null);
@@ -126,6 +127,17 @@ const PlaySlotsSection: React.FC = () => {
   useEffect(() => {
     fetchList();
   }, []);
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (r) =>
+        (r.dayOfWeek ?? "").toLowerCase().includes(q) ||
+        (r.time ?? "").toLowerCase().includes(q) ||
+        (r.location ?? "").toLowerCase().includes(q)
+    );
+  }, [items, searchQuery]);
 
   const openCreate = () => {
     setEditing(null);
@@ -330,31 +342,42 @@ const PlaySlotsSection: React.FC = () => {
       <p className="font-calibri text-gray-600">
         Manage recurring play slots (e.g. Wednesday, Friday). Events are auto-generated from these slots. Edit <strong>Total spots</strong> to change max capacity for future sessions.
       </p>
-      <div className="flex justify-end">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="w-full sm:max-w-xs">
+          <label htmlFor="play-slots-search" className="sr-only">
+            Search by day, time or location
+          </label>
+          <input
+            id="play-slots-search"
+            type="search"
+            placeholder="Search by day, time or location"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+            aria-label="Search by day, time or location"
+          />
+        </div>
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
+          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600 shrink-0"
         >
           <FaPlus size={16} />
           Add Play Slot
         </button>
       </div>
-      {loading ? (
-        <p className="font-calibri text-gray-600">Loading...</p>
-      ) : (
-        <DataTable
-          columns={COLUMNS}
-          data={items}
-          getRowId={(r) => r.id}
-          onEdit={openEdit}
-          onDelete={(r) => setDeleteTarget(r)}
-          emptyMessage="No play slots yet. Add one to enable calendar session generation."
-          sortable
-          pageSize={10}
-          pageSizeOptions={[5, 10, 25, 50]}
-        />
-      )}
+      <DataTable
+        columns={COLUMNS}
+        data={filteredItems}
+        loading={loading}
+        getRowId={(r) => r.id}
+        onEdit={openEdit}
+        onDelete={(r) => setDeleteTarget(r)}
+        emptyMessage="No play slots yet. Add one to enable calendar session generation."
+        sortable
+        pageSize={10}
+        pageSizeOptions={[5, 10, 25, 50]}
+      />
       <FormModal
         title={editing ? "Edit Play Slot" : "Add Play Slot"}
         open={modalOpen}

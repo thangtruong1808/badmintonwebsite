@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { FaEdit, FaTrash, FaChevronUp, FaChevronDown, FaChevronLeft, FaChevronRight, FaEye } from "react-icons/fa";
+import { FaEdit, FaTrash, FaChevronUp, FaChevronDown, FaChevronLeft, FaChevronRight, FaEye, FaSpinner } from "react-icons/fa";
 
 export interface Column<T> {
   key: string;
@@ -165,8 +165,9 @@ function DataTable<T>({
       )}
       <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow">
         {loading ? (
-          <div className="flex items-center justify-center py-12 font-calibri text-gray-500">
-            Loading…
+          <div className="flex items-center justify-center gap-2 py-12 font-calibri text-gray-500" role="status" aria-live="polite" aria-busy="true">
+            <FaSpinner className="animate-spin text-rose-500 shrink-0" size={18} aria-hidden />
+            <span>Loading…</span>
           </div>
         ) : data.length === 0 ? (
           <div className="py-12 text-center font-calibri text-gray-500">

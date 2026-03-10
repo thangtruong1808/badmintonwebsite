@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { FaSpinner } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
@@ -9,6 +10,7 @@ import {
   FormActions,
 } from "../Shared/inputs";
 import { apiFetch } from "../../../utils/api";
+import { formatDateDDMonthYYYY } from "../../../utils/dateUtils";
 
 export interface UserRow {
   id: string;
@@ -129,7 +131,7 @@ const UsersSection: React.FC = () => {
       { key: "email", label: "Email" },
       { key: "role", label: "Role" },
       { key: "reward_points", label: "Points" },
-      { key: "member_since", label: "Member Since" },
+      { key: "member_since", label: "Member Since", render: (r) => formatDateDDMonthYYYY(r.member_since) },
       {
         key: "status",
         label: "Status",
@@ -149,7 +151,7 @@ const UsersSection: React.FC = () => {
                   disabled={togglingId === r.id}
                   className="rounded px-2 py-1 text-xs font-semibold font-calibri bg-rose-500 text-white hover:bg-rose-600 disabled:opacity-50 transition-colors"
                 >
-                  {togglingId === r.id ? "…" : "Unblock"}
+                  {togglingId === r.id ? <FaSpinner className="animate-spin inline" size={12} aria-hidden /> : "Unblock"}
                 </button>
               </>
             ) : (
@@ -166,7 +168,7 @@ const UsersSection: React.FC = () => {
                   disabled={togglingId === r.id}
                   className="rounded px-2 py-1 text-xs font-semibold font-calibri bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
                 >
-                  {togglingId === r.id ? "…" : "Block"}
+                  {togglingId === r.id ? <FaSpinner className="animate-spin inline" size={12} aria-hidden /> : "Block"}
                 </button>
               </>
             )}
@@ -243,20 +245,17 @@ const UsersSection: React.FC = () => {
           aria-label="Search by name or email"
         />
       </div>
-      {loading ? (
-        <p className="font-calibri text-gray-600">Loading...</p>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={filteredItems}
-          getRowId={(r) => r.id}
-          onEdit={openEdit}
-          onDelete={(r) => setDeleteTarget(r)}
-          emptyMessage="No users yet."
-          pageSize={10}
-          pageSizeOptions={[5, 10, 25, 50]}
-        />
-      )}
+      <DataTable
+        columns={columns}
+        data={filteredItems}
+        loading={loading}
+        getRowId={(r) => r.id}
+        onEdit={openEdit}
+        onDelete={(r) => setDeleteTarget(r)}
+        emptyMessage="No users yet."
+        pageSize={10}
+        pageSizeOptions={[5, 10, 25, 50]}
+      />
       <FormModal
         title="Edit User"
         open={modalOpen}

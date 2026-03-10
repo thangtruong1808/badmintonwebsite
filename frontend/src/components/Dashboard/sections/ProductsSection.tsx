@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { FaPlus, FaImage, FaTimes, FaCloudUploadAlt, FaTrash } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
@@ -11,6 +11,7 @@ import {
   FormActions,
 } from "../Shared/inputs";
 import { apiFetch, API_BASE } from "../../../utils/api";
+import { formatDateDDMonthYYYY } from "../../../utils/dateUtils";
 
 export interface ProductRow {
   id: number;
@@ -32,12 +33,13 @@ const COLUMNS: Column<ProductRow>[] = [
   { key: "price", label: "Price" },
   { key: "original_price", label: "Original", render: (r) => r.original_price ?? "—" },
   { key: "in_stock", label: "In stock", render: (r) => (r.in_stock ? "Yes" : "No") },
-  { key: "created_at", label: "Created", render: (r) => (r.created_at ? r.created_at.slice(0, 10) : "—") },
+  { key: "created_at", label: "Created", render: (r) => formatDateDDMonthYYYY(r.created_at) },
 ];
 
 const ProductsSection: React.FC = () => {
   const [items, setItems] = useState<ProductRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ProductRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProductRow | null>(null);
@@ -75,6 +77,16 @@ const ProductsSection: React.FC = () => {
   useEffect(() => {
     fetchList();
   }, []);
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (r) =>
+        (r.name ?? "").toLowerCase().includes(q) ||
+        (r.category ?? "").toLowerCase().includes(q)
+    );
+  }, [items, searchQuery]);
 
   const openCreate = () => {
     setEditing(null);
@@ -288,28 +300,41 @@ const ProductsSection: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="w-full sm:max-w-xs">
+          <label htmlFor="products-search" className="sr-only">
+            Search by name or category
+          </label>
+          <input
+            id="products-search"
+            type="search"
+            placeholder="Search by name or category"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+            aria-label="Search by name or category"
+          />
+        </div>
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
+          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600 shrink-0"
         >
           <FaPlus size={16} />
           Add Product
         </button>
       </div>
-      {loading ? (
-        <p className="font-calibri text-gray-600">Loading...</p>
-      ) : (
-        <DataTable
-          columns={COLUMNS}
-          data={items}
-          getRowId={(r) => r.id}
-          onEdit={openEdit}
-          onDelete={(r) => setDeleteTarget(r)}
-          emptyMessage="No products yet. Click Add Product to create one."
-        />
-      )}
+      <DataTable
+        columns={COLUMNS}
+        data={filteredItems}
+        loading={loading}
+        getRowId={(r) => r.id}
+        onEdit={openEdit}
+        onDelete={(r) => setDeleteTarget(r)}
+        emptyMessage="No products yet. Click Add Product to create one."
+        pageSize={10}
+        pageSizeOptions={[5, 10, 25, 50]}
+      />
       <FormModal
         title={editing ? "Edit Product" : "Add Product"}
         open={modalOpen}

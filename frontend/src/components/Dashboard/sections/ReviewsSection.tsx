@@ -11,6 +11,7 @@ import {
   FormActions,
 } from "../Shared/inputs";
 import { apiFetch } from "../../../utils/api";
+import { formatDateDDMonthYYYY } from "../../../utils/dateUtils";
 
 export interface ReviewRow {
   id: number;
@@ -42,10 +43,10 @@ const COLUMNS: Column<ReviewRow>[] = [
   { key: "id", label: "ID" },
   { key: "name", label: "Name" },
   { key: "rating", label: "Rating" },
-  { key: "review_date", label: "Date" },
+  { key: "review_date", label: "Date", render: (r) => formatDateDDMonthYYYY(r.review_date) },
   { key: "status", label: "Status" },
   { key: "is_verified", label: "Verified", render: (r) => (r.is_verified ? "Yes" : "No") },
-  { key: "created_at", label: "Created", render: (r) => (r.created_at ? r.created_at.slice(0, 10) : "—") },
+  { key: "created_at", label: "Created", render: (r) => formatDateDDMonthYYYY(r.created_at) },
 ];
 
 const ReviewsSection: React.FC = () => {

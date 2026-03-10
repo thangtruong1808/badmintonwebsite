@@ -30,21 +30,18 @@ export const PhotosTabPanel: React.FC<PhotosTabProps> = ({
         Add Photo
       </button>
     </div>
-    {loading ? (
-      <p className="font-calibri text-gray-600">Loading...</p>
-    ) : (
-      <DataTable
-        columns={PHOTO_COLUMNS}
-        data={photos}
-        getRowId={(r) => r.id}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        emptyMessage="No photos yet. Click Add Photo to create one."
-        sortable
-        pageSize={10}
-        pageSizeOptions={[5, 10, 25, 50]}
-      />
-    )}
+    <DataTable
+      columns={PHOTO_COLUMNS}
+      data={photos}
+      loading={loading}
+      getRowId={(r) => r.id}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      emptyMessage="No photos yet. Click Add Photo to create one."
+      sortable
+      pageSize={10}
+      pageSizeOptions={[5, 10, 25, 50]}
+    />
   </>
 );
 
@@ -74,20 +71,17 @@ export const VideosTabPanel: React.FC<VideosTabProps> = ({
         Add Video
       </button>
     </div>
-    {loading ? (
-      <p className="font-calibri text-gray-600">Loading...</p>
-    ) : (
-      <DataTable
-        columns={VIDEO_COLUMNS}
-        data={videos}
-        getRowId={(r) => r.id}
-        onEdit={onEdit}
-        onDelete={onDelete}
-        emptyMessage="No videos yet. Click Add Video to create one."
-        sortable
-        pageSize={10}
-        pageSizeOptions={[5, 10, 25, 50]}
-      />
-    )}
+    <DataTable
+      columns={VIDEO_COLUMNS}
+      data={videos}
+      loading={loading}
+      getRowId={(r) => r.id}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      emptyMessage="No videos yet. Click Add Video to create one."
+      sortable
+      pageSize={10}
+      pageSizeOptions={[5, 10, 25, 50]}
+    />
   </>
 );

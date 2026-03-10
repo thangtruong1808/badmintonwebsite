@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaSpinner, FaExternalLinkAlt, FaSearch, FaFilter, FaEye, FaTimes } from "react-icons/fa";
+import { FaExternalLinkAlt, FaSearch, FaFilter, FaEye, FaTimes } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import {
@@ -7,6 +7,7 @@ import {
   FormActions,
 } from "../Shared/inputs";
 import { apiFetch } from "../../../utils/api";
+import { formatDateDDMonthYYYY } from "../../../utils/dateUtils";
 
 interface OrderItem {
   id: string;
@@ -100,11 +101,9 @@ const COLUMNS: Column<OrderRow>[] = [
     ) : <span className="text-gray-400">—</span>
   )},
   { key: "created_at", label: "Date", render: (r) => (
-    r.created_at ? (
-      <span className="text-xs text-gray-600">
-        {new Date(r.created_at).toLocaleDateString()}
-      </span>
-    ) : "—"
+    <span className="text-xs text-gray-600">
+      {formatDateDDMonthYYYY(r.created_at)}
+    </span>
   )},
 ];
 
@@ -180,23 +179,16 @@ const OrdersSection: React.FC = () => {
 
   const filteredItems = items.filter((item) => {
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    const q = searchQuery.trim().toLowerCase();
     const matchesSearch =
-      !searchQuery ||
-      item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.user_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.shipping_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
-      (item.shipping_email?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      !q ||
+      item.id.toLowerCase().includes(q) ||
+      item.user_id.toLowerCase().includes(q) ||
+      (item.shipping_name?.toLowerCase().includes(q) ?? false) ||
+      (item.shipping_email?.toLowerCase().includes(q) ?? false) ||
+      (item.status ?? "").toLowerCase().includes(q);
     return matchesStatus && matchesSearch;
   });
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <FaSpinner className="animate-spin text-rose-500 mr-2" size={20} />
-        <span className="text-gray-600 font-calibri">Loading orders...</span>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -250,12 +242,13 @@ const OrdersSection: React.FC = () => {
       <DataTable
         columns={COLUMNS}
         data={filteredItems}
+        loading={loading}
         getRowId={(r) => r.id}
         onEdit={openEdit}
         onView={openDetail}
         emptyMessage="No orders found."
         pageSize={10}
-        pageSizeOptions={[10, 25, 50, 100]}
+        pageSizeOptions={[5, 10, 25, 50]}
       />
 
       {/* Update Status Modal */}
@@ -339,7 +332,7 @@ const OrdersSection: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-gray-500">Date</p>
-                    <p>{viewingOrder.created_at ? new Date(viewingOrder.created_at).toLocaleString() : "—"}</p>
+                    <p>{formatDateDDMonthYYYY(viewingOrder.created_at)}</p>
                   </div>
                 </div>
 

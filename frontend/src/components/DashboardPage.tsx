@@ -26,6 +26,8 @@ import {
   FaShoppingBag,
   FaSpinner,
   FaMedal,
+  FaChevronDown,
+  FaChevronRight,
 } from "react-icons/fa";
 import ChibiLogo from "../assets/ChibiLogo.png";
 import { getCurrentUser } from "../utils/mockAuth";
@@ -62,6 +64,7 @@ interface DashboardStats {
   eventsCount: number;
   registrationsCount: number;
   rewardTransactionsCount: number;
+  dbStatus?: { connected: boolean; message?: string };
 }
 
 // Sidebar sections aligned to schema (users, events, registrations, reward_point_transactions, products, gallery, news, reviews, newsletter, contact_messages, service_requests, payments, invoices)
@@ -121,6 +124,7 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dbStatus, setDbStatus] = useState<{ connected: boolean; message?: string } | null>(null);
+  const [paymentStatsExpanded, setPaymentStatsExpanded] = useState(false);
 
   useEffect(() => {
     document.title = "Chibi | Admin Dashboard";
@@ -130,11 +134,15 @@ const DashboardPage = () => {
     const fetchStats = async () => {
       setLoading(true);
       setError(null);
+      setDbStatus(null);
       try {
         const res = await apiFetch("/api/dashboard/stats");
         if (res.ok) {
           const data = await res.json();
           setStats(data);
+          if (data.dbStatus) {
+            setDbStatus(data.dbStatus);
+          }
           return;
         }
         setError("Could not load dashboard stats.");
@@ -148,20 +156,6 @@ const DashboardPage = () => {
   }, []);
 
   const user = getCurrentUser();
-
-  useEffect(() => {
-    if (!user) return;
-    const checkDb = async () => {
-      try {
-        const res = await apiFetch("/api/dashboard/db-test");
-        const data = await res.json();
-        setDbStatus({ connected: data.connected === true, message: data.message });
-      } catch {
-        setDbStatus({ connected: false, message: "Could not reach API" });
-      }
-    };
-    checkDb();
-  }, [user]);
 
   const toggleSidebar = () => setSidebarOpen((o) => !o);
   const openMobileSidebar = () => setMobileSidebarOpen(true);
@@ -332,8 +326,8 @@ const DashboardPage = () => {
                 </div>
               )}
               {loading && (
-                <div className="flex items-center justify-center gap-3 py-12">
-                  <FaSpinner className="animate-spin text-rose-500" size={24} />
+                <div className="flex items-center justify-center gap-3 py-12" role="status" aria-live="polite" aria-busy="true">
+                  <FaSpinner className="animate-spin text-rose-500" size={24} aria-hidden />
                   <p className="font-calibri text-gray-600">Loading stats…</p>
                 </div>
               )}
@@ -376,7 +370,25 @@ const DashboardPage = () => {
                       </p>
                     </div>
                   </div>
-                  <PaymentStatsSection />
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentStatsExpanded((prev) => !prev)}
+                      className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-white hover:bg-gray-50 font-calibri text-left font-semibold text-gray-800 transition-colors"
+                    >
+                      <span>Payment Statistics</span>
+                      {paymentStatsExpanded ? (
+                        <FaChevronDown className="shrink-0 text-gray-500" size={16} />
+                      ) : (
+                        <FaChevronRight className="shrink-0 text-gray-500" size={16} />
+                      )}
+                    </button>
+                    {paymentStatsExpanded && (
+                      <div className="border-t border-gray-200 p-4 bg-gray-50">
+                        <PaymentStatsSection />
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </div>

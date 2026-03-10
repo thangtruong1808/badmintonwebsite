@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { formatDateDDMonthYYYY } from "../../../utils/dateUtils";
 import DataTable, { type Column } from "../Shared/DataTable";
 import { apiFetch } from "../../../utils/api";
 
@@ -35,13 +36,14 @@ const COLUMNS: Column<InvoiceRow>[] = [
   { key: "status", label: "Status" },
   { key: "total", label: "Total" },
   { key: "currency", label: "Currency" },
-  { key: "due_date", label: "Due", render: (r) => r.due_date ?? "—" },
-  { key: "paid_at", label: "Paid at", render: (r) => (r.paid_at ? r.paid_at.slice(0, 10) : "—") },
+  { key: "due_date", label: "Due", render: (r) => formatDateDDMonthYYYY(r.due_date) },
+  { key: "paid_at", label: "Paid at", render: (r) => formatDateDDMonthYYYY(r.paid_at) },
 ];
 
 const InvoicesSection: React.FC = () => {
   const [items, setItems] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detail, setDetail] = useState<InvoiceRow | null>(null);
@@ -72,6 +74,17 @@ const InvoicesSection: React.FC = () => {
     fetchList();
   }, []);
 
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (r) =>
+        (r.invoice_number ?? "").toLowerCase().includes(q) ||
+        (r.user_id ?? "").toLowerCase().includes(q) ||
+        (r.status ?? "").toLowerCase().includes(q)
+    );
+  }, [items, searchQuery]);
+
   const openDetail = async (row: InvoiceRow) => {
     setDetail(row);
     setDetailOpen(true);
@@ -91,19 +104,33 @@ const InvoicesSection: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {loading && <p className="text-gray-600 font-calibri">Loading invoices…</p>}
+      <div className="w-full sm:max-w-xs">
+        <label htmlFor="invoices-search" className="sr-only">
+          Search by invoice number, user ID or status
+        </label>
+        <input
+          id="invoices-search"
+          type="search"
+          placeholder="Search by invoice #, user ID or status"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+          aria-label="Search by invoice number, user ID or status"
+        />
+      </div>
       {error && (
         <p className="text-red-600 font-calibri">{error}</p>
       )}
-      {!loading && (
-        <DataTable
-          columns={COLUMNS}
-          data={items}
-          getRowId={(r) => r.id}
-          onEdit={openDetail}
-          emptyMessage="No invoices yet."
-        />
-      )}
+      <DataTable
+        columns={COLUMNS}
+        data={filteredItems}
+        loading={loading}
+        getRowId={(r) => r.id}
+        onEdit={openDetail}
+        emptyMessage="No invoices yet."
+        pageSize={10}
+        pageSizeOptions={[5, 10, 25, 50]}
+      />
       {detailOpen && detail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
@@ -139,9 +166,9 @@ const InvoicesSection: React.FC = () => {
                   <span className="text-gray-600">Total</span>
                   <span>{detail.total} {detail.currency}</span>
                   <span className="text-gray-600">Due date</span>
-                  <span>{detail.due_date ?? "—"}</span>
+                  <span>{formatDateDDMonthYYYY(detail.due_date)}</span>
                   <span className="text-gray-600">Paid at</span>
-                  <span>{detail.paid_at ?? "—"}</span>
+                  <span>{formatDateDDMonthYYYY(detail.paid_at)}</span>
                   <span className="text-gray-600">PDF URL</span>
                   <span className="break-all">{detail.pdf_url ?? "—"}</span>
                 </div>

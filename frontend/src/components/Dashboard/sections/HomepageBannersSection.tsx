@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
@@ -43,6 +43,7 @@ const COLUMNS: Column<HomepageBannerRow>[] = [
 const HomepageBannersSection: React.FC = () => {
   const [items, setItems] = useState<HomepageBannerRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<HomepageBannerRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<HomepageBannerRow | null>(null);
@@ -77,6 +78,16 @@ const HomepageBannersSection: React.FC = () => {
   useEffect(() => {
     fetchList();
   }, []);
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (r) =>
+        (r.title ?? "").toLowerCase().includes(q) ||
+        (r.alt_text ?? "").toLowerCase().includes(q)
+    );
+  }, [items, searchQuery]);
 
   const openCreate = () => {
     setEditing(null);
@@ -212,31 +223,42 @@ const HomepageBannersSection: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="w-full sm:max-w-xs">
+          <label htmlFor="banners-search" className="sr-only">
+            Search by title or alt text
+          </label>
+          <input
+            id="banners-search"
+            type="search"
+            placeholder="Search by title or alt text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+            aria-label="Search by title or alt text"
+          />
+        </div>
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
+          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600 shrink-0"
         >
           <FaPlus size={16} />
           Add Banner
         </button>
       </div>
-      {loading ? (
-        <p className="font-calibri text-gray-600">Loading...</p>
-      ) : (
-        <DataTable
-          columns={COLUMNS}
-          data={items}
-          getRowId={(r) => r.id}
-          onEdit={openEdit}
-          onDelete={(r) => setDeleteTarget(r)}
-          emptyMessage="No homepage banners yet. Images are resized to 1920×600 for the carousel. Add one to get started."
-          sortable
-          pageSize={10}
-          pageSizeOptions={[5, 10, 25]}
-        />
-      )}
+      <DataTable
+        columns={COLUMNS}
+        data={filteredItems}
+        loading={loading}
+        getRowId={(r) => r.id}
+        onEdit={openEdit}
+        onDelete={(r) => setDeleteTarget(r)}
+        emptyMessage="No homepage banners yet. Images are resized to 1920×600 for the carousel. Add one to get started."
+        sortable
+        pageSize={10}
+        pageSizeOptions={[5, 10, 25, 50]}
+      />
 
       <FormModal
         open={modalOpen}

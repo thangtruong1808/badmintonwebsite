@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { FaPlus, FaUser } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
@@ -55,6 +55,7 @@ const COLUMNS: Column<KeyPersonRow>[] = [
 const KeyPersonsSection: React.FC = () => {
   const [items, setItems] = useState<KeyPersonRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<KeyPersonRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<KeyPersonRow | null>(null);
@@ -90,6 +91,18 @@ const KeyPersonsSection: React.FC = () => {
   useEffect(() => {
     fetchList();
   }, []);
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return items;
+    const fullName = (r: KeyPersonRow) =>
+      `${r.first_name ?? ""} ${r.last_name ?? ""}`.trim();
+    return items.filter(
+      (r) =>
+        fullName(r).toLowerCase().includes(q) ||
+        (r.role ?? "").toLowerCase().includes(q)
+    );
+  }, [items, searchQuery]);
 
   const openCreate = () => {
     setEditing(null);
@@ -234,31 +247,42 @@ const KeyPersonsSection: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="w-full sm:max-w-xs">
+          <label htmlFor="key-persons-search" className="sr-only">
+            Search by name or role
+          </label>
+          <input
+            id="key-persons-search"
+            type="search"
+            placeholder="Search by name or role"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+            aria-label="Search by name or role"
+          />
+        </div>
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600"
+          className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-calibri text-white hover:bg-rose-600 shrink-0"
         >
           <FaPlus size={16} />
           Add Key Person
         </button>
       </div>
-      {loading ? (
-        <p className="font-calibri text-gray-600">Loading...</p>
-      ) : (
-        <DataTable
-          columns={COLUMNS}
-          data={items}
-          getRowId={(r) => r.id}
-          onEdit={openEdit}
-          onDelete={(r) => setDeleteTarget(r)}
-          emptyMessage="No key persons yet. Add team or leadership entries to show on the About Us page."
-          sortable
-          pageSize={10}
-          pageSizeOptions={[5, 10, 25]}
-        />
-      )}
+      <DataTable
+        columns={COLUMNS}
+        data={filteredItems}
+        loading={loading}
+        getRowId={(r) => r.id}
+        onEdit={openEdit}
+        onDelete={(r) => setDeleteTarget(r)}
+        emptyMessage="No key persons yet. Add team or leadership entries to show on the About Us page."
+        sortable
+        pageSize={10}
+        pageSizeOptions={[5, 10, 25, 50]}
+      />
 
       <FormModal
         open={modalOpen}

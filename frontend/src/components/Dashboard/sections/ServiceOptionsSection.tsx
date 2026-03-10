@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { FaPlus, FaCloudUploadAlt } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
@@ -86,6 +86,7 @@ const TABS: { id: TabId; label: string }[] = [
 
 const ServiceOptionsSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>("flyer");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [flyerUrl, setFlyerUrl] = useState<string | null>(null);
   const [flyerFormUrl, setFlyerFormUrl] = useState("");
@@ -234,6 +235,42 @@ const ServiceOptionsSection: React.FC = () => {
   useEffect(() => {
     fetchAll();
   }, []);
+
+  const filteredStrings = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return strings;
+    return strings.filter(
+      (r) =>
+        (r.name ?? "").toLowerCase().includes(q) ||
+        (r.colours?.some((c) => (c.colour ?? "").toLowerCase().includes(q)) ?? false)
+    );
+  }, [strings, searchQuery]);
+
+  const filteredTensions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return tensions;
+    return tensions.filter((r) => (r.label ?? "").toLowerCase().includes(q));
+  }, [tensions, searchQuery]);
+
+  const filteredStencils = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return stencils;
+    return stencils.filter(
+      (r) =>
+        (r.label ?? "").toLowerCase().includes(q) ||
+        (r.value ?? "").toLowerCase().includes(q)
+    );
+  }, [stencils, searchQuery]);
+
+  const filteredGrips = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return grips;
+    return grips.filter(
+      (r) =>
+        (r.label ?? "").toLowerCase().includes(q) ||
+        (r.value ?? "").toLowerCase().includes(q)
+    );
+  }, [grips, searchQuery]);
 
   const openStringCreate = () => {
     setEditingString(null);
@@ -536,7 +573,21 @@ const ServiceOptionsSection: React.FC = () => {
           ))}
         </div>
         {activeTab !== "flyer" && (
-          <div className="flex justify-end">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1 sm:justify-end">
+            <div className="w-full sm:max-w-xs">
+              <label htmlFor="service-opts-search" className="sr-only">
+                Search
+              </label>
+              <input
+                id="service-opts-search"
+                type="search"
+                placeholder={`Search ${activeTab}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+                aria-label={`Search ${activeTab}`}
+              />
+            </div>
             <button
               type="button"
               onClick={() => {
@@ -554,7 +605,7 @@ const ServiceOptionsSection: React.FC = () => {
         )}
       </div>
 
-      {loading ? (
+      {activeTab === "flyer" && loading ? (
         <p className="font-calibri text-gray-600">Loading...</p>
       ) : (
         <>
@@ -621,7 +672,8 @@ const ServiceOptionsSection: React.FC = () => {
           {activeTab === "strings" && (
             <DataTable
               columns={STRING_COLUMNS}
-              data={strings}
+              data={filteredStrings}
+              loading={loading}
               getRowId={(r) => r.id}
               onEdit={openStringEdit}
               onDelete={(r) => setStringDeleteTarget(r)}
@@ -634,7 +686,8 @@ const ServiceOptionsSection: React.FC = () => {
           {activeTab === "tensions" && (
             <DataTable
               columns={TENSION_COLUMNS}
-              data={tensions}
+              data={filteredTensions}
+              loading={loading}
               getRowId={(r) => r.id}
               onEdit={openTensionEdit}
               onDelete={(r) => setTensionDeleteTarget(r)}
@@ -647,7 +700,8 @@ const ServiceOptionsSection: React.FC = () => {
           {activeTab === "stencils" && (
             <DataTable
               columns={STENCIL_COLUMNS}
-              data={stencils}
+              data={filteredStencils}
+              loading={loading}
               getRowId={(r) => r.id}
               onEdit={openStencilEdit}
               onDelete={(r) => setStencilDeleteTarget(r)}
@@ -660,7 +714,8 @@ const ServiceOptionsSection: React.FC = () => {
           {activeTab === "grips" && (
             <DataTable
               columns={GRIP_COLUMNS}
-              data={grips}
+              data={filteredGrips}
+              loading={loading}
               getRowId={(r) => r.id}
               onEdit={openGripEdit}
               onDelete={(r) => setGripDeleteTarget(r)}

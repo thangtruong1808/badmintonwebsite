@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { FaPlus, FaSpinner } from "react-icons/fa";
+import React, { useState, useEffect, useMemo } from "react";
+import { FaPlus } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import { apiFetch } from "../../../utils/api";
+import { formatDateDDMonthYYYY } from "../../../utils/dateUtils";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import {
@@ -45,15 +46,6 @@ const STATUS_OPTIONS = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-AU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-};
-
 const EVENT_COLUMNS: Column<VetsEventRow>[] = [
   {
     key: "seq",
@@ -65,7 +57,7 @@ const EVENT_COLUMNS: Column<VetsEventRow>[] = [
   {
     key: "eventDate",
     label: "Date",
-    render: (row) => formatDate(row.eventDate),
+    render: (row) => formatDateDDMonthYYYY(row.eventDate),
   },
   {
     key: "isActive",
@@ -85,7 +77,7 @@ const EVENT_COLUMNS: Column<VetsEventRow>[] = [
   {
     key: "createdAt",
     label: "Created",
-    render: (row) => formatDate(row.createdAt),
+    render: (row) => formatDateDDMonthYYYY(row.createdAt),
   },
 ];
 
@@ -136,12 +128,14 @@ const INTEREST_COLUMNS: Column<VetsInterestRow>[] = [
   {
     key: "createdAt",
     label: "Signed Up",
-    render: (row) => formatDate(row.createdAt),
+    render: (row) => formatDateDDMonthYYYY(row.createdAt),
   },
 ];
 
 const VetsSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("events");
+  const [eventsSearchQuery, setEventsSearchQuery] = useState("");
+  const [interestsSearchQuery, setInterestsSearchQuery] = useState("");
   const [events, setEvents] = useState<VetsEventRow[]>([]);
   const [interests, setInterests] = useState<VetsInterestRow[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
@@ -210,6 +204,29 @@ const VetsSection: React.FC = () => {
     fetchEvents();
     fetchInterests();
   }, []);
+
+  const filteredEvents = useMemo(() => {
+    const q = eventsSearchQuery.trim().toLowerCase();
+    if (!q) return events;
+    return events.filter(
+      (r) =>
+        (r.title ?? "").toLowerCase().includes(q) ||
+        (r.location ?? "").toLowerCase().includes(q) ||
+        (typeof r.eventDate === "string" ? r.eventDate : "").toLowerCase().includes(q)
+    );
+  }, [events, eventsSearchQuery]);
+
+  const filteredInterests = useMemo(() => {
+    const q = interestsSearchQuery.trim().toLowerCase();
+    if (!q) return interests;
+    const fullName = (r: VetsInterestRow) =>
+      `${r.firstName ?? ""} ${r.lastName ?? ""}`.trim();
+    return interests.filter(
+      (r) =>
+        fullName(r).toLowerCase().includes(q) ||
+        (r.email ?? "").toLowerCase().includes(q)
+    );
+  }, [interests, interestsSearchQuery]);
 
   const openCreateEvent = () => {
     setEditingEvent(null);
@@ -399,47 +416,63 @@ const VetsSection: React.FC = () => {
 
       {activeTab === "events" && (
         <>
-          {loadingEvents ? (
-            <div className="flex items-center gap-2 py-8">
-              <FaSpinner className="animate-spin text-rose-500" size={20} />
-              <span className="font-calibri text-gray-600">Loading events...</span>
-            </div>
-          ) : (
-            <DataTable
-              columns={EVENT_COLUMNS}
-              data={events}
-              getRowId={(r) => r.id}
-              onEdit={openEditEvent}
-              onDelete={(r) => setDeleteEventTarget(r)}
-              emptyMessage="No VETS events yet. Click 'Add VETS Event' to create one."
-              sortable
-              pageSize={10}
-              pageSizeOptions={[5, 10, 25, 50]}
+          <div className="w-full sm:max-w-xs">
+            <label htmlFor="vets-events-search" className="sr-only">
+              Search events by title, location or date
+            </label>
+            <input
+              id="vets-events-search"
+              type="search"
+              placeholder="Search by title, location or date"
+              value={eventsSearchQuery}
+              onChange={(e) => setEventsSearchQuery(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+              aria-label="Search events by title, location or date"
             />
-          )}
+          </div>
+          <DataTable
+            columns={EVENT_COLUMNS}
+            data={filteredEvents}
+            loading={loadingEvents}
+            getRowId={(r) => r.id}
+            onEdit={openEditEvent}
+            onDelete={(r) => setDeleteEventTarget(r)}
+            emptyMessage="No VETS events yet. Click 'Add VETS Event' to create one."
+            sortable
+            pageSize={10}
+            pageSizeOptions={[5, 10, 25, 50]}
+          />
         </>
       )}
 
       {activeTab === "interests" && (
         <>
-          {loadingInterests ? (
-            <div className="flex items-center gap-2 py-8">
-              <FaSpinner className="animate-spin text-rose-500" size={20} />
-              <span className="font-calibri text-gray-600">Loading interests...</span>
-            </div>
-          ) : (
-            <DataTable
-              columns={INTEREST_COLUMNS}
-              data={interests}
-              getRowId={(r) => r.id}
-              onEdit={openEditInterest}
-              onDelete={(r) => setDeleteInterestTarget(r)}
-              emptyMessage="No interest sign-ups yet."
-              sortable
-              pageSize={10}
-              pageSizeOptions={[5, 10, 25, 50]}
+          <div className="w-full sm:max-w-xs">
+            <label htmlFor="vets-interests-search" className="sr-only">
+              Search interests by name or email
+            </label>
+            <input
+              id="vets-interests-search"
+              type="search"
+              placeholder="Search by name or email"
+              value={interestsSearchQuery}
+              onChange={(e) => setInterestsSearchQuery(e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+              aria-label="Search interests by name or email"
             />
-          )}
+          </div>
+          <DataTable
+            columns={INTEREST_COLUMNS}
+            data={filteredInterests}
+            loading={loadingInterests}
+            getRowId={(r) => r.id}
+            onEdit={openEditInterest}
+            onDelete={(r) => setDeleteInterestTarget(r)}
+            emptyMessage="No interest sign-ups yet."
+            sortable
+            pageSize={10}
+            pageSizeOptions={[5, 10, 25, 50]}
+          />
         </>
       )}
 
@@ -549,7 +582,7 @@ const VetsSection: React.FC = () => {
                   <ul className="text-sm text-gray-600 list-disc list-inside">
                     {editingInterest.events.map((ev) => (
                       <li key={ev.id}>
-                        {ev.title} - {ev.location} ({formatDate(ev.eventDate)})
+                        {ev.title} - {ev.location} ({formatDateDDMonthYYYY(ev.eventDate)})
                       </li>
                     ))}
                   </ul>

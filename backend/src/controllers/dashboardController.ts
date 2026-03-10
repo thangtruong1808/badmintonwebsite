@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import pool, { testConnection } from '../db/connection.js';
 import { getAllUsersCount, getAllUsers, updateUser } from '../services/userService.js';
-import { getAllEvents } from '../services/eventService.js';
+import { getEventsCount } from '../services/eventService.js';
 import { getRegistrationsCount, getAllRegistrations } from '../services/registrationService.js';
 import { getGuestsByRegistrationId, updateGuestsBulkAdmin } from '../services/registrationGuestService.js';
 import { getRewardTransactionsCount, getAllRewardTransactions } from '../services/rewardService.js';
@@ -33,18 +33,24 @@ export const testDbConnection = async (req: Request, res: Response): Promise<voi
 };
 
 export const getDashboardStats = async (req: Request, res: Response): Promise<void> => {
-  const [usersCount, events, registrationsCount, rewardTransactionsCount] = await Promise.all([
+  const [usersCount, eventsCount, registrationsCount, rewardTransactionsCount, dbResult] = await Promise.all([
     getAllUsersCount(),
-    getAllEvents(),
+    getEventsCount(),
     getRegistrationsCount(),
     getRewardTransactionsCount(),
+    testConnection(),
   ]);
+
+  const dbStatus = dbResult.ok
+    ? { connected: true, message: 'Database connection OK' }
+    : { connected: false, message: dbResult.message };
 
   res.json({
     usersCount,
-    eventsCount: events.length,
+    eventsCount,
     registrationsCount,
     rewardTransactionsCount,
+    dbStatus,
   });
 };
 
@@ -908,11 +914,11 @@ export const syncStripePaymentTypes = async (
       throw createError('Stripe is not configured', 500);
     }
 
-    // Get all payments that have a stripe_payment_intent_id but no stripe_payment_method_type
+    // Get payments that need sync: no type yet, or type='card' (may be google_pay/apple_pay/link)
     const [rows] = await pool.execute<(RowDataPacket & { id: string; stripe_payment_intent_id: string })[]>(
       `SELECT id, stripe_payment_intent_id FROM payments 
        WHERE stripe_payment_intent_id IS NOT NULL 
-       AND (stripe_payment_method_type IS NULL OR stripe_payment_method_type = '')
+       AND (stripe_payment_method_type IS NULL OR stripe_payment_method_type = '' OR stripe_payment_method_type = 'card')
        AND payment_method = 'stripe'`
     );
 
@@ -931,9 +937,12 @@ export const syncStripePaymentTypes = async (
           : paymentIntent.payment_method?.id;
 
         if (pmId) {
-          // Retrieve the payment method to get its type
+          // Retrieve the payment method to get its type (incl. card wallet: google_pay, apple_pay, link)
           const pm = await stripe.paymentMethods.retrieve(pmId);
-          const methodType = pm.type || null;
+          const walletType = pm.type === 'card' && pm.card?.wallet?.type
+            ? (pm.card.wallet as { type?: string }).type
+            : null;
+          const methodType = (walletType as string) || pm.type || null;
 
           if (methodType) {
             // Update the database with the payment method type

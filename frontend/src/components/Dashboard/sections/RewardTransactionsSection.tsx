@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import DataTable, { type Column } from "../Shared/DataTable";
 import { apiFetch } from "../../../utils/api";
+import { formatDateDDMonthYYYY } from "../../../utils/dateUtils";
 import FormModal from "../Shared/FormModal";
 import ConfirmDialog from "../Shared/ConfirmDialog";
 import {
@@ -43,13 +44,14 @@ const COLUMNS: Column<RewardTransactionRow>[] = [
   { key: "event_title", label: "Event", render: (r) => r.event_title ?? "—" },
   { key: "points", label: "Points" },
   { key: "type", label: "Type" },
-  { key: "date", label: "Date", render: (r) => r.date.slice(0, 10) },
+  { key: "date", label: "Date", render: (r) => formatDateDDMonthYYYY(r.date) },
   { key: "status", label: "Status" },
 ];
 
 const RewardTransactionsSection: React.FC = () => {
   const [items, setItems] = useState<RewardTransactionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<RewardTransactionRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<RewardTransactionRow | null>(null);
@@ -83,6 +85,18 @@ const RewardTransactionsSection: React.FC = () => {
     fetchList();
   }, []);
 
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (r) =>
+        (r.user_id ?? "").toLowerCase().includes(q) ||
+        (r.event_title ?? "").toLowerCase().includes(q) ||
+        (r.type ?? "").toLowerCase().includes(q) ||
+        (r.status ?? "").toLowerCase().includes(q)
+    );
+  }, [items, searchQuery]);
+
   const openEdit = (row: RewardTransactionRow) => {
     setEditing(row);
     setForm({
@@ -109,18 +123,31 @@ const RewardTransactionsSection: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {loading ? (
-        <p className="font-calibri text-gray-600">Loading...</p>
-      ) : (
-        <DataTable
-          columns={COLUMNS}
-          data={items}
-          getRowId={(r) => r.id}
-          onEdit={openEdit}
-          onDelete={(r) => setDeleteTarget(r)}
-          emptyMessage="No reward transactions yet."
+      <div className="w-full sm:max-w-xs">
+        <label htmlFor="reward-transactions-search" className="sr-only">
+          Search by user ID, event title, type or status
+        </label>
+        <input
+          id="reward-transactions-search"
+          type="search"
+          placeholder="Search by user, event, type or status"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+          aria-label="Search by user ID, event title, type or status"
         />
-      )}
+      </div>
+      <DataTable
+        columns={COLUMNS}
+        data={filteredItems}
+        loading={loading}
+        getRowId={(r) => r.id}
+        onEdit={openEdit}
+        onDelete={(r) => setDeleteTarget(r)}
+        emptyMessage="No reward transactions yet."
+        pageSize={10}
+        pageSizeOptions={[5, 10, 25, 50]}
+      />
       <FormModal
         title={editing ? "Edit Reward Transaction" : "Add Reward Transaction"}
         open={modalOpen}

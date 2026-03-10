@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaSpinner, FaExternalLinkAlt, FaSearch, FaFilter, FaTrash, FaCheckCircle } from "react-icons/fa";
+import { FaSpinner, FaExternalLinkAlt, FaFilter, FaTrash, FaCheckCircle } from "react-icons/fa";
 import DataTable, { type Column } from "../Shared/DataTable";
 import FormModal from "../Shared/FormModal";
 import {
@@ -7,6 +7,7 @@ import {
   FormActions,
 } from "../Shared/inputs";
 import { apiFetch } from "../../../utils/api";
+import { formatDateDDMonthYYYY } from "../../../utils/dateUtils";
 
 export interface PaymentRow {
   id: string;
@@ -114,11 +115,9 @@ const COLUMNS: Column<PaymentRow>[] = [
     ) : <span className="text-gray-400">—</span>
   )},
   { key: "created_at", label: "Created", render: (r) => (
-    r.created_at ? (
-      <span className="text-xs text-gray-600">
-        {new Date(r.created_at).toLocaleDateString()}
-      </span>
-    ) : "—"
+    <span className="text-xs text-gray-600">
+      {formatDateDDMonthYYYY(r.created_at)}
+    </span>
   )},
 ];
 
@@ -256,22 +255,14 @@ const PaymentsSection: React.FC = () => {
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
     const fullName = [item.user_first_name, item.user_last_name].filter(Boolean).join(" ").toLowerCase();
     const matchesSearch =
-      !searchQuery ||
-      item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.user_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      fullName.includes(searchQuery.toLowerCase()) ||
-      (item.stripe_payment_intent_id?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      !searchQuery.trim() ||
+      item.id.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+      item.user_id.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+      (item.status ?? "").toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+      fullName.includes(searchQuery.trim().toLowerCase()) ||
+      (item.stripe_payment_intent_id?.toLowerCase().includes(searchQuery.trim().toLowerCase()) ?? false);
     return matchesStatus && matchesSearch;
   });
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <FaSpinner className="animate-spin text-rose-500 mr-2" size={20} />
-        <span className="text-gray-600 font-calibri">Loading payments...</span>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -293,13 +284,12 @@ const PaymentsSection: React.FC = () => {
       <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
         <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full sm:w-auto">
           <div className="relative flex-1 sm:max-w-xs">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
             <input
-              type="text"
+              type="search"
               placeholder="Search by name, ID, or Stripe ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm"
             />
           </div>
           <div className="relative sm:w-40">
@@ -334,11 +324,12 @@ const PaymentsSection: React.FC = () => {
       <DataTable
         columns={COLUMNS}
         data={filteredItems}
+        loading={loading}
         getRowId={(r) => r.id}
         onEdit={openEdit}
         emptyMessage="No payments found."
         pageSize={10}
-        pageSizeOptions={[10, 25, 50, 100]}
+        pageSizeOptions={[5, 10, 25, 50]}
       />
 
       <FormModal

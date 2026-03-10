@@ -137,17 +137,21 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session):
       ? session.payment_intent
       : session.payment_intent?.id || null;
 
-  // Extract the payment method type from the session
+  // Extract the payment method type from the session (incl. card wallet: google_pay, apple_pay, link)
   let paymentMethodType: string | null = null;
   try {
     if (stripe && paymentIntentId) {
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      const pmId = typeof paymentIntent.payment_method === 'string' 
-        ? paymentIntent.payment_method 
+      const pmId = typeof paymentIntent.payment_method === 'string'
+        ? paymentIntent.payment_method
         : paymentIntent.payment_method?.id;
       if (pmId) {
         const pm = await stripe.paymentMethods.retrieve(pmId);
-        paymentMethodType = pm.type || null;
+        // Use card.wallet.type when available (google_pay, apple_pay, link) for correct breakdown
+        const walletType = pm.type === 'card' && pm.card?.wallet?.type
+          ? (pm.card.wallet as { type?: string }).type
+          : null;
+        paymentMethodType = (walletType as string) || pm.type || null;
       }
     }
   } catch (err) {

@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { FaSpinner, FaDollarSign, FaCreditCard, FaExclamationTriangle, FaUndo, FaChartLine, FaSync, FaCalendarAlt } from "react-icons/fa";
+import { FaSpinner, FaDollarSign, FaCreditCard, FaExclamationTriangle, FaUndo, FaChartLine, FaCalendarAlt } from "react-icons/fa";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
@@ -13,6 +9,8 @@ import {
   Cell,
   BarChart,
   Bar,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { apiFetch } from "../../../utils/api";
 
@@ -35,8 +33,6 @@ interface PaymentStats {
     failed: number;
     refunded: number;
   };
-  revenueOverTime: Array<{ date: string; amount: number }>;
-  paymentCountOverTime: Array<{ date: string; count: number }>;
   disputesByStatus: Record<string, number>;
   disputesByReason: Record<string, number>;
 }
@@ -77,32 +73,10 @@ const PaymentStatsSection: React.FC = () => {
   const [stats, setStats] = useState<PaymentStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [syncing, setSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState<{ synced: number; total: number } | null>(null);
-  
-  // Date range filter state
+
   const defaultRange = getDefaultDateRange();
   const [startDate, setStartDate] = useState(defaultRange.startDate);
   const [endDate, setEndDate] = useState(defaultRange.endDate);
-
-  const handleSyncPaymentTypes = async () => {
-    setSyncing(true);
-    setSyncResult(null);
-    try {
-      const res = await apiFetch("/api/dashboard/payments/sync-stripe-types", {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("Failed to sync payment types");
-      const data = await res.json();
-      setSyncResult({ synced: data.synced, total: data.total });
-      // Refresh stats after successful sync
-      fetchStats();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sync payment types");
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -124,132 +98,112 @@ const PaymentStatsSection: React.FC = () => {
 
   useEffect(() => {
     fetchStats();
-  }, [fetchStats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <FaSpinner className="animate-spin text-rose-500 mr-2" size={20} />
-        <span className="text-gray-600 font-calibri">Loading payment statistics...</span>
-      </div>
-    );
-  }
+  const hasStripeTypeData = stats && stats.revenueByStripeType && Object.keys(stats.revenueByStripeType).length > 0;
+  const revenueByMethodData = stats
+    ? (hasStripeTypeData
+      ? Object.entries(stats.revenueByStripeType)
+          .map(([type, value]) => ({
+            name: STRIPE_TYPE_LABELS[type] || type.replace(/_/g, " "),
+            value: Number(value),
+          }))
+          .filter(item => item.value > 0)
+      : [
+          { name: "Card/Stripe", value: stats.revenueByMethod.stripe },
+          { name: "Points", value: stats.revenueByMethod.points },
+          { name: "Mixed", value: stats.revenueByMethod.mixed },
+        ].filter(item => item.value > 0))
+    : [];
 
-  if (error) {
-    return (
-      <div className="bg-red-50 text-red-700 p-4 rounded-lg font-calibri">
-        <p className="font-medium">Error loading payment statistics</p>
-        <p className="text-sm">{error}</p>
-        <button
-          onClick={fetchStats}
-          className="mt-2 text-sm underline hover:no-underline"
-        >
-          Try again
-        </button>
-      </div>
-    );
-  }
+  const paymentsByStatusData = stats
+    ? [
+        { name: "Pending", value: stats.paymentsByStatus.pending, fill: BAR_COLORS[0] },
+        { name: "Completed", value: stats.paymentsByStatus.completed, fill: BAR_COLORS[1] },
+        { name: "Failed", value: stats.paymentsByStatus.failed, fill: BAR_COLORS[2] },
+        { name: "Refunded", value: stats.paymentsByStatus.refunded, fill: BAR_COLORS[3] },
+      ]
+    : [];
 
-  if (!stats) return null;
-
-  // Use Stripe payment types for detailed breakdown, fallback to payment method if no Stripe type data
-  const hasStripeTypeData = stats.revenueByStripeType && Object.keys(stats.revenueByStripeType).length > 0;
-  
-  const revenueByMethodData = hasStripeTypeData
-    ? Object.entries(stats.revenueByStripeType)
-        .map(([type, value]) => ({
-          name: STRIPE_TYPE_LABELS[type] || type.replace(/_/g, " "),
-          value: Number(value),
-        }))
-        .filter(item => item.value > 0)
-    : [
-        { name: "Card/Stripe", value: stats.revenueByMethod.stripe },
-        { name: "Points", value: stats.revenueByMethod.points },
-        { name: "Mixed", value: stats.revenueByMethod.mixed },
-      ].filter(item => item.value > 0);
-
-  const paymentsByStatusData = [
-    { name: "Pending", value: stats.paymentsByStatus.pending, fill: BAR_COLORS[0] },
-    { name: "Completed", value: stats.paymentsByStatus.completed, fill: BAR_COLORS[1] },
-    { name: "Failed", value: stats.paymentsByStatus.failed, fill: BAR_COLORS[2] },
-    { name: "Refunded", value: stats.paymentsByStatus.refunded, fill: BAR_COLORS[3] },
-  ];
-
-  const hasDisputes = stats.totalDisputes > 0;
-  const disputesByStatusData = Object.entries(stats.disputesByStatus).map(([status, count]) => ({
-    name: status.replace(/_/g, " "),
-    count,
-  }));
+  const hasDisputes = stats ? stats.totalDisputes > 0 : false;
+  const disputesByStatusData = stats
+    ? Object.entries(stats.disputesByStatus).map(([status, count]) => ({
+        name: status.replace(/_/g, " "),
+        count,
+      }))
+    : [];
 
   return (
     <div className="space-y-6">
-      {/* Date Range Filter and Sync Button */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      {/* Date Range Filter and Apply Button */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h3 className="font-calibri font-semibold text-xl text-gray-800">Payment Statistics</h3>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-wrap w-full lg:w-auto">
-          {/* Date Range Pickers */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-2">
-              <FaCalendarAlt className="text-gray-400" size={14} />
-              <label className="font-calibri text-sm text-gray-600">From:</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                max={endDate}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="font-calibri text-sm text-gray-600">To:</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                min={startDate}
-                max={new Date().toISOString().split("T")[0]}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm"
-              />
-            </div>
-            {/* Loading Spinner */}
-            {loading && (
-              <div className="flex items-center gap-2 text-rose-500">
-                <FaSpinner className="animate-spin" size={16} />
-                <span className="font-calibri text-sm text-gray-500">Loading...</span>
-              </div>
-            )}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <FaCalendarAlt className="text-gray-400 shrink-0" size={14} />
+          <div className="flex items-center gap-2">
+            <label className="font-calibri text-sm text-gray-600">From:</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              max={endDate}
+              disabled={loading}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            />
           </div>
-          {/* Sync Button */}
+          <div className="flex items-center gap-2">
+            <label className="font-calibri text-sm text-gray-600">To:</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              min={startDate}
+              max={new Date().toISOString().split("T")[0]}
+              disabled={loading}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 font-calibri text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            />
+          </div>
           <button
-            onClick={handleSyncPaymentTypes}
-            disabled={syncing}
-            className="flex items-center gap-2 px-3 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed font-calibri text-sm transition-colors"
+            type="button"
+            onClick={() => fetchStats()}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed font-calibri text-sm font-medium transition-colors"
           >
-            {syncing ? (
-              <FaSpinner className="animate-spin" size={14} />
+            {loading ? (
+              <>
+                <FaSpinner className="animate-spin shrink-0" size={14} aria-hidden />
+                <span>Loading…</span>
+              </>
             ) : (
-              <FaSync size={14} />
+              <span>Apply</span>
             )}
-            {syncing ? "Syncing..." : "Sync Payment Types"}
           </button>
         </div>
       </div>
 
-      {/* Sync Result Message */}
-      {syncResult && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg font-calibri flex items-center justify-between">
-          <span>
-            Successfully synced {syncResult.synced} of {syncResult.total} payment{syncResult.total !== 1 ? "s" : ""} with Stripe.
-          </span>
+      {error && (
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg font-calibri">
+          <p className="font-medium">Error loading payment statistics</p>
+          <p className="text-sm">{error}</p>
           <button
-            onClick={() => setSyncResult(null)}
-            className="text-green-700 hover:text-green-900 font-medium"
+            onClick={() => fetchStats()}
+            className="mt-2 text-sm underline hover:no-underline"
           >
-            Dismiss
+            Try again
           </button>
         </div>
       )}
 
+      {loading && !stats && (
+        <div className="flex items-center justify-center py-12" role="status" aria-live="polite" aria-busy="true">
+          <FaSpinner className="animate-spin text-rose-500 mr-2" size={20} aria-hidden />
+          <span className="text-gray-600 font-calibri">Loading payment statistics…</span>
+        </div>
+      )}
+
+      {stats && (
+        <>
       {/* Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         <div className="bg-white rounded-xl shadow border border-rose-100 p-4">
@@ -325,61 +279,8 @@ const PaymentStatsSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Charts Row */}
+      {/* Revenue by Payment Method and Payments by Status - side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Over Time */}
-        <div className="bg-white rounded-xl shadow border border-rose-100 p-4">
-          <h4 className="font-calibri font-semibold text-gray-700 mb-4">Revenue Over Time</h4>
-          {stats.revenueOverTime.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={stats.revenueOverTime}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis 
-                  dataKey="date" 
-                  tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }}
-                  tickFormatter={(value: string) => {
-                    // Auto-detect format based on value pattern
-                    if (value.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                      // Daily format: YYYY-MM-DD -> MM-DD
-                      return value.slice(5);
-                    }
-                    if (value.match(/^\d{4}-\d{1,2}$/)) {
-                      // Weekly format: YYYY-WW -> W##
-                      const parts = value.split('-');
-                      return `W${parts[1]}`;
-                    }
-                    // Monthly format: YYYY-MM -> keep as is
-                    return value;
-                  }}
-                />
-                <YAxis 
-                  tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }}
-                  tickFormatter={(value) => `$${value}`}
-                />
-                <Tooltip 
-                  formatter={(value) => [formatCurrency(Number(value)), 'Revenue']}
-                  labelFormatter={(label) => `Date: ${label}`}
-                  contentStyle={{ fontFamily: 'Calibri, sans-serif', fontSize: 13 }}
-                  labelStyle={{ fontFamily: 'Calibri, sans-serif', fontWeight: 600 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="amount" 
-                  stroke="#be123c" 
-                  strokeWidth={2}
-                  dot={{ fill: '#be123c', strokeWidth: 0, r: 3 }}
-                  activeDot={{ r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[250px] flex items-center justify-center text-gray-400 font-calibri">
-              No revenue data for this period
-            </div>
-          )}
-        </div>
-
-        {/* Revenue by Payment Method */}
         <div className="bg-white rounded-xl shadow border border-rose-100 p-4">
           <h4 className="font-calibri font-semibold text-gray-700 mb-4">Revenue by Payment Method</h4>
           {revenueByMethodData.length > 0 ? (
@@ -413,31 +314,30 @@ const PaymentStatsSection: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
 
-      {/* Payments by Status */}
-      <div className="bg-white rounded-xl shadow border border-rose-100 p-4">
-        <h4 className="font-calibri font-semibold text-gray-700 mb-4">Payments by Status</h4>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={paymentsByStatusData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-            <XAxis type="number" tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }} />
-            <YAxis 
-              dataKey="name" 
-              type="category" 
-              tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }}
-              width={80}
-            />
-            <Tooltip 
-              contentStyle={{ fontFamily: 'Calibri, sans-serif', fontSize: 13 }}
-            />
-            <Bar dataKey="value" name="Count" radius={[0, 4, 4, 0]}>
-              {paymentsByStatusData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="bg-white rounded-xl shadow border border-rose-100 p-4">
+          <h4 className="font-calibri font-semibold text-gray-700 mb-4">Payments by Status</h4>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={paymentsByStatusData} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis type="number" tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }} />
+              <YAxis 
+                dataKey="name" 
+                type="category" 
+                tick={{ fontSize: 11, fill: '#6b7280', fontFamily: 'Calibri, sans-serif' }}
+                width={80}
+              />
+              <Tooltip 
+                contentStyle={{ fontFamily: 'Calibri, sans-serif', fontSize: 13 }}
+              />
+              <Bar dataKey="value" name="Count" radius={[0, 4, 4, 0]}>
+                {paymentsByStatusData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Disputes Section (only shown if there are disputes) */}
@@ -484,6 +384,14 @@ const PaymentStatsSection: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {loading && stats && (
+        <div className="flex items-center justify-center gap-2 py-3" role="status" aria-live="polite" aria-busy="true">
+          <FaSpinner className="animate-spin text-rose-500 shrink-0" size={18} aria-hidden />
+          <span className="text-gray-600 font-calibri text-sm">Updating…</span>
+        </div>
+      )}
+        </>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import ConfirmDialog from "../../Shared/ConfirmDialog";
 import { apiFetch } from "../../../../utils/api";
 import { useGalleryData } from "./useGalleryData";
@@ -32,6 +32,7 @@ const DEFAULT_VIDEO_FORM: VideoFormData = {
 
 const GallerySection: React.FC = () => {
   const [tab, setTab] = useState<GalleryTab>("photos");
+  const [searchQuery, setSearchQuery] = useState("");
   const {
     photos,
     setPhotos,
@@ -40,6 +41,24 @@ const GallerySection: React.FC = () => {
     loadingPhotos,
     loadingVideos,
   } = useGalleryData();
+
+  const filteredPhotos = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return photos;
+    return photos.filter(
+      (r) =>
+        (r.alt ?? "").toLowerCase().includes(q) ||
+        (r.src ?? "").toLowerCase().includes(q)
+    );
+  }, [photos, searchQuery]);
+
+  const filteredVideos = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return videos;
+    return videos.filter(
+      (r) => (r.title ?? "").toLowerCase().includes(q)
+    );
+  }, [videos, searchQuery]);
 
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
@@ -171,10 +190,25 @@ const GallerySection: React.FC = () => {
         </button>
       </div>
 
+      <div className="w-full sm:max-w-xs">
+        <label htmlFor="gallery-search" className="sr-only">
+          {tab === "photos" ? "Search photos by caption or alt text" : "Search videos by title"}
+        </label>
+        <input
+          id="gallery-search"
+          type="search"
+          placeholder={tab === "photos" ? "Search by caption or alt text" : "Search by video title"}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 font-calibri text-gray-700 placeholder-gray-500 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+          aria-label={tab === "photos" ? "Search photos by caption or alt text" : "Search videos by title"}
+        />
+      </div>
+
       {tab === "photos" && (
         <PhotosTabPanel
           loading={loadingPhotos}
-          photos={photos}
+          photos={filteredPhotos}
           onAdd={openPhotoCreate}
           onEdit={openPhotoEdit}
           onDelete={setDeletePhoto}
@@ -183,7 +217,7 @@ const GallerySection: React.FC = () => {
       {tab === "videos" && (
         <VideosTabPanel
           loading={loadingVideos}
-          videos={videos}
+          videos={filteredVideos}
           onAdd={openVideoCreate}
           onEdit={openVideoEdit}
           onDelete={setDeleteVideo}

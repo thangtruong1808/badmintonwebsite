@@ -23,47 +23,22 @@ export interface PaymentStats {
     disputed: number;
     requires_action: number;
   };
-  revenueOverTime: Array<{ date: string; amount: number }>;
-  paymentCountOverTime: Array<{ date: string; count: number }>;
   disputesByStatus: Record<string, number>;
   disputesByReason: Record<string, number>;
 }
 
-/**
- * Calculate date range and auto-detect appropriate grouping format.
- * - 1-31 days: Group by day (%Y-%m-%d)
- * - 32-90 days: Group by week (%Y-%u)
- * - 91+ days: Group by month (%Y-%m)
- */
-function getDateRangeAndGrouping(startDate?: string, endDate?: string): { start: Date; end: Date; groupFormat: string } {
+function getDateRange(startDate?: string, endDate?: string): { start: Date; end: Date } {
   const end = endDate ? new Date(endDate + 'T23:59:59') : new Date();
   const start = startDate ? new Date(startDate + 'T00:00:00') : new Date();
-  
-  // Default to last 30 days if no dates provided
   if (!startDate) {
     start.setDate(end.getDate() - 30);
     start.setHours(0, 0, 0, 0);
   }
-  
-  // Calculate the span in days
-  const spanMs = end.getTime() - start.getTime();
-  const spanDays = Math.ceil(spanMs / (1000 * 60 * 60 * 24));
-  
-  // Auto-detect grouping format based on span
-  let groupFormat: string;
-  if (spanDays <= 31) {
-    groupFormat = '%Y-%m-%d'; // Group by day
-  } else if (spanDays <= 90) {
-    groupFormat = '%Y-%u'; // Group by week
-  } else {
-    groupFormat = '%Y-%m'; // Group by month
-  }
-
-  return { start, end, groupFormat };
+  return { start, end };
 }
 
 export const getPaymentStats = async (startDate?: string, endDate?: string): Promise<PaymentStats> => {
-  const { start, end, groupFormat } = getDateRangeAndGrouping(startDate, endDate);
+  const { start, end } = getDateRange(startDate, endDate);
   const startStr = start.toISOString().slice(0, 19).replace('T', ' ');
   const endStr = end.toISOString().slice(0, 19).replace('T', ' ');
 
@@ -71,23 +46,15 @@ export const getPaymentStats = async (startDate?: string, endDate?: string): Pro
     total_revenue: number;
     total_payments: number;
     avg_payment: number;
+    total_refunds: number;
   })[]>(
     `SELECT 
       COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total_revenue,
       COUNT(*) as total_payments,
-      COALESCE(AVG(CASE WHEN status = 'completed' THEN amount ELSE NULL END), 0) as avg_payment
+      COALESCE(AVG(CASE WHEN status = 'completed' THEN amount ELSE NULL END), 0) as avg_payment,
+      SUM(CASE WHEN status = 'refunded' THEN 1 ELSE 0 END) as total_refunds
     FROM payments
     WHERE created_at >= ? AND created_at <= ?`,
-    [startStr, endStr]
-  );
-
-  const [refundRows] = await pool.execute<(RowDataPacket & { total_refunds: number })[]>(
-    `SELECT COUNT(*) as total_refunds FROM payments WHERE status = 'refunded' AND created_at >= ? AND created_at <= ?`,
-    [startStr, endStr]
-  );
-
-  const [disputeCountRows] = await pool.execute<(RowDataPacket & { total_disputes: number })[]>(
-    `SELECT COUNT(*) as total_disputes FROM disputes WHERE created_at >= ? AND created_at <= ?`,
     [startStr, endStr]
   );
 
@@ -123,31 +90,6 @@ export const getPaymentStats = async (startDate?: string, endDate?: string): Pro
      FROM payments
      WHERE created_at >= ? AND created_at <= ?
      GROUP BY status`,
-    [startStr, endStr]
-  );
-
-  const [revenueTimeRows] = await pool.execute<(RowDataPacket & { 
-    date_group: string; 
-    total: number 
-  })[]>(
-    `SELECT DATE_FORMAT(created_at, '${groupFormat}') as date_group, 
-            COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0) as total
-     FROM payments
-     WHERE created_at >= ? AND created_at <= ?
-     GROUP BY date_group
-     ORDER BY date_group ASC`,
-    [startStr, endStr]
-  );
-
-  const [paymentCountTimeRows] = await pool.execute<(RowDataPacket & { 
-    date_group: string; 
-    count: number 
-  })[]>(
-    `SELECT DATE_FORMAT(created_at, '${groupFormat}') as date_group, COUNT(*) as count
-     FROM payments
-     WHERE created_at >= ? AND created_at <= ?
-     GROUP BY date_group
-     ORDER BY date_group ASC`,
     [startStr, endStr]
   );
 
@@ -216,27 +158,19 @@ export const getPaymentStats = async (startDate?: string, endDate?: string): Pro
   }
 
   const totalPayments = Number(summaryRows[0]?.total_payments ?? 0);
-  const totalDisputes = Number(disputeCountRows[0]?.total_disputes ?? 0);
+  const totalDisputes = Object.values(disputesByStatus).reduce((a, b) => a + b, 0);
   const disputeRate = totalPayments > 0 ? (totalDisputes / totalPayments) * 100 : 0;
 
   return {
     totalRevenue: Number(summaryRows[0]?.total_revenue ?? 0),
     totalPayments,
     averagePaymentAmount: Number(summaryRows[0]?.avg_payment ?? 0),
-    totalRefunds: Number(refundRows[0]?.total_refunds ?? 0),
+    totalRefunds: Number(summaryRows[0]?.total_refunds ?? 0),
     totalDisputes,
     disputeRate: Math.round(disputeRate * 100) / 100,
     revenueByMethod,
     revenueByStripeType,
     paymentsByStatus,
-    revenueOverTime: revenueTimeRows.map(r => ({
-      date: r.date_group,
-      amount: Number(r.total),
-    })),
-    paymentCountOverTime: paymentCountTimeRows.map(r => ({
-      date: r.date_group,
-      count: Number(r.count),
-    })),
     disputesByStatus,
     disputesByReason,
   };

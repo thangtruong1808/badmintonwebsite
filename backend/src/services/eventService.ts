@@ -179,6 +179,14 @@ function deduplicateEvents(rows: EventRow[]): EventRow[] {
   });
 }
 
+/** Lightweight count for dashboard overview; avoids loading full event rows. */
+export const getEventsCount = async (): Promise<number> => {
+  const [rows] = await pool.execute<RowDataPacket[]>(
+    'SELECT COUNT(*) AS count FROM events'
+  );
+  return Number(rows[0]?.count ?? 0);
+};
+
 export const getAllEvents = async (
   fromDate?: string,
   toDate?: string,
